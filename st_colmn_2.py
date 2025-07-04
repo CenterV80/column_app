@@ -2,14 +2,13 @@
 #streamlit run st_colmn_2.py
 #git remote set-url origin https://github.com/CenterV80/column-app.git
 import streamlit as st
-import json
 import pandas as pd
 
 class ColmnApp:
     def __init__(self):
         if 'column_note' not in st.session_state:#st.session_stateの格納のされ方が辞書型
             st.session_state['column_note'] = []
-        print(type(st.session_state.column_note))
+        #print(type(st.session_state.column_note))
         
     def input_ui(self):
         with st.form("my_form", clear_on_submit=True):
@@ -69,6 +68,21 @@ class ColmnApp:
             #.pop(deleate_index)で整数番目のリストを削除する
             
             st.rerun()
+        
+        # ダウンロードボタン
+        df = pd.DataFrame(st.session_state.column_note)
+        json_data = df.to_json(#JSON文字列に変換しています。
+            orient='records',#各行が1つの dict として出力されます
+            force_ascii=False#-指定することで、日本語などの非ASCII文字がそのまま残るようになります
+        )
+        
+        print(json_data)
+        st.download_button(
+            label='jsonで保存',# ボタン表示ラベル
+            data=json_data,# 保存対象データ（文字列 or バイナリ）
+            file_name='data.json',# ダウンロードされるファイル名
+            mime="application/json"# MIMEタイプ（データの種類）
+        )
 
 def main():
     app = ColmnApp()
