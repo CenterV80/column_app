@@ -3,14 +3,21 @@
 #git remote set-url origin https://github.com/CenterV80/column_app.git
 import streamlit as st
 import pandas as pd
-#
+import json
 
 class ColmnApp:
     def __init__(self):
+       
         if 'column_note' not in st.session_state:#st.session_stateの格納のされ方が辞書型
             st.session_state['column_note'] = []
         #print(type(st.session_state.column_note))
         
+        uploaded_file =st.file_uploader("JSONをアップロード", type="json")
+        if uploaded_file:
+            data = json.load(uploaded_file)
+            st.session_state.column_note = data   
+        
+       
     def input_ui(self):
         with st.form("my_form", clear_on_submit=True):
             st.markdown("### 📝 コラム記録")
