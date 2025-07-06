@@ -12,9 +12,13 @@ class ColmnApp:
             st.session_state['column_note'] = []
         #print(type(st.session_state.column_note))
         
+             
         uploaded_file =st.file_uploader("JSONをアップロード", type="json")
+        
         if uploaded_file:
-            data = json.load(uploaded_file)
+            file_bytes = uploaded_file.read()#アップロードされたファイルの中身を全部読み込む（返り値は bytes 型）
+            file_str = file_bytes.decode('utf-8-sig')#bytes を文字列（str 型）に変換する。「utf-8-sig」だと BOM 付き UTF-8 に対応できる
+            data = json.loads(file_str)#JSON 文字列を Python のリストや辞書に変換
             st.session_state.column_note = data   
         
        
