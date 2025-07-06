@@ -1,6 +1,6 @@
 #cd 'C:\Users\nakas\OneDrive\ドキュメント\PytonScript\code\streamlit_app'    
 #streamlit run st_colmn_2.py
-#git remote set-url origin https://github.com/CenterV80/column-app.git
+#git remote set-url origin https://github.com/CenterV80/column_app.git
 import streamlit as st
 import pandas as pd
 #
