@@ -1,0 +1,265 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+    "Yu Gothic", Meiryo, sans-serif;
+  overflow: hidden;
+  background: #f7f7f8;
+}
+
+#app {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
+
+#sidebar {
+  width: 320px;
+  min-width: 240px;
+  max-width: 45vw;
+  background: #ffffff;
+  border-right: 1px solid #dcdcdc;
+  display: flex;
+  flex-direction: column;
+  resize: horizontal;
+  overflow: auto;
+}
+
+#sidebar-header {
+  padding: 14px 16px 8px;
+  border-bottom: 1px solid #eee;
+}
+
+#sidebar-header h1 {
+  font-size: 17px;
+  margin: 0;
+  color: #333;
+}
+
+#expr-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.expr-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.expr-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: none;
+  cursor: pointer;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  padding: 0;
+}
+
+.expr-color-picker {
+  position: absolute;
+  display: none;
+  flex-wrap: wrap;
+  width: 132px;
+  gap: 4px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  z-index: 20;
+}
+
+.expr-color-picker.open {
+  display: flex;
+}
+
+.expr-color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.expr-index {
+  font-size: 11px;
+  color: #aaa;
+  width: 14px;
+  flex: none;
+  text-align: right;
+}
+
+.expr-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-family: "Cambria Math", Cambria, "Times New Roman", serif;
+  padding: 6px 4px;
+  background: transparent;
+  color: #222;
+}
+
+.expr-input.error {
+  color: #c0392b;
+}
+
+.expr-row.disabled .expr-input {
+  color: #bbb;
+  text-decoration: line-through;
+}
+
+.expr-toggle {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.5;
+  font-size: 13px;
+}
+
+.expr-toggle:hover {
+  opacity: 1;
+}
+
+.expr-delete {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #999;
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0;
+}
+
+.expr-row:hover .expr-delete {
+  opacity: 1;
+}
+
+.expr-delete:hover {
+  color: #c0392b;
+}
+
+.expr-error-msg {
+  font-size: 11px;
+  color: #c0392b;
+  padding: 0 8px 4px 24px;
+}
+
+#add-expr {
+  margin: 8px;
+  padding: 8px;
+  border: 1px dashed #ccc;
+  background: #fafafa;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #555;
+  font-size: 13px;
+}
+
+#add-expr:hover {
+  background: #f0f0f0;
+}
+
+#sidebar-footer {
+  padding: 8px;
+  border-top: 1px solid #eee;
+}
+
+#sidebar-footer button {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #444;
+}
+
+#sidebar-footer button:hover {
+  background: #f5f5f5;
+}
+
+#graph-area {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #fff;
+}
+
+#graph {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+#graph:active {
+  cursor: grabbing;
+}
+
+#zoom-controls {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+#zoom-controls button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: white;
+  font-size: 18px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  color: #444;
+}
+
+#zoom-controls button:last-child {
+  border-bottom: none;
+}
+
+#zoom-controls button:hover {
+  background: #f2f2f2;
+}
+
+#coord-readout {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  font-size: 12px;
+  color: #888;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 3px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  #sidebar {
+    width: 55vw;
+  }
+}
