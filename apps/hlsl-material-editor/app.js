@@ -37,6 +37,7 @@ class HLSLEditor {
 
   init() {
     this.setupThreeJS();
+    this.setupMobileTabs();
     this.setupEditorEvents();
     this.setupMobileToggle();
     this.setupControlsEvents();
@@ -268,6 +269,37 @@ class HLSLEditor {
         }
       });
     }
+  }
+
+  setupMobileTabs() {
+    const isMobile = window.innerWidth <= 768;
+    if (!isMobile) return;
+
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const editorPanel = document.getElementById('editorPanel');
+    const previewPanel = document.getElementById('previewPanel');
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+
+        // Update active tab button
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Show/hide panels
+        if (tab === 'editor') {
+          editorPanel.classList.remove('hidden');
+          previewPanel.classList.remove('active');
+        } else if (tab === 'preview') {
+          editorPanel.classList.add('hidden');
+          previewPanel.classList.add('active');
+        }
+      });
+    });
+
+    // Set initial state (editor tab active)
+    tabButtons[0].classList.add('active');
   }
 
   setupControlsEvents() {

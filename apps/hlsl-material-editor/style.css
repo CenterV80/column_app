@@ -75,6 +75,10 @@ header p {
   background-color: var(--bg-primary);
 }
 
+.mobile-tabs {
+  display: none;
+}
+
 .main-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -316,28 +320,66 @@ button {
     font-size: 20px;
   }
 
+  .mobile-tabs {
+    display: flex;
+    gap: 0;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    border-bottom: 3px solid transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+  }
+
+  .tab-btn:hover {
+    background-color: var(--bg-primary);
+  }
+
   .main-content {
     grid-template-columns: 1fr;
     flex: 1;
-    min-height: 200px;
+    min-height: 0;
   }
 
   .editor-panel {
     flex: 1;
-    min-height: 300px;
+    min-height: 0;
   }
 
   .preview-panel {
-    display: none !important;
+    display: none;
+  }
+
+  .preview-panel.active {
+    display: flex;
+  }
+
+  .editor-panel.hidden {
+    display: none;
   }
 
   #codeEditor {
     flex: 1;
-    min-height: 250px;
+    min-height: 0;
   }
 
   .error-display {
-    max-height: 60px;
+    max-height: 80px;
   }
 
   .controls-grid {
