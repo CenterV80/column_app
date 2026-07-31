@@ -2,9 +2,10 @@
 
 気になる記事をここに追加していきます。
 
-## 最新の記事
+## 2026年7月
 
-### 日付順のセクション（随時更新）
+### MiniMax-H3 - 動画生成AIモデル
+[MiniMax-H3 on ModelScope](https://modelscope.cn/models/MiniMax/MiniMax-H3/summary)
 
-記事はここに追加されます...
+動画生成AI「MiniMax-H3」のモデルカードと詳細情報。
 
