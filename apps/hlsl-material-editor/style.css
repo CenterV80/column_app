@@ -80,6 +80,7 @@ header p {
   grid-template-columns: 1fr 1fr;
   gap: 1px;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
   background-color: var(--border-color);
 }
@@ -90,6 +91,7 @@ header p {
   flex-direction: column;
   background-color: var(--bg-primary);
   overflow: hidden;
+  min-height: 0;
 }
 
 .panel-header {
@@ -316,14 +318,26 @@ button {
 
   .main-content {
     grid-template-columns: 1fr;
+    flex: 1;
+    min-height: 200px;
   }
 
   .editor-panel {
     flex: 1;
+    min-height: 300px;
   }
 
   .preview-panel {
-    display: none;
+    display: none !important;
+  }
+
+  #codeEditor {
+    flex: 1;
+    min-height: 250px;
+  }
+
+  .error-display {
+    max-height: 60px;
   }
 
   .controls-grid {
@@ -347,8 +361,14 @@ button {
     overflow-y: auto;
   }
 
+  .controls-panel {
+    flex-shrink: 0;
+    max-height: auto;
+  }
+
   .controls-panel.expanded {
-    flex-shrink: 1;
+    flex-shrink: 0;
     max-height: 60vh;
+    overflow-y: auto;
   }
 }
