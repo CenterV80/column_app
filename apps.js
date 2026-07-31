@@ -8,4 +8,10 @@ const APPS = [
     path: "apps/graph-calculator/",
     icon: "📈",
   },
+  {
+    name: "動画AI LTX-2.3のしくみ入門",
+    description: "latent・conditioning・guide・IC-LoRAといったキーワードから、動画生成AIのしくみを初心者向けに図解で解説します。",
+    path: "apps/ltx2-video-ai-guide/",
+    icon: "🎬",
+  },
 ];

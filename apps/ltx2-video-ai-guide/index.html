@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>動画生成AI「LTX-2.3」のしくみ入門 | column_app</title>
+<meta name="description" content="動画生成AI LTX-2.3のしくみを、latent（潜在空間）・conditioning（条件付け）・guide（ガイダンス）・IC-LoRAという4つのキーワードから初心者向けにやさしく解説します。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <a class="back-link" href="../../index.html">← アプリ一覧に戻る</a>
+
+  <header class="hero">
+    <div class="hero-icon">🎬</div>
+    <h1>動画生成AI「LTX-2.3」のしくみ<br>やさしく図解入門</h1>
+    <p class="hero-lead">
+      「latent」「conditioning」「guide」「IC-LoRA」…動画生成AIの説明でよく出てくるけど、
+      正直よくわからないカタカナ用語。この記事では、それぞれを身近なたとえ話に置きかえながら、
+      LTX-2.3のような動画生成AIが「文章や画像から、どうやって動画を作り出しているのか」を順番に見ていきます。
+    </p>
+    <div class="hero-badges">
+      <span class="badge">初心者向け</span>
+      <span class="badge">図解あり</span>
+      <span class="badge">所要時間 約8分</span>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="目次">
+    <div class="toc-title">この記事でわかること</div>
+    <ol>
+      <li><a href="#overview">LTX-2.3ってそもそも何？</a></li>
+      <li><a href="#flow">動画ができるまでの全体の流れ</a></li>
+      <li><a href="#latent">① Latent（潜在空間）とは</a></li>
+      <li><a href="#conditioning">② Conditioning（条件付け）とは</a></li>
+      <li><a href="#guide">③ Guide / Guidance（ガイダンス）とは</a></li>
+      <li><a href="#iclora">④ IC-LoRAとは</a></li>
+      <li><a href="#summary">全体像まとめ</a></li>
+      <li><a href="#glossary">用語集</a></li>
+    </ol>
+  </nav>
+
+  <section id="overview" class="section">
+    <h2><span class="step-badge">Intro</span>LTX-2.3ってそもそも何？</h2>
+    <p>
+      LTX-2.3は、テキストや画像を入力すると動画を生成してくれる「動画生成AI」の仲間です。
+      仕組みとしては、いま主流になっている<strong>潜在拡散モデル（Latent Diffusion Model）</strong>という
+      考え方をベースにしています。名前だけ聞くと難しそうですが、やっていることを一言でいうと、
+    </p>
+    <blockquote class="quote">
+      「ノイズだらけのぼんやりした映像」を、少しずつきれいな映像に磨き上げていくAI
+    </blockquote>
+    <p>
+      です。この記事では、その「磨き上げ」の過程を支える4つの重要な仕組み―
+      <strong>Latent（潜在空間）</strong>・<strong>Conditioning（条件付け）</strong>・
+      <strong>Guide（ガイダンス）</strong>・<strong>IC-LoRA</strong>―を、なるべく専門用語に頼らずに解説します。
+    </p>
+  </section>
+
+  <section id="flow" class="section">
+    <h2><span class="step-badge">全体像</span>動画ができるまでの流れ</h2>
+    <p>まず全体の流れをざっくり図にしてみます。細かい部分は後の章で1つずつ説明するので、今は「こんな順番で処理されるんだな」という雰囲気だけつかめばOKです。</p>
+
+    <div class="flow-diagram">
+      <div class="flow-box">
+        <div class="flow-emoji">📝🖼️</div>
+        <div class="flow-label">入力</div>
+        <div class="flow-sub">プロンプト文・参照画像</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight-conditioning">
+        <div class="flow-emoji">🧭</div>
+        <div class="flow-label">Conditioning</div>
+        <div class="flow-sub">条件を数値化して埋め込む</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight-latent">
+        <div class="flow-emoji">🌫️→✨</div>
+        <div class="flow-label">Latent空間でノイズ除去</div>
+        <div class="flow-sub">Guide / IC-LoRAで舵取り</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-emoji">🎞️</div>
+        <div class="flow-label">出力</div>
+        <div class="flow-sub">動画（ピクセル映像）</div>
+      </div>
+    </div>
+    <p class="caption">図1：入力から動画が出力されるまでのおおまかな流れ</p>
+  </section>
+
+  <section id="latent" class="section">
+    <h2><span class="step-badge">①</span>Latent（潜在空間）とは</h2>
+    <p>
+      動画は「1秒間に何十枚もの高解像度の絵」の集まりなので、そのままピクセル単位でAIに扱わせようとすると、
+      情報量が膨大すぎて計算コストが天文学的になってしまいます。
+    </p>
+    <p>
+      そこでLTX-2.3のような動画生成AIは、まず動画（あるいはノイズ）を
+      <strong>VAE（Variational Autoencoder＝変分オートエンコーダ）</strong>という仕組みで、
+      ずっと小さいサイズの「意味だけを凝縮したデータ」に圧縮します。この圧縮された小さいデータの置き場所が
+      <strong>latent（潜在空間）</strong>です。
+    </p>
+
+    <div class="analogy-box">
+      <div class="analogy-title">💡 たとえるなら</div>
+      <p>
+        4K動画ファイルをそのまま手描きで修正するのは大変ですが、
+        「サムネイルサイズの下描き」ならサッと何度も描き直せますよね。
+        Latentは、AIにとっての「効率よく編集できる下描きサイズのキャンバス」のようなものです。
+        AIはこの小さいキャンバス（潜在空間）の中でノイズ除去という名の「下描き修正」を繰り返し、
+        最後にVAEで元の解像度の映像へと引き伸ばして仕上げます。
+      </p>
+    </div>
+
+    <div class="diagram-row">
+      <div class="pixel-block">
+        <div class="pixel-block-title">ピクセル空間</div>
+        <div class="pixel-grid">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="pixel-caption">情報量：大／扱いにくい</div>
+      </div>
+      <div class="diagram-arrow">
+        <span>VAEエンコード →</span>
+        <span>← VAEデコード</span>
+      </div>
+      <div class="latent-block">
+        <div class="pixel-block-title">Latent空間</div>
+        <div class="latent-grid">
+          <span></span><span></span>
+          <span></span><span></span>
+        </div>
+        <div class="pixel-caption">情報量：小／AIが計算しやすい</div>
+      </div>
+    </div>
+    <p class="caption">図2：ピクセル空間とLatent空間の関係。AIは主にLatent空間の中で「考える」</p>
+
+    <div class="point-box">
+      <strong>ポイント：</strong> Latentは「動画そのもの」ではなく「動画の意味を圧縮した数値の集まり」。
+      AIがノイズ除去を行う舞台裏の作業場が潜在空間です。
+    </div>
+  </section>
+
+  <section id="conditioning" class="section">
+    <h2><span class="step-badge">②</span>Conditioning（条件付け）とは</h2>
+    <p>
+      潜在空間の中でノイズ除去をするだけなら、AIは「それっぽい映像」をランダムに作ることしかできません。
+      ユーザーが入力した「夕日の海辺を歩く犬」のような指示どおりの映像にするために必要なのが
+      <strong>conditioning（条件付け）</strong>です。
+    </p>
+    <p>
+      具体的には、テキストプロンプトはテキストエンコーダーによって「意味を表す数値の並び（embedding）」に変換され、
+      参照画像や参照動画があればそれも同様に数値化されます。この数値化された条件は、
+      ノイズ除去を行うネットワーク（多くはDiT＝Diffusion Transformerと呼ばれる構造）の内部に
+      <strong>クロスアテンション</strong>という仕組みを通じて何度も参照され、
+      「ノイズをどちらの方向に削っていくべきか」の道しるべになります。
+    </p>
+
+    <div class="analogy-box">
+      <div class="analogy-title">💡 たとえるなら</div>
+      <p>
+        彫刻家が大理石を彫るときに、完成イメージのスケッチをずっと横に置いて見比べながら彫り進めるようなものです。
+        Conditioningは、そのスケッチにあたります。AIはノイズ除去の1ステップごとに、
+        「今の状態は条件（スケッチ）に近づいているか？」を確認しながら削っていきます。
+      </p>
+    </div>
+
+    <div class="mini-flow">
+      <div class="mini-flow-item">📝 「夕日の海辺を歩く犬」</div>
+      <div class="mini-flow-arrow">↓ テキストエンコーダー</div>
+      <div class="mini-flow-item">🔢 条件の埋め込みベクトル</div>
+      <div class="mini-flow-arrow">↓ クロスアテンションで参照</div>
+      <div class="mini-flow-item">🌀 Latent内のノイズ除去プロセスに影響</div>
+    </div>
+
+    <div class="point-box">
+      <strong>ポイント：</strong> Conditioningは「AIに何を作ってほしいか」を数値の形で伝え続ける仕組み。
+      これがあるからこそ、ランダムな映像ではなくプロンプト通りの映像が生成されます。
+    </div>
+  </section>
+
+  <section id="guide" class="section">
+    <h2><span class="step-badge">③</span>Guide / Guidance（ガイダンス）とは</h2>
+    <p>
+      Conditioningで「条件」を渡しても、AIがその条件をどれくらい忠実に守るかは別問題です。
+      その「忠実さの強さ」を調整するのが <strong>guide（ガイダンス）</strong>、
+      よく使われる方式は <strong>CFG（Classifier-Free Guidance）</strong>と呼ばれるテクニックです。
+    </p>
+    <p>
+      仕組みをかんたんに言うと、AIは1ステップごとに2種類の予測を行います。
+    </p>
+    <ul class="check-list">
+      <li><strong>条件ありの予測</strong>：プロンプトを考慮したときの「削るべきノイズ」</li>
+      <li><strong>条件なしの予測</strong>：プロンプトを無視したときの「削るべきノイズ」</li>
+    </ul>
+    <p>
+      この2つの差（＝条件が予測に与えた影響分）を計算し、その差を
+      <strong>guidance scale（ガイダンス強度）</strong>という倍率で強調してから最終的な予測に反映します。
+      値を大きくするほどプロンプトに忠実で明確な映像に、小さくするほど自由でランダム性の強い映像になります。
+    </p>
+
+    <div class="analogy-box">
+      <div class="analogy-title">💡 たとえるなら</div>
+      <p>
+        カーナビの「音声案内の声量つまみ」のようなものです。声量を上げる（guidance scaleを上げる）ほど
+        指示に忠実にルート通り進みますが、上げすぎると不自然に強調されすぎたり、
+        映像のディテールが破綻することもあります。逆に声量を下げすぎると、
+        指示をあまり聞かずに自由気ままなルートを走ってしまいます。ちょうどよい強さのバランスが重要です。
+      </p>
+    </div>
+
+    <div class="slider-illustration">
+      <div class="slider-track">
+        <div class="slider-mark low">弱い<br><span>プロンプト無視ぎみ／自由な映像</span></div>
+        <div class="slider-mark mid">適切<br><span>指示と自然さのバランス◎</span></div>
+        <div class="slider-mark high">強い<br><span>プロンプト忠実／過剰強調のリスク</span></div>
+      </div>
+    </div>
+    <p class="caption">図3：guidance scaleの強弱によって、プロンプトへの忠実さと映像の自然さのバランスが変わる</p>
+
+    <div class="point-box">
+      <strong>ポイント：</strong> Guideは「条件付けの効き目を何倍に増幅するか」を決めるつまみ。
+      Conditioningが「方向」を示すなら、Guideは「その方向にどれだけ強く進むか」を決めます。
+    </div>
+  </section>
+
+  <section id="iclora" class="section">
+    <h2><span class="step-badge">④</span>IC-LoRAとは</h2>
+
+    <h3 class="sub-heading">まずLoRAとは</h3>
+    <p>
+      <strong>LoRA（Low-Rank Adaptation）</strong>は、巨大なAIモデルの全パラメータを再学習する代わりに、
+      各層に小さな「追加の調整レイヤー（低ランク行列）」だけを差し込んで学習する手法です。
+      本体のモデルはそのままに、軽量な追加パーツだけを学習・入れ替えできるので、
+      新しいスタイルや新しい機能を低コストで後付けできます。
+    </p>
+
+    <h3 class="sub-heading">IC-LoRA（In-Context LoRA）とは</h3>
+    <p>
+      <strong>IC-LoRA（In-Context LoRA）</strong>は、このLoRAの仕組みを使って、
+      「深度マップ」「輪郭線（エッジ）」「ポーズ骨格」「カメラの動き」といった
+      追加の制御情報（コントロール信号）を動画生成に反映させるテクニックです。
+    </p>
+    <p>
+      ポイントは、制御用の別モデル（いわゆるControlNetのような外付け構造）を新たに用意するのではなく、
+      制御信号そのものを<strong>同じLatent（潜在空間）の中に、追加の文脈（コンテキスト）として一緒に並べてしまう</strong>
+      ことです（これが「In-Context」という名前の由来です）。そして、その追加された文脈情報を
+      うまく活用できるように、LoRAという軽量な追加レイヤーだけを学習します。
+    </p>
+
+    <div class="analogy-box">
+      <div class="analogy-title">💡 たとえるなら</div>
+      <p>
+        画家に「この構図・ポーズの通りに描いてください」と、完成見本の下絵を隣に並べて渡すようなものです。
+        画家（＝ベースのモデル）を一から鍛え直す必要はなく、
+        「隣の下絵をどう参考にすればよいか」のコツ（＝LoRA）だけを追加で覚えてもらえば、
+        既存の画力を活かしたまま、狙った構図・動きの絵（動画）を描けるようになります。
+      </p>
+    </div>
+
+    <div class="flow-diagram compact">
+      <div class="flow-box">
+        <div class="flow-emoji">🌀</div>
+        <div class="flow-label">ベースのLatent</div>
+      </div>
+      <div class="flow-plus">＋</div>
+      <div class="flow-box">
+        <div class="flow-emoji">🦴🗺️</div>
+        <div class="flow-label">制御信号<br><span class="flow-sub">深度・ポーズ・エッジなど</span></div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight-latent">
+        <div class="flow-emoji">🧩</div>
+        <div class="flow-label">同じ文脈として結合</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight-conditioning">
+        <div class="flow-emoji">🔧</div>
+        <div class="flow-label">IC-LoRAが<br>活用の仕方を学習</div>
+      </div>
+    </div>
+    <p class="caption">図4：IC-LoRAは制御信号を「別モデル」ではなく「同じ文脈」としてLatentに組み込み、軽量なLoRAでその使い方を学習する</p>
+
+    <div class="point-box">
+      <strong>ポイント：</strong> IC-LoRAは、Conditioning（何を作るか）と Guide（どれだけ忠実に作るか）の
+      仕組みの上に、「どんな構図・動き・見た目にするか」という<em>より細かい制御</em>を、
+      軽量なアドオンとして後付けできるようにする技術です。
+    </div>
+  </section>
+
+  <section id="summary" class="section">
+    <h2><span class="step-badge">まとめ</span>4つの仕組みの関係を1枚で</h2>
+    <p>
+      最後に、4つの用語がそれぞれどう役割分担しているかを整理します。
+    </p>
+
+    <div class="summary-table-wrap">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>用語</th>
+            <th>役割</th>
+            <th>ひとことで言うと</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Latent</td>
+            <td>AIが計算する「作業場所」</td>
+            <td>圧縮された下描きキャンバス</td>
+          </tr>
+          <tr>
+            <td>Conditioning</td>
+            <td>何を作るか伝える「指示」</td>
+            <td>横に置く完成イメージのスケッチ</td>
+          </tr>
+          <tr>
+            <td>Guide（Guidance）</td>
+            <td>指示への「忠実さ」を調整するつまみ</td>
+            <td>音声案内の声量つまみ</td>
+          </tr>
+          <tr>
+            <td>IC-LoRA</td>
+            <td>構図・動きなどを細かく後付け制御する仕組み</td>
+            <td>お手本の下絵を見ながら描くコツを覚える</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      LTX-2.3のような最新の動画生成AIも、根っこの部分ではこの4つの仕組みの組み合わせで成り立っています。
+      それぞれの役割さえイメージできれば、「なぜプロンプトを変えると動画が変わるのか」
+      「なぜguidanceの値を変えると仕上がりが変わるのか」「なぜ深度マップなどを渡すだけで構図を制御できるのか」が、
+      ぐっと理解しやすくなるはずです。
+    </p>
+  </section>
+
+  <section id="glossary" class="section">
+    <h2><span class="step-badge">用語集</span>かんたん用語辞典</h2>
+    <dl class="glossary">
+      <dt>拡散モデル（Diffusion Model）</dt>
+      <dd>ノイズだらけのデータから少しずつノイズを取り除き、きれいなデータを生成するAIの仕組み。</dd>
+
+      <dt>VAE（Variational Autoencoder）</dt>
+      <dd>データを小さな潜在空間に圧縮（エンコード）したり、元のサイズに復元（デコード）したりするモデル。</dd>
+
+      <dt>DiT（Diffusion Transformer）</dt>
+      <dd>Transformer構造を使ったノイズ除去ネットワーク。近年の動画・画像生成AIで広く使われる構造。</dd>
+
+      <dt>Embedding（埋め込み）</dt>
+      <dd>テキストや画像の「意味」を、AIが扱いやすい数値ベクトルに変換したもの。</dd>
+
+      <dt>クロスアテンション</dt>
+      <dd>ノイズ除去の各ステップで、条件（embedding）のどの部分に注目するかを計算する仕組み。</dd>
+
+      <dt>CFG（Classifier-Free Guidance）</dt>
+      <dd>条件ありと条件なしの予測差を強調することで、プロンプトへの忠実度を調整するテクニック。</dd>
+
+      <dt>LoRA（Low-Rank Adaptation）</dt>
+      <dd>モデル全体を再学習せず、小さな追加レイヤーだけを学習して機能を後付けする軽量な学習手法。</dd>
+
+      <dt>IC-LoRA（In-Context LoRA）</dt>
+      <dd>制御信号（深度・ポーズ・エッジなど）を同じ潜在空間の文脈として結合し、LoRAでその活用方法を学習する手法。</dd>
+    </dl>
+  </section>
+
+  <footer class="page-footer">
+    <p>
+      ※本記事は、latent diffusion／DiT／CFG／LoRAといった動画生成AIに共通する一般的な技術要素をもとに、
+      LTX-2.3のような最新モデルの仕組みを初心者向けにわかりやすく単純化して説明したものです。
+      実際のモデルの内部実装は、モデルやバージョンによって細部が異なる場合があります。
+    </p>
+    <a class="back-link" href="../../index.html">← アプリ一覧に戻る</a>
+  </footer>
+
+</div>
+
+</body>
+</html>
