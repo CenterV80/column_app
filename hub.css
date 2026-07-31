@@ -18,6 +18,18 @@ html, body {
   padding: 48px 24px;
 }
 
+.back-link {
+  display: inline-block;
+  color: #777;
+  text-decoration: none;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.back-link:hover {
+  color: #222;
+}
+
 header h1 {
   font-size: 26px;
   margin: 0 0 6px;
@@ -28,13 +40,13 @@ header p {
   margin: 0 0 32px;
 }
 
-#app-grid {
+#card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
 }
 
-.app-card {
+.card {
   display: block;
   background: #ffffff;
   border: 1px solid #e2e2e2;
@@ -45,23 +57,23 @@ header p {
   transition: box-shadow 0.15s, transform 0.15s;
 }
 
-.app-card:hover {
+.card:hover {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
 
-.app-card-icon {
+.card-icon {
   font-size: 28px;
   margin-bottom: 10px;
 }
 
-.app-card-name {
+.card-name {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 6px;
 }
 
-.app-card-desc {
+.card-desc {
   font-size: 13px;
   color: #777;
   line-height: 1.5;
