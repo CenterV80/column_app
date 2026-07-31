@@ -3,6 +3,13 @@
 // categories/<id>/index.html to list them.
 const CATEGORIES = [
   {
+    id: "articles",
+    name: "記事まとめ",
+    description: "気になる記事をまとめています。",
+    path: "articles.html",
+    icon: "📚",
+  },
+  {
     id: "ltx",
     name: "LTX",
     description: "動画生成AI「LTX」シリーズのしくみを解説する記事です。",
