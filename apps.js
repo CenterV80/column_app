@@ -24,4 +24,11 @@ const APPS = [
     icon: "🎨",
     category: "mini-apps",
   },
+  {
+    name: "8ビット シューティングゲーム",
+    description: "懐かしのドット絵スタイル。敵を撃ってスコアを稼ぎましょう。矢印キーで移動、スペースで射撃。",
+    path: "apps/8bit-shooting-game/",
+    icon: "🎮",
+    category: "mini-apps",
+  },
 ];
