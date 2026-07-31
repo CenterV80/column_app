@@ -162,10 +162,41 @@ canvas {
 .controls-panel {
   background-color: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
-  padding: 16px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.controls-panel .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-controls-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.btn-controls-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+.controls-content {
+  padding: 16px;
   max-height: 200px;
   overflow-y: auto;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.controls-content.collapsed {
+  max-height: 0;
+  padding: 0 16px;
+  overflow: hidden;
 }
 
 .controls-grid {
@@ -283,11 +314,41 @@ button {
     font-size: 20px;
   }
 
-  .controls-grid {
-    grid-template-columns: 1fr 1fr;
+  .main-content {
+    grid-template-columns: 1fr;
   }
 
-  .controls-panel {
-    max-height: 250px;
+  .editor-panel {
+    flex: 1;
+  }
+
+  .preview-panel {
+    display: none;
+  }
+
+  .controls-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .btn-controls-toggle {
+    display: block;
+  }
+
+  .controls-content {
+    max-height: 0;
+    padding: 0 16px;
+    overflow: hidden;
+  }
+
+  .controls-content.expanded {
+    max-height: 500px;
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .controls-panel.expanded {
+    flex-shrink: 1;
+    max-height: 60vh;
   }
 }
