@@ -1,85 +1,107 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HLSL Material Editor</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HLSL マテリアルエディタ</title>
+<link rel="stylesheet" href="style.css">
+<!-- three.js は同梱（CDN 依存だとオフラインや回線制限で真っ黒になるため） -->
+<script src="vendor/three.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>HLSL Material Editor</h1>
-      <p>Real-time shader editor with 3D preview</p>
-      <a href="../../categories/tools/index.html" class="back-link">← Back to Tools</a>
-    </header>
-
-    <!-- Mobile Tabs -->
-    <div class="mobile-tabs" id="mobileTabs">
-      <button class="tab-btn active" data-tab="editor">Code</button>
-      <button class="tab-btn" data-tab="preview">Preview</button>
+<div class="app">
+  <header class="app-header">
+    <div class="title-row">
+      <h1>HLSL マテリアルエディタ</h1>
+      <a class="back-link" href="../../categories/mini-apps/">← ミニアプリ一覧</a>
     </div>
+    <p class="lead">UE の Custom ノード風に、float4 を return するコードを書くと球体にリアルタイム反映されます。</p>
+  </header>
 
-    <div class="main-content">
-      <!-- Editor Panel -->
-      <div class="editor-panel" id="editorPanel">
-        <div class="panel-header">
-          <h2>HLSL Code</h2>
-          <button id="resetBtn" class="btn-secondary">Reset Template</button>
-        </div>
-        <textarea id="codeEditor" spellcheck="false"></textarea>
-        <div id="errorDisplay" class="error-display"></div>
-      </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn is-active" data-tab="editor">コード</button>
+    <button class="tab-btn" data-tab="preview">プレビュー</button>
+  </nav>
 
-      <!-- Preview Panel -->
-      <div class="preview-panel" id="previewPanel">
-        <div class="panel-header">
-          <h2>3D Preview</h2>
-          <button id="compileBtn" class="btn-primary">Compile Shader</button>
-        </div>
-        <div id="canvas-container"></div>
-      </div>
-    </div>
-
-    <!-- Controls Panel -->
-    <div class="controls-panel" id="controlsPanel">
-      <div class="panel-header">
-        <h3>Parameters</h3>
-        <button id="toggleControlsBtn" class="btn-controls-toggle">▼</button>
-      </div>
-      <div class="controls-content" id="controlsContent">
-        <div class="controls-grid">
-          <div class="control-group">
-            <label for="lightX">Light Angle X</label>
-            <input type="range" id="lightX" min="0" max="360" value="45" class="slider">
-            <span id="lightXValue">45°</span>
-          </div>
-          <div class="control-group">
-            <label for="lightY">Light Angle Y</label>
-            <input type="range" id="lightY" min="0" max="360" value="45" class="slider">
-            <span id="lightYValue">45°</span>
-          </div>
-          <div class="control-group">
-            <label for="timeScale">Time Scale</label>
-            <input type="range" id="timeScale" min="0" max="5" step="0.1" value="1" class="slider">
-            <span id="timeScaleValue">1.0x</span>
-          </div>
-          <div class="control-group">
-            <label for="rotationX">Mesh Rotation X</label>
-            <input type="range" id="rotationX" min="0" max="360" value="0" class="slider">
-            <span id="rotationXValue">0°</span>
-          </div>
-          <div class="control-group">
-            <label for="rotationY">Mesh Rotation Y</label>
-            <input type="range" id="rotationY" min="0" max="360" value="0" class="slider">
-            <span id="rotationYValue">0°</span>
-          </div>
+  <main class="panes" id="panes">
+    <section class="pane pane-editor is-active" id="paneEditor">
+      <div class="pane-head">
+        <h2>HLSL コード</h2>
+        <div class="pane-actions">
+          <button id="resetBtn" class="btn btn-ghost">リセット</button>
+          <button id="compileBtn" class="btn btn-primary">適用</button>
         </div>
       </div>
-    </div>
-  </div>
 
-  <script src="app.js"></script>
+      <div class="snippets" id="snippets" aria-label="組み込み変数"></div>
+
+      <textarea id="code" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+
+      <div class="status" id="status" data-state="ok">コンパイル待ち…</div>
+    </section>
+
+    <section class="pane pane-preview" id="panePreview">
+      <div class="pane-head">
+        <h2>プレビュー</h2>
+        <div class="pane-actions">
+          <select id="meshSelect" class="select">
+            <option value="sphere">球</option>
+            <option value="cube">キューブ</option>
+            <option value="plane">平面</option>
+            <option value="torus">トーラス</option>
+            <option value="cylinder">円柱</option>
+          </select>
+          <label class="check"><input type="checkbox" id="autoRotate" checked> 回転</label>
+        </div>
+      </div>
+      <div class="canvas-wrap" id="canvasWrap"></div>
+    </section>
+  </main>
+
+  <section class="params" id="params">
+    <button class="params-head" id="paramsToggle" aria-expanded="false">
+      <span>パラメータ</span>
+      <span class="chev" id="chev">▾</span>
+    </button>
+    <div class="params-body" id="paramsBody">
+      <div class="params-grid">
+        <div class="ctrl">
+          <label for="lightYaw">ライト 水平角 <b id="lightYawV">45°</b></label>
+          <input type="range" id="lightYaw" min="0" max="360" value="45">
+        </div>
+        <div class="ctrl">
+          <label for="lightPitch">ライト 仰角 <b id="lightPitchV">35°</b></label>
+          <input type="range" id="lightPitch" min="-89" max="89" value="35">
+        </div>
+        <div class="ctrl">
+          <label for="timeScale">Time 速度 <b id="timeScaleV">1.0x</b></label>
+          <input type="range" id="timeScale" min="0" max="4" step="0.1" value="1">
+        </div>
+        <div class="ctrl">
+          <label for="baseColor">BaseColor</label>
+          <input type="color" id="baseColor" value="#4da3ff">
+        </div>
+        <div class="ctrl">
+          <label for="param1">Param1 <b id="param1V">0.50</b></label>
+          <input type="range" id="param1" min="0" max="1" step="0.01" value="0.5">
+        </div>
+        <div class="ctrl">
+          <label for="param2">Param2 <b id="param2V">0.50</b></label>
+          <input type="range" id="param2" min="0" max="1" step="0.01" value="0.5">
+        </div>
+        <div class="ctrl">
+          <label for="param3">Param3 <b id="param3V">0.50</b></label>
+          <input type="range" id="param3" min="0" max="1" step="0.01" value="0.5">
+        </div>
+        <div class="ctrl">
+          <label for="param4">Param4 <b id="param4V">0.50</b></label>
+          <input type="range" id="param4" min="0" max="1" step="0.01" value="0.5">
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
