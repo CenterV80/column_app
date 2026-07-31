@@ -15,9 +15,15 @@
       <a href="../../categories/tools/index.html" class="back-link">← Back to Tools</a>
     </header>
 
+    <!-- Mobile Tabs -->
+    <div class="mobile-tabs" id="mobileTabs">
+      <button class="tab-btn active" data-tab="editor">Code</button>
+      <button class="tab-btn" data-tab="preview">Preview</button>
+    </div>
+
     <div class="main-content">
       <!-- Editor Panel -->
-      <div class="editor-panel">
+      <div class="editor-panel" id="editorPanel">
         <div class="panel-header">
           <h2>HLSL Code</h2>
           <button id="resetBtn" class="btn-secondary">Reset Template</button>
@@ -27,7 +33,7 @@
       </div>
 
       <!-- Preview Panel -->
-      <div class="preview-panel">
+      <div class="preview-panel" id="previewPanel">
         <div class="panel-header">
           <h2>3D Preview</h2>
           <button id="compileBtn" class="btn-primary">Compile Shader</button>
