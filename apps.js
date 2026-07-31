@@ -18,8 +18,8 @@ const APPS = [
     category: "ltx",
   },
   {
-    name: "HLSL Material Editor",
-    description: "Real-time HLSL shader editor with 3D preview. Write custom shader code and see the results immediately on a preview mesh with adjustable parameters.",
+    name: "HLSL マテリアルエディタ",
+    description: "UEのCustomノード風にHLSLを書くと、球やキューブにリアルタイム反映されます。ライトベクターなどの組み込み変数とパラメータ調整つき。",
     path: "apps/hlsl-material-editor/",
     icon: "🎨",
     category: "mini-apps",
