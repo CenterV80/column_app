@@ -1,0 +1,68 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+    "Yu Gothic", Meiryo, sans-serif;
+  background: #f7f7f8;
+  color: #222;
+}
+
+#hub {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+header h1 {
+  font-size: 26px;
+  margin: 0 0 6px;
+}
+
+header p {
+  color: #666;
+  margin: 0 0 32px;
+}
+
+#app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.app-card {
+  display: block;
+  background: #ffffff;
+  border: 1px solid #e2e2e2;
+  border-radius: 10px;
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.app-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.app-card-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.app-card-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.app-card-desc {
+  font-size: 13px;
+  color: #777;
+  line-height: 1.5;
+}
