@@ -17,4 +17,11 @@ const APPS = [
     icon: "🎬",
     category: "ltx",
   },
+  {
+    name: "HLSL Material Editor",
+    description: "Real-time HLSL shader editor with 3D preview. Write custom shader code and see the results immediately on a preview mesh with adjustable parameters.",
+    path: "apps/hlsl-material-editor/",
+    icon: "🎨",
+    category: "mini-apps",
+  },
 ];
