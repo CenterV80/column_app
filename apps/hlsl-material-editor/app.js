@@ -4,15 +4,8 @@ const DEFAULT_SHADER = `// HLSL Material Shader Template
 
 float4 main(in float2 uv : TEXCOORD0) : SV_TARGET
 {
-    // Pre-built uniforms available:
-    // uLightDir, uViewDir, uNormal, uTime, uMousePos
-
-    // Example: Simple color based on UV
-    float3 color = float3(uv, 0.5);
-
-    // Example: Use time for animation
-    color += float3(0.1 * sin(uTime), 0.1 * cos(uTime), 0.0);
-
+    // Simple test pattern - should always render
+    float3 color = float3(uv.x, uv.y, 0.5);
     return float4(color, 1.0);
 }`;
 
@@ -48,22 +41,36 @@ class HLSLEditor {
 
   setupThreeJS() {
     const container = document.getElementById('canvas-container');
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    if (!container) {
+      console.error('Canvas container not found');
+      return;
+    }
+
+    const width = container.clientWidth || 400;
+    const height = container.clientHeight || 400;
+
+    if (width === 0 || height === 0) {
+      console.warn('Canvas container has zero dimensions');
+    }
 
     // Scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0.1, 0.1, 0.1);
+    this.scene.background = new THREE.Color(0.15, 0.15, 0.15);
 
     // Camera
     this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
     this.camera.position.z = 3;
 
     // Renderer
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(window.devicePixelRatio);
-    container.appendChild(this.renderer.domElement);
+    try {
+      this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+      this.renderer.setSize(width, height);
+      this.renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(this.renderer.domElement);
+    } catch (error) {
+      console.error('WebGL initialization failed:', error);
+      return;
+    }
 
     // Lighting for scene context
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -104,20 +111,29 @@ class HLSLEditor {
   }
 
   createMesh() {
+    if (!this.scene) {
+      console.error('Scene not initialized');
+      return;
+    }
+
     if (this.mesh) {
       this.scene.remove(this.mesh);
     }
 
-    const geometry = new THREE.SphereGeometry(1, 64, 64);
-    this.material = new THREE.ShaderMaterial({
-      uniforms: this.uniforms,
-      vertexShader: this.getVertexShader(),
-      fragmentShader: this.getFragmentShader(),
-      side: THREE.DoubleSide
-    });
+    try {
+      const geometry = new THREE.SphereGeometry(1, 32, 32);
+      this.material = new THREE.ShaderMaterial({
+        uniforms: this.uniforms,
+        vertexShader: this.getVertexShader(),
+        fragmentShader: this.getFragmentShader(),
+        side: THREE.DoubleSide
+      });
 
-    this.mesh = new THREE.Mesh(geometry, this.material);
-    this.scene.add(this.mesh);
+      this.mesh = new THREE.Mesh(geometry, this.material);
+      this.scene.add(this.mesh);
+    } catch (error) {
+      console.error('Failed to create mesh:', error);
+    }
   }
 
   getVertexShader() {
@@ -192,11 +208,20 @@ class HLSLEditor {
       const codeEditor = document.getElementById('codeEditor');
       const errorDisplay = document.getElementById('errorDisplay');
 
+      if (!this.renderer) {
+        errorDisplay.textContent = 'WebGL not initialized. Please refresh the page.';
+        errorDisplay.classList.add('show');
+        return;
+      }
+
       // Recreate shader material
+      const vertexShader = this.getVertexShader();
+      const fragmentShader = this.getFragmentShader();
+
       this.material = new THREE.ShaderMaterial({
         uniforms: this.uniforms,
-        vertexShader: this.getVertexShader(),
-        fragmentShader: this.getFragmentShader(),
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
         side: THREE.DoubleSide
       });
 
@@ -211,8 +236,9 @@ class HLSLEditor {
       this.saveToLocalStorage();
     } catch (error) {
       const errorDisplay = document.getElementById('errorDisplay');
-      errorDisplay.textContent = `Compilation Error: ${error.message}`;
+      errorDisplay.textContent = `Error: ${error.message}`;
       errorDisplay.classList.add('show');
+      console.error('Shader compilation error:', error);
     }
   }
 
@@ -354,6 +380,10 @@ class HLSLEditor {
 
   animate = () => {
     requestAnimationFrame(this.animate);
+
+    if (!this.renderer || !this.scene || !this.camera) {
+      return;
+    }
 
     // Update time uniform
     const elapsed = (Date.now() - this.startTime) / 1000;
