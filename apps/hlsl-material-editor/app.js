@@ -73,15 +73,20 @@ class HLSLEditor {
     }
 
     // Lighting for scene context
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     this.scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(5, 5, 5);
     this.scene.add(directionalLight);
 
     // Default sphere mesh
-    this.createMesh();
+    try {
+      this.createMesh();
+      console.log('Three.js scene initialized successfully');
+    } catch (error) {
+      console.error('Failed to create initial mesh:', error);
+    }
 
     // Handle window resize
     window.addEventListener('resize', () => this.onWindowResize());
@@ -320,6 +325,11 @@ class HLSLEditor {
         } else if (tab === 'preview') {
           editorPanel.classList.add('hidden');
           previewPanel.classList.add('active');
+
+          // Resize canvas when preview tab is shown
+          setTimeout(() => {
+            this.onWindowResize();
+          }, 100);
         }
       });
     });
@@ -394,13 +404,20 @@ class HLSLEditor {
   };
 
   onWindowResize() {
-    const container = document.getElementById('canvas-container');
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    if (!this.renderer || !this.camera) return;
 
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
+    const container = document.getElementById('canvas-container');
+    if (!container) return;
+
+    const width = container.clientWidth || 400;
+    const height = container.clientHeight || 400;
+
+    if (width > 0 && height > 0) {
+      this.camera.aspect = width / height;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(width, height);
+      console.log(`Canvas resized to ${width}x${height}`);
+    }
   }
 
   saveToLocalStorage() {
