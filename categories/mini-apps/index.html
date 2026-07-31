@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ミニアプリ | column_app</title>
+<link rel="stylesheet" href="../../hub.css">
+</head>
+<body>
+<div id="hub">
+  <a class="back-link" href="../../index.html">← トップに戻る</a>
+  <header>
+    <h1>🧰 ミニアプリ</h1>
+    <p>ブラウザだけで動く、ちょっとしたツール・ミニアプリ集です。</p>
+  </header>
+  <div id="card-grid"></div>
+</div>
+<script src="../../apps.js"></script>
+<script src="../../hub.js"></script>
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const items = APPS.filter((a) => a.category === "mini-apps")
+      .map((a) => ({ ...a, path: "../../" + a.path }));
+    renderCardGrid(items);
+  });
+</script>
+</body>
+</html>

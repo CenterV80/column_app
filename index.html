@@ -10,11 +10,14 @@
 <div id="hub">
   <header>
     <h1>column_app</h1>
-    <p>公開しているWebアプリの一覧です。</p>
+    <p>公開しているコンテンツをカテゴリごとにまとめています。</p>
   </header>
-  <div id="app-grid"></div>
+  <div id="card-grid"></div>
 </div>
-<script src="apps.js"></script>
+<script src="categories.js"></script>
 <script src="hub.js"></script>
+<script>
+  window.addEventListener("DOMContentLoaded", () => renderCardGrid(CATEGORIES));
+</script>
 </body>
 </html>

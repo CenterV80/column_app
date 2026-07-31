@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - claude/desmos-calculator-app-fla0de
+      - claude/ltx2-3-video-ai-guide-9phckk
   workflow_dispatch:
 
 permissions:
