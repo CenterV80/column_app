@@ -38,6 +38,7 @@ class HLSLEditor {
   init() {
     this.setupThreeJS();
     this.setupEditorEvents();
+    this.setupMobileToggle();
     this.setupControlsEvents();
     this.loadFromLocalStorage();
     this.compileAndRender();
@@ -240,6 +241,33 @@ class HLSLEditor {
         this.compileAndRender();
       }
     });
+  }
+
+  setupMobileToggle() {
+    const toggleBtn = document.getElementById('toggleControlsBtn');
+    const controlsContent = document.getElementById('controlsContent');
+    const controlsPanel = document.getElementById('controlsPanel');
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+      // Start collapsed on mobile
+      controlsContent.classList.add('collapsed');
+
+      toggleBtn.addEventListener('click', () => {
+        const isCollapsed = controlsContent.classList.contains('collapsed');
+        if (isCollapsed) {
+          controlsContent.classList.remove('collapsed');
+          controlsContent.classList.add('expanded');
+          controlsPanel.classList.add('expanded');
+          toggleBtn.classList.remove('collapsed');
+        } else {
+          controlsContent.classList.add('collapsed');
+          controlsContent.classList.remove('expanded');
+          controlsPanel.classList.remove('expanded');
+          toggleBtn.classList.add('collapsed');
+        }
+      });
+    }
   }
 
   setupControlsEvents() {
