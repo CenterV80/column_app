@@ -230,10 +230,15 @@
         }
 
         function drawPlayer() {
-            drawPixelRect(player.x, player.y, player.width, player.height, '#00ff00');
+            // Draw player body (cyan)
+            drawPixelRect(player.x, player.y, player.width, player.height, '#00ffff');
 
-            // Draw cockpit
-            drawPixelRect(player.x + 12, player.y + 5, 6, 6, '#ffff00');
+            // Draw cockpit (white)
+            drawPixelRect(player.x + 12, player.y + 5, 6, 6, '#ffffff');
+
+            // Draw wings
+            drawPixelRect(player.x + 5, player.y + 15, 4, 10, '#00ffff');
+            drawPixelRect(player.x + 21, player.y + 15, 4, 10, '#00ffff');
         }
 
         function drawBullets() {
@@ -352,8 +357,8 @@
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw grid background
-            ctx.strokeStyle = 'rgba(0, 255, 0, 0.05)';
+            // Draw grid background (very faint)
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.02)';
             ctx.lineWidth = 1;
             for (let i = 0; i <= canvas.width; i += 20) {
                 ctx.beginPath();
