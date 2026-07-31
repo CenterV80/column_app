@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graph Calculator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <a id="back-link" href="../../">← アプリ一覧</a>
+      <h1>関数電卓</h1>
+    </div>
+    <div id="expr-list"></div>
+    <button id="add-expr">＋ 数式を追加</button>
+    <div id="sidebar-footer">
+      <button id="reset-view">表示をリセット</button>
+    </div>
+  </div>
+  <div id="graph-area">
+    <canvas id="graph"></canvas>
+    <div id="zoom-controls">
+      <button id="zoom-in" title="拡大">＋</button>
+      <button id="zoom-out" title="縮小">－</button>
+    </div>
+    <div id="coord-readout"></div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
