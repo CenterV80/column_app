@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HLSL Material Editor</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>HLSL Material Editor</h1>
+      <p>Real-time shader editor with 3D preview</p>
+      <a href="../../categories/tools/index.html" class="back-link">← Back to Tools</a>
+    </header>
+
+    <div class="main-content">
+      <!-- Editor Panel -->
+      <div class="editor-panel">
+        <div class="panel-header">
+          <h2>HLSL Code</h2>
+          <button id="resetBtn" class="btn-secondary">Reset Template</button>
+        </div>
+        <textarea id="codeEditor" spellcheck="false"></textarea>
+        <div id="errorDisplay" class="error-display"></div>
+      </div>
+
+      <!-- Preview Panel -->
+      <div class="preview-panel">
+        <div class="panel-header">
+          <h2>3D Preview</h2>
+          <button id="compileBtn" class="btn-primary">Compile Shader</button>
+        </div>
+        <div id="canvas-container"></div>
+      </div>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+      <div class="panel-header">
+        <h3>Parameters</h3>
+      </div>
+      <div class="controls-grid">
+        <div class="control-group">
+          <label for="lightX">Light Angle X</label>
+          <input type="range" id="lightX" min="0" max="360" value="45" class="slider">
+          <span id="lightXValue">45°</span>
+        </div>
+        <div class="control-group">
+          <label for="lightY">Light Angle Y</label>
+          <input type="range" id="lightY" min="0" max="360" value="45" class="slider">
+          <span id="lightYValue">45°</span>
+        </div>
+        <div class="control-group">
+          <label for="timeScale">Time Scale</label>
+          <input type="range" id="timeScale" min="0" max="5" step="0.1" value="1" class="slider">
+          <span id="timeScaleValue">1.0x</span>
+        </div>
+        <div class="control-group">
+          <label for="rotationX">Mesh Rotation X</label>
+          <input type="range" id="rotationX" min="0" max="360" value="0" class="slider">
+          <span id="rotationXValue">0°</span>
+        </div>
+        <div class="control-group">
+          <label for="rotationY">Mesh Rotation Y</label>
+          <input type="range" id="rotationY" min="0" max="360" value="0" class="slider">
+          <span id="rotationYValue">0°</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
