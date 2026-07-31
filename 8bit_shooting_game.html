@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8ビット シューティングゲーム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+            font-family: 'Press Start 2P', Arial, sans-serif;
+            color: #00ff00;
+        }
+
+        .game-container {
+            text-align: center;
+            background: #0a0a0a;
+            padding: 20px;
+            border: 4px solid #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-shadow: 0 0 10px #00ff00;
+            letter-spacing: 2px;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: #000;
+            border: 2px solid #00ff00;
+            margin-bottom: 20px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 14px;
+            gap: 20px;
+        }
+
+        .score-board {
+            flex: 1;
+            text-align: left;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 2px solid #00ff00;
+        }
+
+        .score {
+            margin: 5px 0;
+            letter-spacing: 1px;
+        }
+
+        .instructions {
+            font-size: 12px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            letter-spacing: 1px;
+        }
+
+        .controls {
+            font-size: 11px;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 2px solid #00ff00;
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            background: #00ff00;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-family: 'Press Start 2P', Arial, sans-serif;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #00cc00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+        }
+
+        .game-over {
+            font-size: 16px;
+            color: #ff0000;
+            text-shadow: 0 0 10px #ff0000;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>8ビット シューティング</h1>
+
+        <div class="instructions">
+            <p>敵を撃ってスコアを稼ぎましょう！</p>
+        </div>
+
+        <div class="controls">
+            <p>← → : 移動 | SPACE : 射撃</p>
+            <p>モバイル: タップで移動＆射撃</p>
+        </div>
+
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+        <div class="info">
+            <div class="score-board">
+                <div class="score">SCORE: <span id="score">0</span></div>
+                <div class="score">HP: <span id="hp">3</span></div>
+                <div class="score">LEVEL: <span id="level">1</span></div>
+            </div>
+        </div>
+
+        <div>
+            <button onclick="restartGame()">ゲーム開始</button>
+            <button onclick="pauseGame()">一時停止</button>
+        </div>
+
+        <div id="gameOverMessage" class="game-over"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game variables
+        let gameRunning = false;
+        let gamePaused = false;
+        let score = 0;
+        let level = 1;
+        let hp = 3;
+        const maxHp = 3;
+
+        // Player
+        const player = {
+            x: canvas.width / 2 - 15,
+            y: canvas.height - 40,
+            width: 30,
+            height: 30,
+            speed: 5,
+            bullets: []
+        };
+
+        // Enemies
+        let enemies = [];
+        let enemySpeed = 2;
+        let enemySpawnRate = 1000; // ms
+
+        // Input
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+                shoot();
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Mobile support
+        canvas.addEventListener('touchstart', handleTouch);
+        canvas.addEventListener('touchmove', handleTouch);
+
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            player.x = x - player.width / 2;
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) {
+                player.x = canvas.width - player.width;
+            }
+
+            if (y < canvas.height / 2) {
+                shoot();
+            }
+        }
+
+        function shoot() {
+            if (!gameRunning || gamePaused) return;
+            player.bullets.push({
+                x: player.x + player.width / 2 - 2,
+                y: player.y,
+                width: 4,
+                height: 10,
+                speed: 7
+            });
+        }
+
+        function createEnemy() {
+            const x = Math.random() * (canvas.width - 25);
+            enemies.push({
+                x: x,
+                y: -25,
+                width: 25,
+                height: 25,
+                speed: enemySpeed
+            });
+        }
+
+        function drawPixelRect(x, y, width, height, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, width, height);
+        }
+
+        function drawPlayer() {
+            drawPixelRect(player.x, player.y, player.width, player.height, '#00ff00');
+
+            // Draw cockpit
+            drawPixelRect(player.x + 12, player.y + 5, 6, 6, '#ffff00');
+        }
+
+        function drawBullets() {
+            player.bullets.forEach((bullet, index) => {
+                drawPixelRect(bullet.x, bullet.y, bullet.width, bullet.height, '#ffff00');
+                bullet.y -= bullet.speed;
+
+                if (bullet.y + bullet.height < 0) {
+                    player.bullets.splice(index, 1);
+                }
+            });
+        }
+
+        function drawEnemy(enemy) {
+            // Enemy body
+            drawPixelRect(enemy.x, enemy.y, enemy.width, enemy.height, '#ff00ff');
+
+            // Enemy eyes
+            drawPixelRect(enemy.x + 5, enemy.y + 5, 4, 4, '#ffff00');
+            drawPixelRect(enemy.x + 16, enemy.y + 5, 4, 4, '#ffff00');
+
+            // Enemy cannon
+            drawPixelRect(enemy.x + 10, enemy.y + 20, 5, 5, '#ff6600');
+        }
+
+        function drawEnemies() {
+            enemies.forEach((enemy, index) => {
+                drawEnemy(enemy);
+                enemy.y += enemy.speed;
+
+                if (enemy.y > canvas.height) {
+                    enemies.splice(index, 1);
+                    hp--;
+                    updateUI();
+                    if (hp <= 0) {
+                        gameOver();
+                    }
+                }
+            });
+        }
+
+        function checkCollisions() {
+            player.bullets.forEach((bullet, bulletIndex) => {
+                enemies.forEach((enemy, enemyIndex) => {
+                    if (
+                        bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y
+                    ) {
+                        player.bullets.splice(bulletIndex, 1);
+                        enemies.splice(enemyIndex, 1);
+                        score += 10 * level;
+                        updateUI();
+                    }
+                });
+            });
+
+            // Check enemy-player collision
+            enemies.forEach((enemy, index) => {
+                if (
+                    player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y
+                ) {
+                    enemies.splice(index, 1);
+                    hp--;
+                    updateUI();
+                    if (hp <= 0) {
+                        gameOver();
+                    }
+                }
+            });
+        }
+
+        function updatePlayer() {
+            if (keys['ArrowLeft'] || keys['a']) {
+                player.x -= player.speed;
+            }
+            if (keys['ArrowRight'] || keys['d']) {
+                player.x += player.speed;
+            }
+
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) {
+                player.x = canvas.width - player.width;
+            }
+        }
+
+        function updateLevel() {
+            const newLevel = Math.floor(score / 100) + 1;
+            if (newLevel !== level) {
+                level = newLevel;
+                enemySpeed = 2 + (level - 1) * 0.5;
+                enemySpawnRate = Math.max(500, 1000 - (level - 1) * 100);
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('hp').textContent = hp;
+            document.getElementById('level').textContent = level;
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('gameOverMessage').textContent =
+                `ゲームオーバー！ スコア: ${score}`;
+            document.getElementById('gameOverMessage').style.display = 'block';
+        }
+
+        function drawGame() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid background
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= canvas.width; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            for (let i = 0; i <= canvas.height; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+
+            if (gameRunning && !gamePaused) {
+                updatePlayer();
+                checkCollisions();
+                updateLevel();
+            }
+
+            drawPlayer();
+            drawBullets();
+            drawEnemies();
+        }
+
+        function gameLoop() {
+            drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        let enemySpawner;
+
+        function startEnemySpawner() {
+            enemySpawner = setInterval(() => {
+                if (gameRunning && !gamePaused) {
+                    createEnemy();
+                }
+            }, enemySpawnRate);
+        }
+
+        function stopEnemySpawner() {
+            clearInterval(enemySpawner);
+        }
+
+        function restartGame() {
+            score = 0;
+            level = 1;
+            hp = maxHp;
+            player.x = canvas.width / 2 - 15;
+            player.y = canvas.height - 40;
+            player.bullets = [];
+            enemies = [];
+            enemySpeed = 2;
+            enemySpawnRate = 1000;
+            gameRunning = true;
+            gamePaused = false;
+            document.getElementById('gameOverMessage').textContent = '';
+            updateUI();
+            stopEnemySpawner();
+            startEnemySpawner();
+        }
+
+        function pauseGame() {
+            if (!gameRunning) return;
+            gamePaused = !gamePaused;
+            document.querySelector('button:nth-of-type(2)').textContent =
+                gamePaused ? '再開' : '一時停止';
+        }
+
+        // Start game loop
+        gameLoop();
+        restartGame();
+    </script>
+</body>
+</html>
