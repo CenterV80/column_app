@@ -31,4 +31,11 @@ const APPS = [
     icon: "🎮",
     category: "mini-apps",
   },
+  {
+    name: "ローカルLLMチャット",
+    description: "ローカル実行のLLM（OllamaやLM Studio等）と会話するシンプルなチャットアプリ。TinyLlamaやPhiなどの軽量モデルでお試しください。",
+    path: "apps/local-llm-chat/",
+    icon: "🤖",
+    category: "mini-apps",
+  },
 ];
