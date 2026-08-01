@@ -114,6 +114,116 @@ col += pow(saturate(dot(Nw, hv)), 60.0) * h * shadow * 0.7;
 
 return float4(col, 1.0);`],
 
+  ["🪟 インテリアマッピング", `// 窓の奥に部屋があるように見せる。実際の板ポリは1枚。
+// Param1: 部屋の奥行き / Param2: 部屋の数 / Param3: 灯りのついた割合
+//
+// POM のように高さ場を掘るのではなく、接空間で「箱」と
+// レイの交差を解析的に解く。ループが要らないので POM より軽い。
+
+float3 N = normalize(Normal);
+float3 V = normalize(CameraVector);
+float3 up = abs(N.y) < 0.99 ? float3(0.0, 1.0, 0.0) : float3(1.0, 0.0, 0.0);
+float3 T = normalize(cross(up, N));
+float3 B = cross(N, T);
+
+float rooms = 3.0 + floor(Param2 * 8.0);
+float depth = 0.3 + Param1 * 1.2;
+
+float2 g = UV * rooms;
+float2 cell = floor(g);
+float2 f = frac(g);
+
+// 面の内側へ向かうレイ（接空間）
+float3 rd = normalize(-float3(dot(V, T), dot(V, B), dot(V, N)));
+
+// 軸に平行なとき 0 割りになるので下駄を履かせる
+float3 srd;
+srd.x = abs(rd.x) < 0.0001 ? 0.0001 : rd.x;
+srd.y = abs(rd.y) < 0.0001 ? 0.0001 : rd.y;
+srd.z = abs(rd.z) < 0.0001 ? -0.0001 : rd.z;
+
+// 部屋は 1 x 1 x depth の箱。手前の面が窓。
+float tx = ((srd.x > 0.0 ? 1.0 : 0.0) - f.x) / srd.x;
+float ty = ((srd.y > 0.0 ? 1.0 : 0.0) - f.y) / srd.y;
+float tz = -depth / srd.z;
+float t = min(min(tx, ty), tz);
+
+float3 hit = float3(f.x, f.y, 0.0) + srd * t;
+
+// どの壁に当たったかで明るさを変える
+float wall = 0.55;
+if (t == tz) wall = 1.0;
+else if (t == ty) wall = srd.y > 0.0 ? 0.35 : 0.8;
+
+// 部屋ごとの乱数で灯りを間引く
+float r = frac(sin(dot(cell, float2(12.9898, 78.233))) * 43758.5453);
+float lit = step(1.0 - (0.2 + Param3 * 0.7), r);
+
+float3 roomCol = lerp(float3(1.0, 0.75, 0.4), float3(0.5, 0.75, 1.0), frac(r * 7.0));
+float3 col = roomCol * wall * lit;
+
+// 奥ほど暗く落として距離感を出す
+col *= 1.0 - saturate(-hit.z / depth) * 0.55;
+
+// 窓枠
+float2 fr = abs(f - 0.5);
+col = lerp(col, float3(0.06, 0.06, 0.07), step(0.46, max(fr.x, fr.y)));
+
+// ガラスの映り込み
+col += pow(1.0 - saturate(dot(N, V)), 4.0) * 0.5;
+
+return float4(col, 1.0);`],
+
+  ["🔮 レイマーチ", `// 面の内側で SDF をレイマーチする。無限に続く球の格子。
+// Param1: 球の大きさ / Param2: 霧の濃さ
+//
+// POM が「高さ場を掘る」のに対し、こちらは本物の 3D 形状を
+// フラグメントシェーダだけで解いている。
+
+float3 ro = WorldPosition;
+float3 rd = -normalize(CameraVector);
+
+float radius = 0.35 + Param1 * 0.5;
+float t = 0.0;
+float3 q = float3(0.0, 0.0, 0.0);
+float d = 1.0;
+
+// メッシュ表面が球にめり込んで始まると q ≈ 0 になり、
+// normalize(q) が破綻して中心に円錐状の縞が出る。
+// まず球の外へ出してからマーチする。
+for (int k = 0; k < 10; k++) {
+  float3 p0 = ro + rd * t;
+  float3 q0 = p0 - 2.0 * floor(p0 * 0.5 + 0.5);
+  if (length(q0) - radius > 0.01) break;
+  t += 0.1;
+}
+
+for (int i = 0; i < 48; i++) {
+  float3 p = ro + rd * t;
+  // 空間を周期 2.0 で折り返す。fmod は HLSL と GLSL で
+  // 負値の扱いが違うので floor で書く。
+  q = p - 2.0 * floor(p * 0.5 + 0.5);
+  d = length(q) - radius;
+  if (d < 0.002) break;
+  t += d;
+  if (t > 14.0) break;
+}
+
+// 何にも当たらずに抜けた
+if (d > 0.05) return float4(0.02, 0.02, 0.04, 1.0);
+
+// 折り返しても勾配の向きは変わらないので、法線はタダで手に入る
+float3 n = normalize(q);
+
+float3 col = BaseColor * (0.15 + saturate(dot(n, LightVector)) * 0.95);
+col += pow(saturate(dot(n, normalize(LightVector - rd))), 60.0) * 0.8;
+
+// 距離で霧をかけて奥行きを出す
+float fog = 1.0 - exp(-t * (0.05 + Param2 * 0.35));
+col = lerp(col, float3(0.02, 0.03, 0.06), fog);
+
+return float4(col, 1.0);`],
+
   ["⚜️ 溶けた金", `// 溶けた金 — Param1: 表面の荒れ / Param2: 反射の強さ
 float3 n = normalize(Normal);
 
