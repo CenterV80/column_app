@@ -116,14 +116,7 @@ async function callOllamaAPI(message, model) {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullResponse = '';
-        let msgDiv = document.getElementById('loading-indicator');
-
-        if (msgDiv) {
-            msgDiv.remove();
-            msgDiv = document.createElement('div');
-            msgDiv.classList.add('message', 'bot');
-            messagesContainer.appendChild(msgDiv);
-        }
+        const msgDiv = document.getElementById('loading-indicator');
 
         while (true) {
             const { done, value } = await reader.read();
@@ -139,6 +132,8 @@ async function callOllamaAPI(message, model) {
                         fullResponse += json.response;
 
                         if (!msgDiv.querySelector('.message-content')) {
+                            msgDiv.innerHTML = '';
+                            msgDiv.removeAttribute('id');
                             const contentDiv = document.createElement('div');
                             contentDiv.classList.add('message-content');
                             msgDiv.appendChild(contentDiv);
