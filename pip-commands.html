@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pip コマンド一覧</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #3776ab 0%, #ffd43b 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #306998 0%, #3776ab 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin: 20px 0 0 30px;
+            color: #306998;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            padding: 20px 30px 40px;
+        }
+
+        .section {
+            margin-bottom: 45px;
+        }
+
+        .section-title {
+            font-size: 1.7em;
+            color: #306998;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #306998;
+            font-weight: 700;
+        }
+
+        .cmd {
+            margin-bottom: 20px;
+            padding: 18px 20px;
+            background: #f4f8fb;
+            border-left: 4px solid #306998;
+            border-radius: 4px;
+        }
+
+        .cmd h3 {
+            color: #333;
+            font-size: 1.15em;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .cmd-description {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 12px 15px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 8px 0;
+            line-height: 1.6;
+            white-space: pre;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.95em;
+            color: #856404;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+            font-size: 0.95em;
+        }
+
+        th {
+            background: #306998;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f4f8fb;
+        }
+
+        code {
+            background: #eef2f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        footer {
+            background: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.6em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.3em;
+            }
+
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            th {
+                display: none;
+            }
+
+            td {
+                border: none;
+                border-bottom: 1px solid #e0e0e0;
+                padding: 6px 0;
+            }
+
+            td:before {
+                content: attr(data-label) "： ";
+                font-weight: 600;
+                color: #306998;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="back-link" href="categories/python/index.html">← Pythonに戻る</a>
+        <header>
+            <h1>🐍 pip コマンド一覧</h1>
+            <p>Pythonのパッケージ管理でよく使うpipコマンドをまとめました</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2 class="section-title">📦 基本のインストール系</h2>
+
+                <div class="cmd">
+                    <h3>pip install（インストール）</h3>
+                    <div class="cmd-description">指定したパッケージをインストールします。</div>
+                    <div class="code-block">pip install requests</div>
+                    <div class="note"><strong>バージョン指定：</strong> <code>pip install requests==2.31.0</code></div>
+                </div>
+
+                <div class="cmd">
+                    <h3>pip install -r（requirements.txtから一括インストール）</h3>
+                    <div class="cmd-description">requirements.txtに書かれたパッケージをまとめてインストールします。</div>
+                    <div class="code-block">pip install -r requirements.txt</div>
+                </div>
+
+                <div class="cmd">
+                    <h3>pip install --upgrade（アップグレード）</h3>
+                    <div class="cmd-description">パッケージを最新バージョンに更新します。</div>
+                    <div class="code-block">pip install --upgrade requests</div>
+                </div>
+
+                <div class="cmd">
+                    <h3>pip uninstall（アンインストール）</h3>
+                    <div class="cmd-description">パッケージを削除します。</div>
+                    <div class="code-block">pip uninstall requests</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🔍 確認・検索系</h2>
+
+                <div class="cmd">
+                    <h3>pip list（インストール済み一覧）</h3>
+                    <div class="cmd-description">現在の環境にインストールされている全パッケージを表示します。</div>
+                    <div class="code-block">pip list</div>
+                </div>
+
+                <div class="cmd">
+                    <h3>pip show（詳細情報）</h3>
+                    <div class="cmd-description">特定のパッケージのバージョンや依存関係などの詳細を表示します。</div>
+                    <div class="code-block">pip show requests</div>
+                </div>
+
+                <div class="cmd">
+                    <h3>pip freeze（現在の環境をエクスポート）</h3>
+                    <div class="cmd-description">インストール済みパッケージをrequirements.txt形式で出力します。他の環境を再現するときに使います。</div>
+                    <div class="code-block">pip freeze > requirements.txt</div>
+                </div>
+
+                <div class="cmd">
+                    <h3>pip --version（pip自体のバージョン確認）</h3>
+                    <div class="cmd-description">現在使っているpipのバージョンを確認します。</div>
+                    <div class="code-block">pip --version</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🛠️ pip自体の管理</h2>
+
+                <div class="cmd">
+                    <h3>pip install --upgrade pip（pip自体を更新）</h3>
+                    <div class="cmd-description">pipコマンド自体を最新版に更新します。</div>
+                    <div class="code-block">python -m pip install --upgrade pip</div>
+                    <div class="note"><strong>ポイント：</strong> Windowsでは <code>pip install --upgrade pip</code> だと失敗することがあるため、<code>python -m pip ...</code> の形が安全です。</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">📋 よく使うオプション早見表</h2>
+                <table>
+                    <tr>
+                        <th>オプション</th>
+                        <th>意味</th>
+                    </tr>
+                    <tr>
+                        <td data-label="オプション"><code>-r</code></td>
+                        <td data-label="意味">requirements.txtなどのファイルを指定</td>
+                    </tr>
+                    <tr>
+                        <td data-label="オプション"><code>-U</code> / <code>--upgrade</code></td>
+                        <td data-label="意味">最新バージョンにアップグレード</td>
+                    </tr>
+                    <tr>
+                        <td data-label="オプション"><code>-e</code></td>
+                        <td data-label="意味">編集可能モードでインストール（開発中のパッケージ向け）</td>
+                    </tr>
+                    <tr>
+                        <td data-label="オプション"><code>--no-cache-dir</code></td>
+                        <td data-label="意味">キャッシュを使わずにインストール</td>
+                    </tr>
+                    <tr>
+                        <td data-label="オプション"><code>--user</code></td>
+                        <td data-label="意味">システム全体ではなく、ユーザー環境にのみインストール</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">💡 仮想環境と合わせて使う</h2>
+                <div class="cmd">
+                    <div class="cmd-description">
+                        pipはプロジェクトごとに独立させた「仮想環境（venv）」の中で使うのが基本です。仮想環境なしでpip installすると、他のプロジェクトに影響してしまうことがあります。
+                    </div>
+                    <div class="code-block"># 仮想環境を作成
+python -m venv venv
+
+# 仮想環境を有効化（Mac/Linux）
+source venv/bin/activate
+
+# 仮想環境を有効化（Windows）
+venv\Scripts\activate
+
+# 有効化した状態でpip install
+pip install requests</div>
+                    <div class="note"><strong>終了するとき：</strong> <code>deactivate</code> で仮想環境から抜けられます。</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>📅 最終更新：2026年8月1日</p>
+        </footer>
+    </div>
+</body>
+</html>

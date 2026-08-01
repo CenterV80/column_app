@@ -17,6 +17,13 @@ const CATEGORIES = [
     icon: "🐙",
   },
   {
+    id: "python",
+    name: "Python",
+    description: "Pythonまわりのコマンドや使い方を初心者向けにまとめています。",
+    path: "categories/python/",
+    icon: "🐍",
+  },
+  {
     id: "ltx",
     name: "LTX",
     description: "動画生成AI「LTX」シリーズのしくみを解説する記事です。",

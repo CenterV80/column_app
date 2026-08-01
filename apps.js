@@ -18,6 +18,13 @@ const APPS = [
     category: "github",
   },
   {
+    name: "pip コマンド一覧",
+    description: "install・uninstall・list・freezeなど、Pythonのパッケージ管理でよく使うpipコマンドをまとめました。",
+    path: "pip-commands.html",
+    icon: "📦",
+    category: "python",
+  },
+  {
     name: "関数電卓",
     description: "Desmos風のグラフ電卓。複数の数式を色分けして描画し、パン・ズームで自由に表示範囲を変えられます。",
     path: "apps/graph-calculator/",
