@@ -368,6 +368,7 @@ class HlslEditorApp {
 
     this.initThree();
     this.initSnippets();
+    this.initPresets();
     this.initTabs();
     this.initParams();
     this.initEditor();
@@ -628,6 +629,301 @@ class HlslEditorApp {
       btn.addEventListener("click", () => this.insertAtCursor(text));
       this.el.snippets.appendChild(btn);
     }
+  }
+
+  initPresets() {
+    const presets = [
+      ["✨ Metallic Gold", () => `// ゴールドメタリック - Param1で光沢度調整
+float3 diffuse = BaseColor;
+
+// フレネル（エッジで明るい）
+float fresnel = pow(1.0 - saturate(dot(Normal, CameraVector)), 3.0);
+
+// 拡散反射
+float nDotL = saturate(dot(Normal, LightVector));
+diffuse = mix(diffuse * 0.5, diffuse, nDotL);
+
+// スペキュラー（高光沢）
+float3 halfway = normalize(LightVector + CameraVector);
+float spec = pow(saturate(dot(Normal, halfway)), 32.0 + Param1 * 96.0);
+diffuse += vec3(1.0) * spec * 1.2;
+
+// フレネルリム
+diffuse += fresnel * BaseColor * 0.4;
+
+return float4(diffuse, 1.0);`],
+
+      ["💧 Oil Film", () => `// 油膜の虹色 - 視線角度で色が変わる
+float fresnel = pow(1.0 - saturate(dot(Normal, CameraVector)), 2.0);
+
+// フレネル値に基づいて虹色を生成
+float3 color1 = vec3(1.0, 0.2, 0.8);   // マゼンタ
+float3 color2 = vec3(0.2, 1.0, 1.0);   // シアン
+float3 iridescent = mix(color1, color2, fresnel);
+
+// ベースカラーとブレンド
+float3 result = mix(BaseColor * 0.3, iridescent, 0.8);
+
+// わずかな拡散反射
+result += saturate(dot(Normal, LightVector)) * 0.2;
+
+return float4(result, 1.0);`],
+
+      ["🌀 Plasma", () => `// プラズマエフェクト - Param1で波の速さ、Param2で密度調整
+float3 pos = WorldPosition;
+
+// 複数の正弦波を重ねる
+float wave1 = sin(pos.x * 5.0 + Time * Param1 * 3.0) * 0.5 + 0.5;
+float wave2 = sin(pos.y * 5.0 + Time * Param1 * 2.0) * 0.5 + 0.5;
+float wave3 = sin(pos.z * 5.0 + Time * Param1 * 2.5) * 0.5 + 0.5;
+
+// 波の合成
+float plasma = (wave1 + wave2 + wave3) / 3.0;
+plasma = pow(plasma, 2.0 - Param2);
+
+// 色を波に応じて変更
+float3 color = mix(
+  vec3(0.0, 1.0, 1.0),  // シアン
+  vec3(1.0, 0.0, 1.0),  // マゼンタ
+  plasma
+);
+
+// ベースカラーとブレンド
+color = mix(BaseColor * 0.3, color, 0.8);
+
+return float4(color, 1.0);`],
+
+      ["🪞 Chrome Brushed", () => `// ブラッシュドメタルクローム - ノーマルの微細性状をシミュレート
+float3 normal = Normal;
+
+// UVパターンで微細な筋を作る
+float brushed = frac(UV.x * 20.0) * 0.1 + 0.9;
+
+// フレネル基盤のスペキュラー
+float fresnel = pow(1.0 - saturate(dot(Normal, CameraVector)), 1.5);
+float3 halfway = normalize(LightVector + CameraVector);
+float spec = pow(saturate(dot(Normal, halfway)), 64.0);
+
+// 拡散反射
+float diffuse = saturate(dot(Normal, LightVector)) * 0.4 + 0.3;
+
+// ブラッシュ効果を加える
+spec *= brushed;
+diffuse *= brushed;
+
+float3 result = BaseColor * diffuse + vec3(1.0) * spec * 1.5 + fresnel * 0.3;
+
+return float4(result, 1.0);`],
+
+      ["🌊 Caustics Water", () => `// 水面の光の屈折パターン - Param1で速度調整
+float2 uv = UV * 3.0;
+
+// 2つのノイズ的な波を時間で動かす
+float wave1 = sin(uv.x + Time * Param1 * 2.0) * sin(uv.y + Time * Param1);
+float wave2 = sin(uv.y * 2.0 + Time * Param1 * 1.5) * sin(uv.x * 2.0 + Time * Param1);
+
+float caustic = wave1 * wave2;
+caustic = pow(saturate(caustic * 0.5 + 0.5), 2.0);
+
+// ライティング
+float nDotL = saturate(dot(Normal, LightVector));
+
+// 水のような色合い
+float3 deepColor = vec3(0.0, 0.1, 0.3);
+float3 shallowColor = vec3(0.0, 0.5, 0.8);
+
+float3 result = mix(deepColor, shallowColor, caustic * nDotL);
+result += vec3(0.5, 0.8, 1.0) * caustic * 0.5;
+
+return float4(result, 1.0);`],
+
+      ["👻 Hologram", () => `// ホログラム - スキャンラインと発光
+float3 col = BaseColor;
+
+// スキャンラインパターン
+float scanline = abs(sin(UV.y * 100.0 + Time * 10.0)) * 0.3 + 0.7;
+
+// フレネルで輪郭を強調
+float rim = pow(1.0 - saturate(dot(Normal, CameraVector)), 2.0);
+
+// グリッチパターン
+float glitch = frac(sin(dot(UV, vec2(12.9898, 78.233)) + Time * 3.0) * 43758.5453);
+float glitchStrength = step(0.95, glitch) * 0.5;
+
+// 結合
+float3 result = col * scanline;
+result += rim * vec3(0.0, 1.0, 1.0) * 0.8;
+result += glitchStrength * vec3(1.0, 0.0, 1.0);
+
+return float4(result, 1.0);`],
+
+      ["🔥 Fire Glow", () => `// 炎のようなグロー - Param1で効果の強さ調整
+float3 pos = WorldPosition + vec3(sin(Time * Param1), 0.0, 0.0) * 0.3;
+
+// Y軸に基づく高さの効果
+float height = (pos.y + 1.0) * 0.5;
+height = pow(saturate(height), 1.5);
+
+// 炎っぽいカラーグラデーション
+float3 fireColor = mix(
+  vec3(1.0, 0.3, 0.0),  // オレンジ
+  vec3(1.0, 1.0, 0.0),  // 黄
+  height
+);
+
+// ゆらぎ効果
+float flicker = sin(pos.x * 3.0 + Time * 5.0) * 0.5 + 0.5;
+fireColor = mix(fireColor, vec3(1.0), flicker * 0.3 * Param1);
+
+// リム効果で外側が明るい
+float rim = pow(1.0 - saturate(dot(Normal, CameraVector)), 2.0);
+fireColor += rim * vec3(1.0, 0.5, 0.0) * 0.5;
+
+return float4(fireColor, 1.0);`],
+
+      ["⚡ Aurora", () => `// オーロラ - Param1で動きの速さ調整
+float3 pos = WorldPosition;
+float time = Time * Param1 * 0.5;
+
+// ノイズ的な動き
+float wave1 = sin(pos.x * 2.0 + time) * sin(pos.y + time * 0.7);
+float wave2 = sin(pos.z * 1.5 + time * 1.3) * cos(pos.x + time * 0.5);
+
+// 流れるような効果
+float flow = (wave1 + wave2) * 0.5 + 0.5;
+flow = smoothstep(0.3, 0.7, flow);
+
+// 緑とピンクの虹極光色
+float3 greenAurora = vec3(0.0, 1.0, 0.3);
+float3 pinkAurora = vec3(1.0, 0.2, 0.8);
+
+float3 aurora = mix(greenAurora, pinkAurora, sin(time) * 0.5 + 0.5);
+aurora *= flow;
+
+// ベースカラーをブレンド
+float3 result = BaseColor * 0.2 + aurora * 0.8;
+
+// フレネルリム
+float rim = pow(1.0 - saturate(dot(Normal, CameraVector)), 2.5);
+result += rim * aurora * 0.3;
+
+return float4(result, 1.0);`],
+
+      ["✨ Iridescent", () => `// 虹色の光沢 - 角度依存で色が変わる
+float3 viewDir = normalize(CameraVector);
+float3 normal = normalize(Normal);
+
+// 視線に基づいて虹色を生成
+float angle = acos(dot(viewDir, normal));
+angle = angle / 3.14159;  // 0-1に正規化
+
+// 虹色のパレット
+float3 color1 = vec3(1.0, 0.0, 0.0);  // 赤
+float3 color2 = vec3(1.0, 1.0, 0.0);  // 黄
+float3 color3 = vec3(0.0, 1.0, 0.0);  // 緑
+float3 color4 = vec3(0.0, 1.0, 1.0);  // シアン
+float3 color5 = vec3(0.0, 0.0, 1.0);  // 青
+
+float3 rainbow;
+if (angle < 0.33) {
+  rainbow = mix(color1, color2, angle / 0.33);
+} else if (angle < 0.66) {
+  rainbow = mix(color2, color3, (angle - 0.33) / 0.33);
+} else {
+  rainbow = mix(color3, color4, (angle - 0.66) / 0.34);
+}
+
+// スペキュラーを加える
+float3 halfway = normalize(viewDir + LightVector);
+float spec = pow(saturate(dot(normal, halfway)), 32.0);
+
+float3 result = rainbow * 0.9 + vec3(1.0) * spec * 0.3;
+
+return float4(result, 1.0);`],
+
+      ["🌀 Liquid Swirl", () => `// 液体の渦 - Param1で回転速度、Param2で密度調整
+float2 uv = UV - 0.5;
+
+// 極座標
+float angle = atan(uv.y, uv.x) + Time * Param1 * 2.0;
+float radius = length(uv);
+
+// 渦パターン
+float swirl = sin(radius * 20.0 - angle) * 0.5 + 0.5;
+swirl = pow(swirl, 2.0 - Param2 * 0.5);
+
+// 色の変化
+float3 color1 = vec3(0.1, 0.3, 0.9);  // 深い青
+float3 color2 = vec3(0.0, 1.0, 0.8);  // シアン
+
+float3 result = mix(color1, color2, swirl);
+
+// ライティング
+float nDotL = saturate(dot(Normal, LightVector));
+result = result * (0.5 + nDotL * 0.5);
+
+// リム効果
+float rim = pow(1.0 - saturate(dot(Normal, CameraVector)), 2.0);
+result += rim * color2 * 0.3;
+
+return float4(result, 1.0);`],
+
+      ["📊 Wireframe", () => `// ワイアーフレーム風 - Param1でグリッド密度調整
+float2 uv = UV * (1.0 + Param1 * 5.0);
+
+// グリッドパターン
+float gridX = frac(uv.x);
+float gridY = frac(uv.y);
+
+// グリッドラインを検出
+float lineWidth = 0.05;
+float grid = 0.0;
+if (gridX < lineWidth || gridX > 1.0 - lineWidth) grid = 1.0;
+if (gridY < lineWidth || gridY > 1.0 - lineWidth) grid = 1.0;
+
+// ベースカラーとグリッドをブレンド
+float3 result = mix(BaseColor * 0.3, vec3(0.0, 1.0, 0.5), grid);
+
+// ライティング
+float nDotL = saturate(dot(Normal, LightVector));
+result = result * (0.6 + nDotL * 0.4);
+
+// グロー
+result += grid * vec3(0.0, 0.8, 1.0) * 0.5;
+
+return float4(result, 1.0);`],
+    ];
+
+    // プリセット用の div を作成
+    const presetContainer = document.createElement("div");
+    presetContainer.style.marginTop = "8px";
+    presetContainer.style.marginBottom = "8px";
+    presetContainer.style.paddingBottom = "8px";
+    presetContainer.style.borderBottom = "1px solid #333";
+
+    const label = document.createElement("div");
+    label.style.fontSize = "11px";
+    label.style.color = "#999";
+    label.style.marginBottom = "4px";
+    label.style.textTransform = "uppercase";
+    label.style.letterSpacing = "0.5px";
+    label.textContent = "プリセット";
+    presetContainer.appendChild(label);
+
+    for (const [label, fn] of presets) {
+      const btn = document.createElement("button");
+      btn.className = "chip";
+      btn.type = "button";
+      btn.textContent = label;
+      btn.style.fontSize = "12px";
+      btn.addEventListener("click", () => {
+        this.el.code.value = fn();
+        this.compile();
+      });
+      presetContainer.appendChild(btn);
+    }
+
+    this.el.snippets.parentNode.insertBefore(presetContainer, this.el.snippets.nextSibling);
   }
 
   initTabs() {
