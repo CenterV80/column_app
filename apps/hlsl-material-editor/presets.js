@@ -12,6 +12,108 @@
 //   - reflect() + 上下グラデ + 横縞の「偽環境マップ」で金属に見せる
 
 const SHADER_PRESETS = [
+  ["🧱 視差オクルージョン", `// パララックスオクルージョンマッピング（POM）
+// Param1: 掘りの深さ / Param2: タイルの細かさ / Param3: 影の濃さ
+//
+// このエディタは接線ベクトルを渡してこないので、法線から解析的に
+// 接空間を作る（球・円柱・平面の UV 向け。トーラスでは近似）。
+
+float3 N = normalize(Normal);
+float3 V = normalize(CameraVector);
+
+// 極で cross が縮退するので基準軸を切り替える
+float3 up = abs(N.y) < 0.99 ? float3(0.0, 1.0, 0.0) : float3(1.0, 0.0, 0.0);
+float3 T = normalize(cross(up, N));
+float3 B = cross(N, T);
+
+// 視線を接空間へ持ち込む
+float3 vt = float3(dot(V, T), dot(V, B), dot(V, N));
+
+float depth = 0.02 + Param1 * 0.13;
+float tiles = 4.0 + floor(Param2 * 12.0);
+
+// 最深部まで潜ったときの UV 移動量。max() は斜めから見たときの暴走止め。
+float2 maxOff = -(vt.xy / max(vt.z, 0.35)) * depth;
+float2 duv = maxOff / 24.0;
+float layer = 1.0 / 24.0;
+
+// 高さ関数はベベル付きのタイル（1.0 が表面、0.0 が目地の底）。
+// UE の Custom ノードに貼れるようヘルパー関数は使わず、
+// 必要な箇所へ直接展開している。
+float2 uv = UV;
+float2 c = frac(uv * tiles);
+float2 e = min(c, 1.0 - c);
+float h = smoothstep(0.0, 0.12, min(e.x, e.y));
+
+// ステップパララックス：高さに当たるまで視線方向へ潜る
+float cur = 1.0;
+float prevH = h;
+float prevCur = cur;
+for (int i = 0; i < 24; i++) {
+  if (h >= cur) break;
+  prevH = h;
+  prevCur = cur;
+  uv += duv;
+  cur -= layer;
+  c = frac(uv * tiles);
+  e = min(c, 1.0 - c);
+  h = smoothstep(0.0, 0.12, min(e.x, e.y));
+}
+
+// 直前のレイヤーとの間を線形補間する。これを省くと側面が
+// ステップ数ぶんの階段になる（POM が単なる steep parallax に落ちる）。
+float d1 = h - cur;
+float d0 = prevH - prevCur;
+uv -= duv * saturate(d1 / max(d1 - d0, 0.0001));
+
+c = frac(uv * tiles);
+e = min(c, 1.0 - c);
+h = smoothstep(0.0, 0.12, min(e.x, e.y));
+
+// ずらした先の高さ場から法線を作る（ddx/ddy を使わない有限差分）
+float eps = 0.004 / tiles;
+float2 c1 = frac((uv + float2(eps, 0.0)) * tiles);
+float2 e1 = min(c1, 1.0 - c1);
+float hx = smoothstep(0.0, 0.12, min(e1.x, e1.y));
+
+float2 c2 = frac((uv + float2(0.0, eps)) * tiles);
+float2 e2 = min(c2, 1.0 - c2);
+float hy = smoothstep(0.0, 0.12, min(e2.x, e2.y));
+
+float3 nt = normalize(float3(-(hx - h) * depth / eps, -(hy - h) * depth / eps, 1.0));
+float3 Nw = normalize(nt.x * T + nt.y * B + nt.z * N);
+
+// 自己影：見つけた点からライトへ向かって高さ場を辿り、
+// 途中で遮られていれば影にする。奥行きの説得力はほぼこれで決まる。
+float3 Lt = float3(dot(LightVector, T), dot(LightVector, B), dot(LightVector, N));
+float shadow = 1.0;
+if (Lt.z > 0.05) {
+  float2 sduv = (Lt.xy / Lt.z) * depth * (1.0 - h) / 8.0;
+  float2 suv = uv;
+  float rayH = h;
+  for (int j = 0; j < 8; j++) {
+    suv += sduv;
+    rayH += (1.0 - h) / 8.0;
+    float2 cs = frac(suv * tiles);
+    float2 es = min(cs, 1.0 - cs);
+    float hs = smoothstep(0.0, 0.12, min(es.x, es.y));
+    if (hs > rayH) shadow -= 0.16;
+  }
+  shadow = saturate(shadow);
+}
+shadow = lerp(1.0, shadow, Param3);
+
+// 目地を暗く落として奥行きを出す
+float ao = lerp(1.0 - Param3 * 0.6, 1.0, h);
+
+float3 base = lerp(float3(0.05, 0.05, 0.06), BaseColor, h);
+float3 col = base * (0.12 + saturate(dot(Nw, LightVector)) * shadow * 1.05) * ao;
+
+float3 hv = normalize(V + LightVector);
+col += pow(saturate(dot(Nw, hv)), 60.0) * h * shadow * 0.7;
+
+return float4(col, 1.0);`],
+
   ["⚜️ 溶けた金", `// 溶けた金 — Param1: 表面の荒れ / Param2: 反射の強さ
 float3 n = normalize(Normal);
 
