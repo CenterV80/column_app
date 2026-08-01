@@ -174,53 +174,93 @@ col += pow(1.0 - saturate(dot(N, V)), 4.0) * 0.5;
 
 return float4(col, 1.0);`],
 
-  ["🔮 レイマーチ", `// 面の内側で SDF をレイマーチする。無限に続く球の格子。
-// Param1: 球の大きさ / Param2: 霧の濃さ
+  ["☁️ 立体的な雲", `// ボリュームレイマーチ。密度場を前から後ろへ積分して雲にする。
+// Param1: 密度 / Param2: 流れる速さ
 //
-// POM が「高さ場を掘る」のに対し、こちらは本物の 3D 形状を
-// フラグメントシェーダだけで解いている。
+// POM やインテリアマッピングが「面をずらして奥行きを錯覚させる」の
+// に対し、これは本当に半透明な体積を積分している（Beer-Lambert 則）。
+// 中身のない球のシルエットに、もやもやした密度が詰まって見える。
 
 float3 ro = WorldPosition;
 float3 rd = -normalize(CameraVector);
+float3 L = normalize(LightVector);
+float3 flow = float3(0.0, -Time * (0.15 + Param2 * 0.6), 0.0);
+float thresh = 0.62 - Param1 * 0.42;
 
-float radius = 0.35 + Param1 * 0.5;
-float t = 0.0;
-float3 q = float3(0.0, 0.0, 0.0);
-float d = 1.0;
+// 球（半径 R）とレイの交差点を解析的に求める。判別式が負なら
+// 球の外を素通りするレイなので、薄い空の色だけを返す。
+float R = 1.15;
+float b = dot(ro, rd);
+float disc = b * b - (dot(ro, ro) - R * R);
 
-// メッシュ表面が球にめり込んで始まると q ≈ 0 になり、
-// normalize(q) が破綻して中心に円錐状の縞が出る。
-// まず球の外へ出してからマーチする。
-for (int k = 0; k < 10; k++) {
-  float3 p0 = ro + rd * t;
-  float3 q0 = p0 - 2.0 * floor(p0 * 0.5 + 0.5);
-  if (length(q0) - radius > 0.01) break;
-  t += 0.1;
+float3 skyCol = float3(0.04, 0.05, 0.08) + rd.y * 0.04;
+float3 col = skyCol;
+
+if (disc > 0.0) {
+  float sq = sqrt(disc);
+  float t0 = max(-b - sq, 0.0); // メッシュ表面は大抵すでに球の内側なので 0 に丸まる
+  float t1 = -b + sq;
+
+  if (t1 > t0) {
+    float dt = (t1 - t0) / 28.0;
+    // 開始位置を少しだけばらつかせる（ジッタリング）。均等な間隔のまま
+    // マーチすると、明るい塊の中に同心円状の縞が規則的に出る
+    // （最初の実装で実際に出た）。ノイズにして目立たなくする。
+    float jitter = frac(sin(dot(WorldPosition, float3(12.9898, 78.233, 45.164))) * 43758.5453);
+    float t = t0 + dt * jitter;
+    float trans = 1.0;
+    float3 acc = float3(0.0, 0.0, 0.0);
+
+    for (int i = 0; i < 28; i++) {
+      float3 p = ro + rd * t;
+
+      // 擬似 fbm で密度のむらを作る。しきい値からの立ち上がりを
+      // 急峻にして（*6.0）、灰色のもやではなく塊のシルエットにする。
+      float3 q = p * 2.2 + flow;
+      float n = 0.0;
+      float amp = 0.5;
+      for (int o = 0; o < 4; o++) {
+        n += amp * sin(q.x + sin(q.y * 1.3) + q.z);
+        q = q * 2.02 + 1.7;
+        amp *= 0.5;
+      }
+      n = n * 0.5 + 0.5;
+      float density = saturate((n - thresh) * 6.0);
+
+      if (density > 0.005) {
+        // 光源方向へ短くマーチして自己遮蔽を見る。これが無いと
+        // 密度だけで明暗を決めることになり、平坦な灰色玉にしかならない
+        // （最初の実装で実際にそうなった）。
+        float lightDensity = 0.0;
+        float3 lp = p;
+        for (int j = 0; j < 3; j++) {
+          lp += L * 0.18;
+          float3 lq = lp * 2.2 + flow;
+          float ln = 0.0;
+          float lamp = 0.5;
+          for (int o = 0; o < 4; o++) {
+            ln += lamp * sin(lq.x + sin(lq.y * 1.3) + lq.z);
+            lq = lq * 2.02 + 1.7;
+            lamp *= 0.5;
+          }
+          ln = ln * 0.5 + 0.5;
+          lightDensity += saturate((ln - thresh) * 6.0);
+        }
+        float lit = exp(-lightDensity * 1.3);
+
+        float3 cloudCol = lerp(float3(0.16, 0.17, 0.23), float3(1.05, 1.0, 0.92), lit);
+
+        float stepTrans = exp(-density * dt * 3.5);
+        acc += trans * (1.0 - stepTrans) * cloudCol;
+        trans *= stepTrans;
+        if (trans < 0.01) break;
+      }
+      t += dt;
+    }
+
+    col = skyCol * trans + acc;
+  }
 }
-
-for (int i = 0; i < 48; i++) {
-  float3 p = ro + rd * t;
-  // 空間を周期 2.0 で折り返す。fmod は HLSL と GLSL で
-  // 負値の扱いが違うので floor で書く。
-  q = p - 2.0 * floor(p * 0.5 + 0.5);
-  d = length(q) - radius;
-  if (d < 0.002) break;
-  t += d;
-  if (t > 14.0) break;
-}
-
-// 何にも当たらずに抜けた
-if (d > 0.05) return float4(0.02, 0.02, 0.04, 1.0);
-
-// 折り返しても勾配の向きは変わらないので、法線はタダで手に入る
-float3 n = normalize(q);
-
-float3 col = BaseColor * (0.15 + saturate(dot(n, LightVector)) * 0.95);
-col += pow(saturate(dot(n, normalize(LightVector - rd))), 60.0) * 0.8;
-
-// 距離で霧をかけて奥行きを出す
-float fog = 1.0 - exp(-t * (0.05 + Param2 * 0.35));
-col = lerp(col, float3(0.02, 0.03, 0.06), fog);
 
 return float4(col, 1.0);`],
 
