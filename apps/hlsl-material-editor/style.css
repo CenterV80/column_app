@@ -148,6 +148,26 @@ body {
   overflow-y: auto;
 }
 
+.presets {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--line);
+  max-height: 108px;
+  overflow-y: auto;
+}
+
+.presets-label {
+  flex-basis: 100%;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-dim, #8b8f98);
+}
+
 .chip {
   padding: 4px 9px;
   border: 1px solid var(--line);
