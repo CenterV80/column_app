@@ -4,8 +4,8 @@
 const CATEGORIES = [
   {
     id: "articles",
-    name: "記事まとめ",
-    description: "気になる記事をまとめています。",
+    name: "AI記事まとめ",
+    description: "ローカルAIまわりの気になるニュースをまとめています。",
     path: "articles.html",
     icon: "📚",
   },
