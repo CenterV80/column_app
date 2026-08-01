@@ -4,6 +4,20 @@
 // categories.js so the item shows up on the right category page.
 const APPS = [
   {
+    name: "GitHub用語辞典",
+    description: "Repository・Commit・Push・Pullなど、GitHub初心者がつまずきやすい用語をやさしく解説します。",
+    path: "github-glossary.html",
+    icon: "📖",
+    category: "github",
+  },
+  {
+    name: "GitHubの一般的なデプロイ方法",
+    description: "GitHub Pages・GitHub Actions・外部ホスティングサービスなど、代表的なデプロイ方法を初心者向けに紹介します。",
+    path: "github-deploy-guide.html",
+    icon: "🚢",
+    category: "github",
+  },
+  {
     name: "関数電卓",
     description: "Desmos風のグラフ電卓。複数の数式を色分けして描画し、パン・ズームで自由に表示範囲を変えられます。",
     path: "apps/graph-calculator/",
