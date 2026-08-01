@@ -6,60 +6,94 @@
 <title>記事まとめ | column_app</title>
 <link rel="stylesheet" href="hub.css">
 <style>
-  #articles {
-    max-width: 720px;
+  #hub {
+    max-width: 760px;
   }
 
-  #content h2 {
-    font-size: 13px;
-    font-weight: 600;
-    color: #999;
-    letter-spacing: 0.04em;
-    margin: 36px 0 4px;
+  header h1 {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
   }
 
-  #content h2:first-child {
+  .section-label {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #6d5bd0;
+    background: #efecfb;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin: 32px 0 16px;
+  }
+
+  .section-label:first-child {
     margin-top: 0;
   }
 
-  #content h3 {
+  .a-card {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 16px;
+    padding: 20px 22px;
+    margin-bottom: 14px;
+    transition: box-shadow 0.15s, transform 0.15s;
+  }
+
+  .a-card:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .a-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+
+  .a-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+  }
+
+  .a-head h3 {
     font-size: 17px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.4;
-    margin: 28px 0 8px;
-    padding-top: 24px;
-    border-top: 1px solid #ececec;
+    margin: 0 0 4px;
   }
 
-  #content h2 + h3 {
-    margin-top: 12px;
-    padding-top: 0;
-    border-top: none;
+  .a-links {
+    font-size: 12px;
+    margin: 0;
   }
 
-  #content h3 + p {
-    font-size: 13px;
-    margin: 0 0 10px;
-  }
-
-  #content h3 + p a {
-    color: #777;
+  .a-links a {
+    color: #999;
     text-decoration: none;
   }
 
-  #content h3 + p a:hover {
-    color: #222;
+  .a-links a:hover {
+    color: #6d5bd0;
     text-decoration: underline;
   }
 
-  #content p {
+  .a-desc {
     font-size: 14px;
     line-height: 1.8;
     color: #444;
     margin: 0;
   }
 
-  #content strong {
+  .a-desc strong {
     color: #222;
   }
 
@@ -76,17 +110,92 @@
     <h1>📚 記事まとめ</h1>
     <p>気になる記事をまとめています。</p>
   </header>
-  <div id="articles">
-    <div id="content" class="loading">読み込み中…</div>
-  </div>
+  <div id="content" class="loading">読み込み中…</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
+  const PALETTE = [
+    { bg: "#eef2ff", emoji: "🎬" },
+    { bg: "#fff7ed", emoji: "⚡" },
+    { bg: "#ecfdf5", emoji: "🧩" },
+    { bg: "#fdf2f8", emoji: "✨" },
+    { bg: "#f0f9ff", emoji: "📄" },
+  ];
+
+  function buildLayout(markdown) {
+    const raw = document.createElement("div");
+    raw.innerHTML = marked.parse(markdown);
+
+    const out = document.createDocumentFragment();
+    let card = null;
+    let head = null;
+    let pCount = 0;
+    let colorIndex = 0;
+
+    for (const el of Array.from(raw.children)) {
+      if (el.tagName === "H2") {
+        const label = document.createElement("div");
+        label.className = "section-label";
+        label.textContent = el.textContent;
+        out.appendChild(label);
+        card = null;
+        continue;
+      }
+
+      if (el.tagName === "H3") {
+        card = document.createElement("article");
+        card.className = "a-card";
+
+        head = document.createElement("div");
+        head.className = "a-head";
+
+        const icon = document.createElement("span");
+        const style = PALETTE[colorIndex % PALETTE.length];
+        colorIndex++;
+        icon.className = "a-icon";
+        icon.style.background = style.bg;
+        icon.textContent = style.emoji;
+
+        const titleWrap = document.createElement("div");
+        const h3 = document.createElement("h3");
+        h3.innerHTML = el.innerHTML;
+        titleWrap.appendChild(h3);
+
+        head.appendChild(icon);
+        head.appendChild(titleWrap);
+        card.appendChild(head);
+        out.appendChild(card);
+
+        pCount = 0;
+        continue;
+      }
+
+      if (el.tagName === "P" && card) {
+        pCount++;
+        if (pCount === 1) {
+          const links = document.createElement("p");
+          links.className = "a-links";
+          links.innerHTML = el.innerHTML;
+          head.querySelector("div").appendChild(links);
+        } else {
+          const desc = document.createElement("p");
+          desc.className = "a-desc";
+          desc.innerHTML = el.innerHTML;
+          card.appendChild(desc);
+        }
+      }
+    }
+
+    return out;
+  }
+
   fetch("articles.md")
     .then((res) => res.text())
     .then((markdown) => {
-      document.getElementById("content").classList.remove("loading");
-      document.getElementById("content").innerHTML = marked.parse(markdown);
+      const content = document.getElementById("content");
+      content.classList.remove("loading");
+      content.innerHTML = "";
+      content.appendChild(buildLayout(markdown));
     })
     .catch(() => {
       document.getElementById("content").textContent = "記事を読み込めませんでした。";
