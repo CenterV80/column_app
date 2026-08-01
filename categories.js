@@ -10,11 +10,11 @@ const CATEGORIES = [
     icon: "📚",
   },
   {
-    id: "github-glossary",
-    name: "GitHub用語辞典",
-    description: "初心者向けのGitHub・Git用語を、わかりやすく解説しています。",
-    path: "github-glossary.html",
-    icon: "🚀",
+    id: "github",
+    name: "GitHub 使い方",
+    description: "GitHubの基本用語からデプロイ方法まで、初心者向けにまとめています。",
+    path: "categories/github/",
+    icon: "🐙",
   },
   {
     id: "ltx",
