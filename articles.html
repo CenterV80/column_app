@@ -1,166 +1,96 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>記事まとめ</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>記事まとめ | column_app</title>
+<link rel="stylesheet" href="hub.css">
+<style>
+  #articles {
+    max-width: 720px;
+  }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+  #content h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #999;
+    letter-spacing: 0.04em;
+    margin: 36px 0 4px;
+  }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
+  #content h2:first-child {
+    margin-top: 0;
+  }
 
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
+  #content h3 {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 28px 0 8px;
+    padding-top: 24px;
+    border-top: 1px solid #ececec;
+  }
 
-        header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
+  #content h2 + h3 {
+    margin-top: 12px;
+    padding-top: 0;
+    border-top: none;
+  }
 
-        header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
+  #content h3 + p {
+    font-size: 13px;
+    margin: 0 0 10px;
+  }
 
-        #content {
-            padding: 40px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
+  #content h3 + p a {
+    color: #777;
+    text-decoration: none;
+  }
 
-        #content h2 {
-            color: #667eea;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
-        }
+  #content h3 + p a:hover {
+    color: #222;
+    text-decoration: underline;
+  }
 
-        #content h3 {
-            color: #764ba2;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
+  #content p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #444;
+    margin: 0;
+  }
 
-        #content a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
+  #content strong {
+    color: #222;
+  }
 
-        #content a:hover {
-            color: #764ba2;
-            text-decoration: underline;
-        }
-
-        #content ul, #content ol {
-            margin-left: 20px;
-            margin-bottom: 15px;
-        }
-
-        #content li {
-            margin-bottom: 8px;
-        }
-
-        #content p {
-            margin-bottom: 15px;
-        }
-
-        footer {
-            background: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            color: #666;
-            border-top: 1px solid #eee;
-        }
-
-        footer a {
-            color: #667eea;
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #764ba2;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-    </style>
+  .loading {
+    color: #999;
+    font-size: 14px;
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📚 記事まとめ</h1>
-            <p>気になる記事をまとめています</p>
-        </header>
-
-        <div id="content" class="loading">
-            読み込み中...
-        </div>
-
-        <footer>
-            <p>📝 <a href="articles.md">マークダウン版を見る</a></p>
-        </footer>
-    </div>
-
-    <script>
-        // articles.md を読み込んでHTMLにレンダリング
-        fetch('articles.md')
-            .then(response => response.text())
-            .then(markdown => {
-                document.getElementById('content').innerHTML = marked.parse(markdown);
-            })
-            .catch(error => {
-                document.getElementById('content').innerHTML =
-                    '<p style="color: red;">申し訳ございません。記事を読み込むことができませんでした。</p>';
-                console.error('Error:', error);
-            });
-    </script>
+<div id="hub">
+  <a class="back-link" href="index.html">← トップに戻る</a>
+  <header>
+    <h1>📚 記事まとめ</h1>
+    <p>気になる記事をまとめています。</p>
+  </header>
+  <div id="articles">
+    <div id="content" class="loading">読み込み中…</div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  fetch("articles.md")
+    .then((res) => res.text())
+    .then((markdown) => {
+      document.getElementById("content").classList.remove("loading");
+      document.getElementById("content").innerHTML = marked.parse(markdown);
+    })
+    .catch(() => {
+      document.getElementById("content").textContent = "記事を読み込めませんでした。";
+    });
+</script>
 </body>
 </html>
