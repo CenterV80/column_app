@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub初心者向け用語辞典</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #667eea;
+            font-weight: 700;
+        }
+
+        .term {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .term h3 {
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .term-description {
+            color: #666;
+            font-size: 1em;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .term-description strong {
+            color: #667eea;
+        }
+
+        .term-example {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 12px 0;
+            line-height: 1.5;
+        }
+
+        .term-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-size: 0.95em;
+            color: #856404;
+        }
+
+        .term-usage {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-size: 0.95em;
+            color: #1565c0;
+        }
+
+        .divider {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 40px 0;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 12px;
+        }
+
+        .comparison-item {
+            padding: 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .comparison-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        footer {
+            background: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .vs-section {
+            background: #f0f4ff;
+            padding: 30px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            margin-top: 20px;
+        }
+
+        .vs-section h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 GitHub初心者向け用語辞典</h1>
+            <p>困ったときに読む、わかりやすいGit用語解説</p>
+        </header>
+
+        <div class="content">
+            <!-- 初心者向け -->
+            <div class="section">
+                <h2 class="section-title">📚 初心者向け基本用語</h2>
+
+                <div class="term">
+                    <h3>Repository（リポジトリ / レポジトリ）</h3>
+                    <div class="term-description"><strong>プロジェクトのデータを保存する場所</strong>です。GitHubでは1つのプロジェクト = 1つのリポジトリ。ファイルの変更履歴がすべて記録されています。</div>
+                    <div class="term-note">
+                        <strong>例：</strong> <code>column_app</code> というリポジトリは、このプロジェクトのすべてのコードを管理しています。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Commit（コミット）</h3>
+                    <div class="term-description"><strong>現在のコードの状態を「スナップショット」として保存する</strong>操作です。何が変わったのか、なぜ変わったのかをメッセージとセットで記録します。</div>
+                    <div class="term-example">git commit -m "ログイン機能を追加"</div>
+                    <div class="term-note">
+                        <strong>重要：</strong> Commitだけではリモート（GitHub）に保存されません。次のPushが必要です。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Push（プッシュ）</h3>
+                    <div class="term-description"><strong>ローカル（自分のパソコン）のCommitをGitHubに送信</strong>する操作です。</div>
+                    <div class="term-example">git push origin main</div>
+                    <div class="term-usage">
+                        <strong>イメージ：</strong> Commitが「下書きを保存」だとすると、Pushは「みんなに見せる投稿」です。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Pull（プル）</h3>
+                    <div class="term-description"><strong>GitHubのコードを自分のパソコンにダウンロード</strong>する操作です。チームメンバーが新しいコードをPushした場合、自分のパソコンに反映させるために使用します。</div>
+                    <div class="term-example">git pull origin main</div>
+                </div>
+
+                <div class="term">
+                    <h3>Branch（ブランチ）</h3>
+                    <div class="term-description"><strong>コードの「枝分かれ」です。メインのコード（main/master）から別の枝を作って、そこで新機能や修正を行う</strong>ことができます。</div>
+                    <div class="term-example">git branch feature/new-login<br>git checkout feature/new-login</div>
+                    <div class="term-usage">
+                        <strong>イメージ：</strong> 元の作品を保護しながら、別の版で実験できる感じです。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Clone（クローン）</h3>
+                    <div class="term-description"><strong>GitHubのリポジトリを自分のパソコンにコピー</strong>する操作です。初めてプロジェクトに参加するときに使用します。</div>
+                    <div class="term-example">git clone https://github.com/user/project.git</div>
+                    <div class="term-note">
+                        <strong>Clone後：</strong> プロジェクトのすべてのファイルと変更履歴があなたのパソコンに保存されます。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Fork（フォーク）</h3>
+                    <div class="term-description"><strong>他の人のリポジトリを、自分のGitHubアカウントにコピー</strong>することです。元のプロジェクトに影響を与えずに、自分で自由に編集できます。</div>
+                    <div class="term-usage">
+                        <strong>使われる場面：</strong>
+                        <ul style="margin-left: 20px; margin-top: 8px;">
+                            <li>オープンソースプロジェクトに貢献したいとき</li>
+                            <li>他人のプロジェクトをベースに新しい作品を作りたいとき</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Pull Request（PR）</h3>
+                    <div class="term-description"><strong>「このコードを本体に統合してください」というリクエスト</strong>です。自分が作った機能や修正を、メインのコードに取り込んでもらうために使います。</div>
+                    <div class="term-usage">
+                        <strong>流れ：</strong>
+                        <ol style="margin-left: 20px; margin-top: 8px;">
+                            <li>Forkまたはbranch作成</li>
+                            <li>コードを変更してPush</li>
+                            <li>Pull Request作成 → レビュー → Merge</li>
+                        </ol>
+                    </div>
+                    <div class="term-note">
+                        <strong>GitHub上で行う操作：</strong> コードの議論やレビューが全部PRのページで行われます。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Merge（マージ）</h3>
+                    <div class="term-description"><strong>異なるBranchを統合</strong>する操作です。Pull Requestが承認されると、マージされてメインのコードに反映されます。</div>
+                    <div class="term-usage">
+                        <strong>イメージ：</strong> 別に書いていた文章を、元の原稿に合体させる感じです。
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- 中級者向け -->
+            <div class="section">
+                <h2 class="section-title">🎓 中級者向け用語</h2>
+
+                <div class="term">
+                    <h3>Fetch（フェッチ）</h3>
+                    <div class="term-description"><strong>GitHubから最新情報をダウンロード</strong>しますが、ローカルのコードには反映させません。Push後に他のメンバーが何をしたのか「確認だけしたい」ときに使用します。</div>
+                    <div class="term-example">git fetch origin</div>
+                    <div class="term-usage">
+                        <strong>PullとFetchの違い：</strong>
+                        <div class="comparison">
+                            <div class="comparison-item">
+                                <strong>Fetch</strong>
+                                情報を取得するだけ
+                            </div>
+                            <div class="comparison-item">
+                                <strong>Pull</strong>
+                                情報を取得 + ローカルに反映（Fetch + Merge）
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Checkout（チェックアウト）</h3>
+                    <div class="term-description"><strong>別のBranchに切り替える</strong>操作です。</div>
+                    <div class="term-example">git checkout feature/new-login</div>
+                    <div class="term-note">
+                        <strong>新しいBranchを作成して切り替える：</strong><br>
+                        <code>git checkout -b feature/new-feature</code>
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Diff（ディフ）</h3>
+                    <div class="term-description"><strong>ファイルの変更内容を表示</strong>する操作です。何が追加されて、何が削除されたかを確認できます。</div>
+                    <div class="term-example">git diff</div>
+                </div>
+
+                <div class="term">
+                    <h3>Tag（タグ）</h3>
+                    <div class="term-description"><strong>重要なCommitに「目印」をつける</strong>操作です。バージョンリリースのときなどに使用します。</div>
+                    <div class="term-example">git tag v1.0.0<br>git push origin v1.0.0</div>
+                </div>
+
+                <div class="term">
+                    <h3>Stash（スタッシュ）</h3>
+                    <div class="term-description"><strong>作業中のコードを一時的に保存</strong>する操作です。Commit前に別のBranchに切り替えたいときに便利です。</div>
+                    <div class="term-example">git stash          # 現在の変更を保存<br>git stash pop      # 保存した内容を復元</div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- 上級者向け -->
+            <div class="section">
+                <h2 class="section-title">🔬 上級者向け用語</h2>
+
+                <div class="term">
+                    <h3>Rebase（リベース）</h3>
+                    <div class="term-description"><strong>Commitの歴史を再構成</strong>する操作です。複数のCommitを1つにまとめたり、Commitの順序を変更したりできます。</div>
+                    <div class="term-example">git rebase -i HEAD~3</div>
+                    <div class="term-note">
+                        <strong>注意：</strong> 既にPushしたCommitをRebaseするのは危険です。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Cherry-pick（チェリーピック）</h3>
+                    <div class="term-description"><strong>特定のCommitだけを別のBranchに適用</strong>する操作です。全部のCommitではなく、必要な変更だけを取ってくる場合に使用します。</div>
+                    <div class="term-example">git cherry-pick abc123</div>
+                </div>
+
+                <div class="term">
+                    <h3>Reflog（レフログ）</h3>
+                    <div class="term-description"><strong>あなたのすべての操作の履歴</strong>です。うっかり削除したBranchやCommitを復元するときに使用します。</div>
+                    <div class="term-example">git reflog</div>
+                </div>
+
+                <div class="term">
+                    <h3>Bisect（バイセクト）</h3>
+                    <div class="term-description"><strong>バグの原因になったCommitを自動検索</strong>する操作です。大量のCommitの中からバグの原因を特定するときに便利です。</div>
+                    <div class="term-example">git bisect start</div>
+                </div>
+
+                <div class="term">
+                    <h3>Hook（フック）</h3>
+                    <div class="term-description"><strong>特定の操作の前後に自動実行される処理</strong>です。Commitしてくるコードの品質チェックなどに使用されます。</div>
+                    <div class="term-usage">
+                        <strong>例：</strong> pre-commit hook が動いて、自動的にコードをチェックしてからCommitさせる。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>Squash（スクワッシュ）</h3>
+                    <div class="term-description"><strong>複数のCommitを1つにまとめる</strong>操作です。Pull Requestをマージするときに「Squash and merge」を選択して使用します。</div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- Git vs GitHub -->
+            <div class="vs-section">
+                <h3>📖 Git vs GitHub</h3>
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <strong>Git</strong>
+                        バージョン管理システム（ローカルで使う）
+                    </div>
+                    <div class="comparison-item">
+                        <strong>GitHub</strong>
+                        Gitを使ったクラウドサービス（オンラインで共有）
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>📅 最終更新：2026年8月1日</p>
+        </footer>
+    </div>
+</body>
+</html>
