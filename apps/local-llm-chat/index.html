@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ローカルLLMチャット</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 ローカルLLMチャット</h1>
+            <div class="header-controls">
+                <div class="model-select-container">
+                    <label for="model-select">モデル:</label>
+                    <select id="model-select">
+                        <option value="tinyllama">TinyLlama</option>
+                        <option value="phi">Phi</option>
+                        <option value="neural-chat">Neural Chat</option>
+                        <option value="orca-mini">Orca Mini</option>
+                    </select>
+                </div>
+                <div class="server-url-container">
+                    <label for="server-url">サーバーURL:</label>
+                    <input type="text" id="server-url" value="http://localhost:11434" placeholder="http://localhost:11434">
+                </div>
+                <button id="clear-btn" class="clear-btn">チャットをクリア</button>
+            </div>
+            <div id="status" class="status">...</div>
+        </header>
+
+        <main>
+            <div id="messages" class="messages"></div>
+        </main>
+
+        <footer>
+            <form id="input-form">
+                <textarea id="input-text" placeholder="メッセージを入力..." rows="3"></textarea>
+                <button type="submit" id="send-btn">送信</button>
+            </form>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
