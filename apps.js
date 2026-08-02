@@ -39,6 +39,13 @@ const APPS = [
     category: "ltx",
   },
   {
+    name: "生成AI用語",
+    description: "蒸留・量子化など、画像・動画生成AIの記事でよく見かける用語をやさしく解説します。",
+    path: "generative-ai-glossary.html",
+    icon: "🧠",
+    category: "ltx",
+  },
+  {
     name: "HLSL マテリアルエディタ",
     description: "UEのCustomノード風にHLSLを書くと、球やキューブにリアルタイム反映されます。ライトベクターなどの組み込み変数とパラメータ調整つき。",
     path: "apps/hlsl-material-editor/",
