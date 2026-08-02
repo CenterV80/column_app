@@ -25,8 +25,8 @@ const CATEGORIES = [
   },
   {
     id: "ltx",
-    name: "LTX",
-    description: "動画生成AI「LTX」シリーズのしくみを解説する記事です。",
+    name: "AI動画",
+    description: "動画生成AI「LTX」シリーズのしくみや、生成AIまわりの用語を解説する記事です。",
     path: "categories/ltx/",
     icon: "🎬",
   },
