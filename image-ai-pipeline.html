@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画像生成AIパイプライン解説</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin: 20px 0 0 30px;
+            color: #4a00e0;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            padding: 20px 30px 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #4a00e0;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #8e2de2;
+            font-weight: 700;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #4a00e0;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f6f2fd;
+        }
+
+        td strong {
+            color: #4a00e0;
+        }
+
+        .points {
+            padding: 20px;
+            background: #f6f2fd;
+            border-left: 4px solid #8e2de2;
+            border-radius: 4px;
+        }
+
+        .points ul {
+            margin-left: 20px;
+        }
+
+        .points li {
+            margin-bottom: 12px;
+            color: #444;
+        }
+
+        .points li strong {
+            color: #4a00e0;
+        }
+
+        .flow-wrap {
+            background: #2d2d2d;
+            border-radius: 8px;
+            padding: 25px 20px;
+            overflow-x: auto;
+        }
+
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .flow-box {
+            background: #8e2de2;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95em;
+            white-space: nowrap;
+        }
+
+        .flow-box.accent {
+            background: #4a00e0;
+        }
+
+        .flow-box.noise {
+            background: #555;
+        }
+
+        .flow-arrow {
+            color: #ccc;
+            font-size: 1.3em;
+        }
+
+        .flow-note {
+            text-align: center;
+            color: #aaa;
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+
+        footer {
+            background: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            th {
+                display: none;
+            }
+
+            td {
+                border: none;
+                border-bottom: 1px solid #e0e0e0;
+                padding: 6px 0;
+            }
+
+            td:before {
+                content: attr(data-label) "： ";
+                font-weight: 600;
+                color: #4a00e0;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="back-link" href="categories/ltx/index.html">← AI動画に戻る</a>
+        <header>
+            <h1>🖼️ 画像生成AIパイプライン解説</h1>
+            <p>CLIP・VAE・U-Net、各コンポーネントの役割と関係を整理します</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2 class="section-title">📐 全体構造（Stable Diffusion系を例に）</h2>
+                <table>
+                    <tr>
+                        <th>コンポーネント</th>
+                        <th>役割</th>
+                        <th>入出力</th>
+                    </tr>
+                    <tr>
+                        <td data-label="コンポーネント"><strong>CLIP（テキストエンコーダー）</strong></td>
+                        <td data-label="役割">プロンプトを埋め込みベクトルに変換</td>
+                        <td data-label="入出力">テキスト → <strong>CONDITIONING</strong></td>
+                    </tr>
+                    <tr>
+                        <td data-label="コンポーネント"><strong>VAE</strong></td>
+                        <td data-label="役割">画像と潜在空間の変換（圧縮／復元）</td>
+                        <td data-label="入出力">画像 ⇔ Latent</td>
+                    </tr>
+                    <tr>
+                        <td data-label="コンポーネント"><strong>U-Net</strong></td>
+                        <td data-label="役割">ノイズ除去（拡散プロセス本体）</td>
+                        <td data-label="入出力">Latent + Conditioning → Latent</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🔑 ポイント整理</h2>
+                <div class="points">
+                    <ul>
+                        <li><strong>CLIPは「テキストエンコーダーの一種」</strong>であり、テキストエンコーダー全般とイコールではない（BERT/T5などもテキストエンコーダー）</li>
+                        <li>CLIP本来は画像エンコーダーとテキストエンコーダーのペアで学習されたモデルだが、画像生成AIでは<strong>テキストエンコーダー部分だけ</strong>を流用するのが一般的</li>
+                        <li>CLIPとVAEは「ペアで学習された関係」ではなく、それぞれ<strong>独立に学習されたモデル</strong>をパイプライン内で組み合わせているだけ</li>
+                        <li>CLIPの出力は<strong>conditioning（条件付けデータ）</strong>として扱われ、U-Netに渡されて生成プロセスを誘導する（cross-attentionで注入）</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🔀 データフローのイメージ</h2>
+                <div class="flow-wrap">
+                    <div class="flow-row">
+                        <span class="flow-box">プロンプト</span>
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-box">CLIP</span>
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-box accent">CONDITIONING</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-box noise">ランダムノイズ</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-arrow">↓</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-box accent">U-Net（ノイズ除去）</span>
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-box">Latent</span>
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-box">VAE（デコード）</span>
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-box">画像</span>
+                    </div>
+                    <p class="flow-note">CONDITIONING と ランダムノイズ の両方が U-Net に入力される</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>📅 最終更新：2026年8月3日</p>
+        </footer>
+    </div>
+</body>
+</html>
