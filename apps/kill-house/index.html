@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KILL HOUSE — Tactical Combat Simulator</title>
+<meta name="description" content="ブラウザで動く Three.js 製タクティカル FPS。夜間の訓練施設でホログラム敵と交戦する縦切りデモ。">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:,">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/build/three.module.js",
+    "three/addons/": "./vendor/three/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="vignette"></div>
+  <div id="damageFlash"></div>
+  <div id="dmgIndicators"></div>
+
+  <div id="crosshair">
+    <i class="ch ch-t"></i><i class="ch ch-b"></i><i class="ch ch-l"></i><i class="ch ch-r"></i>
+    <i class="ch-dot"></i>
+  </div>
+  <div id="hitmarker"></div>
+
+  <div id="topBar">
+    <div id="objective">セクター確保 — 敵ホログラムを排除せよ</div>
+    <div id="waveInfo"><span id="waveLabel">WAVE 1</span><span id="hostileCount">残り 0</span></div>
+  </div>
+
+  <div id="killFeed"></div>
+
+  <div id="bottomLeft">
+    <div class="statRow">
+      <div class="statIcon armorIcon"></div>
+      <div class="barTrack"><div id="armorBar" class="barFill armorFill"></div></div>
+    </div>
+    <div class="statRow">
+      <div class="statIcon healthIcon"></div>
+      <div class="barTrack"><div id="healthBar" class="barFill healthFill"></div></div>
+    </div>
+  </div>
+
+  <div id="bottomRight">
+    <div id="weaponName">AR-7 "SENTRY"</div>
+    <div id="ammoRow"><span id="ammoInMag">30</span><span id="ammoDivider">/</span><span id="ammoReserve">120</span></div>
+    <div id="reloadPrompt">R で再装填</div>
+  </div>
+
+  <div id="staminaWrap"><div id="staminaBar"></div></div>
+
+  <div id="scoreBox"><span id="scoreLabel">SCORE</span><span id="scoreValue">0</span></div>
+
+  <div id="lowAmmoWarn">弾薬残量注意</div>
+</div>
+
+<div id="overlay">
+  <div id="startScreen" class="screen">
+    <div class="brand">
+      <div class="brandTitle">KILL HOUSE</div>
+      <div class="brandSub">TACTICAL COMBAT SIMULATOR — CQB TRAINING BUILD</div>
+    </div>
+    <button id="startBtn" class="bigBtn">交戦開始 (クリックしてロック)</button>
+    <div class="controlsGrid">
+      <div><b>WASD</b> 移動</div>
+      <div><b>マウス</b> 視点</div>
+      <div><b>左クリック</b> 射撃</div>
+      <div><b>右クリック</b> エイム</div>
+      <div><b>Shift</b> ダッシュ</div>
+      <div><b>Ctrl / C</b> しゃがみ</div>
+      <div><b>Space</b> ジャンプ</div>
+      <div><b>R</b> リロード</div>
+      <div><b>Esc</b> ポーズ / 画質設定</div>
+    </div>
+    <a class="backLink" href="../../categories/mini-apps/">← ミニアプリ一覧に戻る</a>
+  </div>
+
+  <div id="pauseScreen" class="screen hidden">
+    <div class="brandTitle small">一時停止</div>
+    <button id="resumeBtn" class="bigBtn">再開</button>
+    <div class="settingsPanel">
+      <label>マウス感度 <input type="range" id="sensSlider" min="0.5" max="3" step="0.05" value="1.4"></label>
+      <label>視野角 (FOV) <input type="range" id="fovSlider" min="65" max="100" step="1" value="78"></label>
+      <label><input type="checkbox" id="ssaoToggle" checked> 高品質シェーディング (SSAO)</label>
+      <label><input type="checkbox" id="bloomToggle" checked> ブルーム</label>
+      <label><input type="checkbox" id="grainToggle" checked> フィルムグレイン / 収差</label>
+      <label><input type="checkbox" id="gunbobToggle" checked> 銃器スウェイ</label>
+    </div>
+    <a class="backLink" href="../../categories/mini-apps/">← ミニアプリ一覧に戻る</a>
+  </div>
+
+  <div id="endScreen" class="screen hidden">
+    <div class="brandTitle small" id="endTitle">MISSION COMPLETE</div>
+    <div id="endStats"></div>
+    <button id="retryBtn" class="bigBtn">再挑戦</button>
+    <a class="backLink" href="../../categories/mini-apps/">← ミニアプリ一覧に戻る</a>
+  </div>
+
+  <div id="loadingScreen" class="screen">
+    <div class="brandTitle small">READY UP</div>
+    <div id="loadingBar"><div id="loadingFill"></div></div>
+    <div id="loadingLabel">環境を構築中…</div>
+  </div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
