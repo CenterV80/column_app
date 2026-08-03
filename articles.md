@@ -1,5 +1,10 @@
 ## 2026年7月
 
+### MiniMax H3、ComfyUIにネイティブ対応 - Partner Nodes経由で公式ワークフロー公開
+[ComfyUI公式ドキュメント](https://docs.comfy.org/tutorials/video/minimax/minimax-h3)
+
+MiniMaxの動画生成モデル「H3」が、ComfyUIから直接呼び出せる公式ワークフローとして公開された。Partner Nodes経由でAPIアクセスがすでに利用可能で、テキストから動画、画像から動画、リファレンス動画からの生成（Omni Reference）まで一通りのワークフロー例がComfyUI公式ドキュメントに用意されている。特徴は生成される動画すべてにネイティブなステレオ音声が付く点、最大2K・5〜15秒・24fpsで出力できる点、そしてキャラクター・シーン・セリフ・声を後から部分的に編集できる点。各ワークフローはResolution Selectorノードで出力サイズを一括制御できる作りになっている。モデル本体はHugging FaceのComfy-Orgリポジトリでホストされており、ネイティブなオープンウェイト対応（ローカルでのGPU実行）も近日公開予定とアナウンスされている。
+
 ### LTX2.3-22B IC-LoRA CrossView-Warp - 1本の動画から視点を自由に動かすIC-LoRA
 [Hugging Face - Cseti/LTX2.3-22B_IC-LoRA-CrossView-Warp](https://huggingface.co/Cseti/LTX2.3-22B_IC-LoRA-CrossView-Warp) | [GitHub - ComfyUI-CrossViewWarp](https://github.com/cseti007/ComfyUI-CrossViewWarp)
 
