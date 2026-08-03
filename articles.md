@@ -1,5 +1,10 @@
 ## 2026年7月
 
+### gpt-prompt-engineer - プロンプトを自動生成・テスト・ランク付けするツール
+[GitHub - mshumer/gpt-prompt-engineer](https://github.com/mshumer/gpt-prompt-engineer)
+
+タスクの説明とテストケースを入力するだけで、最適なプロンプトを自動的に見つけてくれるツール。GPT-4やClaude 3 Opusを使って複数のプロンプト案をまず自動生成し、それぞれをテストケースに対して実行、結果を**ELOレーティング**（対戦形式のスコアリング、初期値1200）で比較することで、最も効果的なプロンプトをランキング形式で特定できる。文章生成タスク向けの標準版のほか、true/false判定に特化した分類版、複数の入力変数やテストケース自動生成に対応したClaude 3版、コスト削減のためOpusで生成したプロンプトをHaikuで運用する変換版など複数のバリエーションが用意されている。Google Colab上でそのまま実行可能で、OpenAIまたはAnthropicのAPIキーがあればすぐに試せる。
+
 ### MiniMax H3、ComfyUIにネイティブ対応 - Partner Nodes経由で公式ワークフロー公開
 [ComfyUI公式ドキュメント](https://docs.comfy.org/tutorials/video/minimax/minimax-h3)
 
