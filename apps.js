@@ -46,6 +46,13 @@ const APPS = [
     category: "ltx",
   },
   {
+    name: "画像生成AIパイプライン解説",
+    description: "CLIP・VAE・U-Netの役割と関係、データフローの流れを図解で整理します。",
+    path: "image-ai-pipeline.html",
+    icon: "🖼️",
+    category: "ltx",
+  },
+  {
     name: "HLSL マテリアルエディタ",
     description: "UEのCustomノード風にHLSLを書くと、球やキューブにリアルタイム反映されます。ライトベクターなどの組み込み変数とパラメータ調整つき。",
     path: "apps/hlsl-material-editor/",
