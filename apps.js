@@ -73,4 +73,11 @@ const APPS = [
     icon: "🤖",
     category: "mini-apps",
   },
+  {
+    name: "KILL HOUSE — Tactical Combat Simulator",
+    description: "Three.js製の本格3D FPS。夜間訓練施設でホログラム敵ドローンと交戦する縦切りデモ。PBRマテリアル、被弾リコイル、SSAO/ブルーム等のポストエフェクトつき。",
+    path: "apps/kill-house/",
+    icon: "🎯",
+    category: "mini-apps",
+  },
 ];
