@@ -743,5 +743,19 @@ window.addEventListener("DOMContentLoaded", () => {
     graphView.zoomAtCenter(1 / 1.3);
   });
 
+  const helpOverlay = document.getElementById("help-overlay");
+  document.getElementById("show-help").addEventListener("click", () => {
+    helpOverlay.classList.remove("hidden");
+  });
+  document.getElementById("help-close").addEventListener("click", () => {
+    helpOverlay.classList.add("hidden");
+  });
+  helpOverlay.addEventListener("click", (e) => {
+    if (e.target === helpOverlay) helpOverlay.classList.add("hidden");
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") helpOverlay.classList.add("hidden");
+  });
+
   graphView.render(manager.expressions);
 });
