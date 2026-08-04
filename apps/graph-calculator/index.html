@@ -38,59 +38,59 @@
     </div>
     <div id="help-body">
       <section>
-        <h3>基本演算</h3>
+        <h3>基本演算(タップで数式に挿入)</h3>
         <table>
-          <tr><td><code>+ - * / ^</code></td><td>加減乗除・累乗(例: <code>x^2</code>)</td></tr>
-          <tr><td><code>%</code></td><td>剰余(あまり)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="+">+</code><code class="fn-chip" data-insert="-">-</code><code class="fn-chip" data-insert="*">*</code><code class="fn-chip" data-insert="/">/</code><code class="fn-chip" data-insert="^">^</code></td><td>加減乗除・累乗(例: <code>x^2</code>)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="%">%</code></td><td>剰余(あまり)</td></tr>
           <tr><td><code>2x</code>, <code>2(x+1)</code>, <code>x(x+1)</code></td><td>かっこ・変数の直前の数字は積として扱われます(暗黙の乗算)</td></tr>
-          <tr><td><code>( )</code></td><td>かっこでまとめる</td></tr>
+          <tr><td><code class="fn-chip" data-insert="()">( )</code></td><td>かっこでまとめる</td></tr>
         </table>
       </section>
       <section>
-        <h3>三角関数</h3>
+        <h3>三角関数(タップで数式に挿入)</h3>
         <table>
-          <tr><td><code>sin(x)</code></td><td>サイン</td></tr>
-          <tr><td><code>cos(x)</code></td><td>コサイン</td></tr>
-          <tr><td><code>tan(x)</code></td><td>タンジェント</td></tr>
-          <tr><td><code>asin(x)</code></td><td>逆サイン(アークサイン)</td></tr>
-          <tr><td><code>acos(x)</code></td><td>逆コサイン(アークコサイン)</td></tr>
-          <tr><td><code>atan(x)</code></td><td>逆タンジェント(アークタンジェント)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="sin()">sin(x)</code></td><td>サイン</td></tr>
+          <tr><td><code class="fn-chip" data-insert="cos()">cos(x)</code></td><td>コサイン</td></tr>
+          <tr><td><code class="fn-chip" data-insert="tan()">tan(x)</code></td><td>タンジェント</td></tr>
+          <tr><td><code class="fn-chip" data-insert="asin()">asin(x)</code></td><td>逆サイン(アークサイン)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="acos()">acos(x)</code></td><td>逆コサイン(アークコサイン)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="atan()">atan(x)</code></td><td>逆タンジェント(アークタンジェント)</td></tr>
         </table>
       </section>
       <section>
-        <h3>双曲線関数</h3>
+        <h3>双曲線関数(タップで数式に挿入)</h3>
         <table>
-          <tr><td><code>sinh(x)</code></td><td>双曲線サイン</td></tr>
-          <tr><td><code>cosh(x)</code></td><td>双曲線コサイン</td></tr>
-          <tr><td><code>tanh(x)</code></td><td>双曲線タンジェント</td></tr>
+          <tr><td><code class="fn-chip" data-insert="sinh()">sinh(x)</code></td><td>双曲線サイン</td></tr>
+          <tr><td><code class="fn-chip" data-insert="cosh()">cosh(x)</code></td><td>双曲線コサイン</td></tr>
+          <tr><td><code class="fn-chip" data-insert="tanh()">tanh(x)</code></td><td>双曲線タンジェント</td></tr>
         </table>
       </section>
       <section>
-        <h3>指数・対数</h3>
+        <h3>指数・対数(タップで数式に挿入)</h3>
         <table>
-          <tr><td><code>sqrt(x)</code></td><td>平方根</td></tr>
-          <tr><td><code>exp(x)</code></td><td>e の x 乗</td></tr>
-          <tr><td><code>log(x)</code></td><td>常用対数(底10)</td></tr>
-          <tr><td><code>ln(x)</code></td><td>自然対数(底e)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="sqrt()">sqrt(x)</code></td><td>平方根</td></tr>
+          <tr><td><code class="fn-chip" data-insert="exp()">exp(x)</code></td><td>e の x 乗</td></tr>
+          <tr><td><code class="fn-chip" data-insert="log()">log(x)</code></td><td>常用対数(底10)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="ln()">ln(x)</code></td><td>自然対数(底e)</td></tr>
         </table>
       </section>
       <section>
-        <h3>その他の関数</h3>
+        <h3>その他の関数(タップで数式に挿入)</h3>
         <table>
-          <tr><td><code>abs(x)</code></td><td>絶対値</td></tr>
-          <tr><td><code>floor(x)</code></td><td>切り捨て(床関数)</td></tr>
-          <tr><td><code>ceil(x)</code></td><td>切り上げ(天井関数)</td></tr>
-          <tr><td><code>round(x)</code></td><td>四捨五入</td></tr>
-          <tr><td><code>sign(x)</code></td><td>符号(-1, 0, 1)</td></tr>
-          <tr><td><code>min(a, b)</code></td><td>小さい方の値</td></tr>
-          <tr><td><code>max(a, b)</code></td><td>大きい方の値</td></tr>
+          <tr><td><code class="fn-chip" data-insert="abs()">abs(x)</code></td><td>絶対値</td></tr>
+          <tr><td><code class="fn-chip" data-insert="floor()">floor(x)</code></td><td>切り捨て(床関数)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="ceil()">ceil(x)</code></td><td>切り上げ(天井関数)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="round()">round(x)</code></td><td>四捨五入</td></tr>
+          <tr><td><code class="fn-chip" data-insert="sign()">sign(x)</code></td><td>符号(-1, 0, 1)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="min()">min(a, b)</code></td><td>小さい方の値</td></tr>
+          <tr><td><code class="fn-chip" data-insert="max()">max(a, b)</code></td><td>大きい方の値</td></tr>
         </table>
       </section>
       <section>
-        <h3>定数</h3>
+        <h3>定数(タップで数式に挿入)</h3>
         <table>
-          <tr><td><code>pi</code></td><td>円周率 π (3.14159…)</td></tr>
-          <tr><td><code>e</code></td><td>自然対数の底 e (2.71828…)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="pi">pi</code></td><td>円周率 π (3.14159…)</td></tr>
+          <tr><td><code class="fn-chip" data-insert="e">e</code></td><td>自然対数の底 e (2.71828…)</td></tr>
         </table>
       </section>
     </div>

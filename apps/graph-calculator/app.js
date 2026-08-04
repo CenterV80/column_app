@@ -644,6 +644,14 @@ class ExpressionManager {
           }
         }
       });
+      const trackActive = () => {
+        this._activeExprId = expr.id;
+        this._activeSelection = { start: input.selectionStart, end: input.selectionEnd };
+      };
+      input.addEventListener("focus", trackActive);
+      input.addEventListener("click", trackActive);
+      input.addEventListener("keyup", trackActive);
+      input.addEventListener("select", trackActive);
       row.appendChild(input);
 
       const toggleBtn = document.createElement("button");
@@ -682,6 +690,56 @@ class ExpressionManager {
     } else {
       row._errEl = null;
     }
+  }
+
+  // Inserts `snippet` (e.g. "sin()", "pi", "+") into whichever expression
+  // input was last focused/edited, at its last known cursor position.
+  // Falls back to appending to the last expression if none was active.
+  insertSnippet(snippet) {
+    if (this.expressions.length === 0) this.addExpression("");
+
+    let expr = this.expressions.find((e) => e.id === this._activeExprId);
+    if (!expr) {
+      expr = this.expressions[this.expressions.length - 1];
+      this._activeExprId = expr.id;
+    }
+
+    const row = this.listEl.querySelector(`.expr-row[data-id="${expr.id}"]`);
+    const input = row ? row.querySelector(".expr-input") : null;
+    const text = expr.text || "";
+
+    let start = text.length;
+    let end = text.length;
+    if (input && document.activeElement === input) {
+      start = input.selectionStart;
+      end = input.selectionEnd;
+    } else if (this._activeSelection) {
+      start = Math.min(this._activeSelection.start, text.length);
+      end = Math.min(this._activeSelection.end, text.length);
+    }
+
+    const newText = text.slice(0, start) + snippet + text.slice(end);
+    expr.text = newText;
+    this._compile(expr);
+
+    if (input) {
+      input.value = newText;
+      input.classList.toggle("error", !!expr.error);
+    }
+    if (row) this._showError(row, expr);
+    this._rerenderGraph();
+
+    const openIdx = snippet.indexOf("(");
+    const cursorOffset = openIdx !== -1 && snippet.endsWith(")") ? openIdx + 1 : snippet.length;
+    const newCursor = start + cursorOffset;
+    this._activeSelection = { start: newCursor, end: newCursor };
+
+    requestAnimationFrame(() => {
+      if (input) {
+        input.focus();
+        input.setSelectionRange(newCursor, newCursor);
+      }
+    });
   }
 
   _toggleColorPicker(anchorBtn, expr) {
@@ -755,6 +813,11 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") helpOverlay.classList.add("hidden");
+  });
+  document.getElementById("help-body").addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-insert]");
+    if (!chip) return;
+    manager.insertSnippet(chip.dataset.insert);
   });
 
   graphView.render(manager.expressions);
