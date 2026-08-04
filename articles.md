@@ -1,5 +1,10 @@
 ## 2026年7月
 
+### MiniMax-H3_GGUFs - ComfyUIでそのまま使えるMiniMax-H3のGGUF量子化版
+[Hugging Face - realrebelai/MiniMax-H3_GGUFs](https://huggingface.co/realrebelai/MiniMax-H3_GGUFs/tree/main)
+
+MiniMaxが公開したオープンウェイト動画生成モデル「MiniMax-H3」を、ComfyUIで扱いやすいGGUF形式に量子化して配布しているリポジトリ。合計約38.6GB分のファイルが公開されており、動画生成本体を担うUNet（MiniMax-H3-FL2VA系のGGUF各種）、テキストエンコーダ（qwen3vl_32b_minimax_h3）、VAEがそれぞれ個別ファイルとして用意されている。GGUFはもともとllama.cpp系のツール向けに使われてきた量子化フォーマットで、モデルサイズと必要VRAMを抑えつつ動かせるのが利点。ComfyUI-GGUFなどのローダーノードと組み合わせることで、フル精度版では厳しいスペックのマシンでもMiniMax-H3をローカル実行しやすくなる。ベースモデルはComfy-Org/MiniMax-H3で、配布元はMiniMaxとのライセンス契約に基づいて公開していると明記している。
+
 ### ComfyUI-SolAttn_triton - 動画生成を最大3.5倍高速化するスパースアテンション実装
 [GitHub - kijai/ComfyUI-SolAttn_triton](https://github.com/kijai/ComfyUI-SolAttn_triton)
 
