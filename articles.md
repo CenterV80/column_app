@@ -1,5 +1,10 @@
 ## 2026年7月
 
+### ComfyUI-SolAttn_triton - 動画生成を最大3.5倍高速化するスパースアテンション実装
+[GitHub - kijai/ComfyUI-SolAttn_triton](https://github.com/kijai/ComfyUI-SolAttn_triton)
+
+論文「Sol-Attn」をベースにした、ComfyUI向けの高速アテンション実装。Sol-Attnは学習不要（training-free）のスパースアテンション手法で、クエリごとの閾値ルーティング・スパース計算・近似補正を1回のオンラインsoftmaxパスの中で統合している点が特徴。重要度の低いブロックをオンチップで選別しつつ、閾値未満のスコアも一部再利用することでロングテールの寄与を捨てすぎないようにしており、これにより速度と品質のトレードオフを改善している。論文ベースでは動画生成で最大2.1倍、動画編集で最大2.3倍の高速化、カーネル融合やキャッシュと組み合わせるとWan 2.1-14Bで3.48倍、HunyuanVideo-13Bで5.08倍まで高速化できると報告されている。本リポジトリはTriton実装で、RTX 4090/5090で動作確認済み、MiniMax H3での利用に最適化されている。初回実行時はコンパイルのため時間がかかる仕様で、start/end percentやtauといったパラメータで品質と速度のバランスを調整できる。現時点では「work in progress」の実験的なプロジェクト。
+
 ### Claude of Duty - アートアセット一切なし、コードだけで動くブラウザFPS
 [GitHub - mshumer/Claude-of-Duty](https://github.com/mshumer/Claude-of-Duty)
 
