@@ -1,4 +1,4 @@
-## 2026年7月
+## 2026年8月
 
 ### MiniMax-H3_GGUFs - ComfyUIでそのまま使えるMiniMax-H3のGGUF量子化版
 [Hugging Face - realrebelai/MiniMax-H3_GGUFs](https://huggingface.co/realrebelai/MiniMax-H3_GGUFs/tree/main)
