@@ -37,4 +37,11 @@ const CATEGORIES = [
     path: "categories/mini-apps/",
     icon: "🧰",
   },
+  {
+    id: "comfyui",
+    name: "ComfyUI",
+    description: "ComfyUIを使った画像・動画生成ワークフローや、関連ツールの技術仕様をまとめています。",
+    path: "categories/comfyui/",
+    icon: "🧵",
+  },
 ];

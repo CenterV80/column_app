@@ -73,4 +73,11 @@ const APPS = [
     icon: "🤖",
     category: "mini-apps",
   },
+  {
+    name: "動画生成用タイムラインWeb UI 技術仕様書",
+    description: "ComfyUIを実行エンジンとして使い、タイムラインUIを備えた独自Webフロントエンドを構築するための技術仕様書です。",
+    path: "apps/comfyui-timeline-webui-spec/",
+    icon: "🎞️",
+    category: "comfyui",
+  },
 ];
