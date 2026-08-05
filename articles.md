@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### MiniMax H3 高速生成のヒント - EasyCache + Patch Sol Attention + Patch Sage Attention KJ
+[GitHub - kijai/ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes) | [GitHub - kijai/ComfyUI-SolAttn_triton](https://github.com/kijai/ComfyUI-SolAttn_triton)
+
+ComfyUIノード開発者のKijaiが紹介した、MiniMax H3の生成時間を短縮するためのノード組み合わせ。ワークフローに **EasyCache**（拡散モデルの計算結果をステップ間でキャッシュ・再利用し、冗長な計算をスキップする仕組み。ComfyUIにはネイティブ実装も存在する）、**Patch Sol Attention**（以前紹介したスパースアテンション手法Sol-Attnを、ワークフロー内から有効化できるパッチノードとして提供するもの）、**Patch Sage Attention KJ**（アテンション計算を量子化して高速化する「SageAttention」を、ComfyUI再起動なしでワークフロー内から切り替えられるようにするノード。`ComfyUI-KJNodes`に収録）の3つを追加するだけで、GPU全体の演算効率を底上げできる。実際にコミュニティでは、1メガピクセル・5秒の動画生成がEasyCache＋Sage Attentionの組み合わせで6分から2分半まで短縮されたという報告もあり、Sage Attention単体でも約25%の高速化が確認されている。3つとも既存のワークフローにノードを追加するだけで導入でき、モデルの再学習や設定ファイルの変更は不要。
+
 ### MiniMax-H3_GGUFs - ComfyUIでそのまま使えるMiniMax-H3のGGUF量子化版
 [Hugging Face - realrebelai/MiniMax-H3_GGUFs](https://huggingface.co/realrebelai/MiniMax-H3_GGUFs/tree/main)
 
