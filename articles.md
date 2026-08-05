@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### MiniMax-H3-experimental - Kijaiによるプルーニング＋W4A8量子化の実験的軽量版
+[Hugging Face - Kijai/MiniMax-H3-experimental](https://huggingface.co/Kijai/MiniMax-H3-experimental)
+
+ComfyUIノード開発者のKijaiが公開した、MiniMax-H3（33Bパラメータのオムニモーダル動画生成モデル）を軽量化する実験的なチェックポイント。公開されているファイル「minimax_h3_fl2va_pruned_w4a8_mixed.safetensors」（12.5GB）は、モデルをプルーニング（不要な部分を削減）したうえで、**W4A8混合量子化**（重みを4bit、活性化を8bitに落とす非対称int8量子化方式）を適用したもの。通常のfp8やNVFP4量子化よりもさらに踏み込んだビット幅を採用しており、CUDAの専用デコードカーネルやTritonでの実行、コードブックを使ったグループ量子化などによって精度低下を抑えつつサイズと必要VRAMを削減する狙いがある。まだ「experimental」を冠する開発中の成果物で、Comfy-Org/comfy-kitchen側でもW4A8対応の実装が並行して進められている。低スペックなGPUでもMiniMax-H3をローカルで動かしたいユーザーにとって、今後の軽量化の方向性を示す一例。
+
 ### MiniMax H3 高速生成のヒント - EasyCache + Patch Sol Attention + Patch Sage Attention KJ
 [GitHub - kijai/ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes) | [GitHub - kijai/ComfyUI-SolAttn_triton](https://github.com/kijai/ComfyUI-SolAttn_triton)
 
