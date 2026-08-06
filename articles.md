@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### Mayz.love Gallery「Prompts to remix」- プロンプトと生成動画をセットで公開するギャラリー
+[Mayz.love Gallery - item 24](https://mayz.love/gallery?item=24)
+
+動画生成AIに使ったプロンプトと、そこから実際に生成された動画をセットで公開しているギャラリーサイト「Mayz.love」の一項目。「Prompts to remix（リミックス用のプロンプト）」と題されており、公開されているプロンプトをそのまま流用したり、一部を書き換えたりして自分の生成にリミックス（再利用）できるのがコンセプト。完成した動画だけでなく、そこに至るプロンプトの書き方自体が共有される形式のため、動画生成AIのプロンプト作りのアイデア集・参考事例として眺めるのに向いている。
+
 ### Hunyuan3D-Buffalo 1.0 - 理解・生成・編集を1つに統合したTencentの3Dマルチモーダルモデル
 [プロジェクトページ](https://tencent-hunyuan.github.io/Hunyuan3D-Buffalo1.0/)
 
