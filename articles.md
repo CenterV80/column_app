@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### ComfyUI-MiniMax-H3-Promptor - 画像・動画を見て「シネマ級」のプロンプトを自動生成するカスタムノード
+[GitHub - 1038lab/ComfyUI-MiniMax-H3-Promptor](https://github.com/1038lab/ComfyUI-MiniMax-H3-Promptor)
+
+MiniMax H3向けに、映画制作レベルのプロンプトを自動生成するComfyUIカスタムノード群。「ビジュアル分析」と「プロンプト生成」を別ノードに分離しているのが設計上の特徴で、まず`H3_Vision_Analyzer`ノードが最大4枚の画像や動画を同時に解析し、その分析方法自体もJSONベースのプリセット（`vision_prompts.json`を編集すれば独自の分析戦略も追加可能）でカスタマイズできる。出力言語は英語・中国語に対応し、解析にはOpenAI・Ollama・Gemini・Claudeを使い分けられる。続く`H3_Promptor`ノードは、その解析結果からText-to-VideoやVideo-to-Videoなど6種類の生成モードを自動判別し、構造化されたショットリストと、動画の長さ（4〜15秒）に正確に対応したプロンプトを組み立てる。分析とテキスト処理を分けることで、API呼び出しのコストを抑えつつ柔軟にカスタマイズできる構成になっている。GPL-3.0ライセンスで公開。
+
 ### Mayz.love Gallery「Prompts to remix」- プロンプトと生成動画をセットで公開するギャラリー
 [Mayz.love Gallery - item 24](https://mayz.love/gallery?item=24)
 
