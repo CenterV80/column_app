@@ -50,6 +50,8 @@ Microsoftが公開した、画像・動画理解向けのコーデックネイ�
 
 ComfyUIのワークフローで「モデルが見つかりません」というエラーに悩まされがちな問題を解決するカスタムノード。ミュート・バイパス・未接続のノードを無視して、実際に実行に必要なモデルだけを解析する賢いグラフ解析が特徴。CivitaiとHugging Faceの両方を横断的に自動検索し、複数ソースで同じファイルが見つかった場合はSHA256ハッシュで重複を排除してくれる。ダウンロード完了時にはSHA256/MD5のチェックサム検証も行われるため、壊れたファイルや偽物を掴む心配がない。`custom_nodes/`に配置すれば、ワークフロー内の「Model Resolver」パネルから欠落モデルの確認・検索・ダウンロードまで一気通貫で完結する。
 
+## 2026年7月
+
 ### 高速・省メモリなVAEデコーダ「PrunaVAED」登場、LTX-2.3向けにComfyUIも即対応
 [Hugging Face - PrunaAI/PrunaVAED](https://huggingface.co/PrunaAI/PrunaVAED) | [ComfyUI Wiki](https://comfyui-wiki.com/ja/news/2026-07-28-pruna-vaed-ltx-vae-decoder)
 
