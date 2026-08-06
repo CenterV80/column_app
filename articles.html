@@ -101,6 +101,54 @@
     color: #999;
     font-size: 14px;
   }
+
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+  }
+
+  .pdf-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6d5bd0;
+    background: #efecfb;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .pdf-button:hover {
+    background: #e2ddf7;
+  }
+
+  @media print {
+    .back-link,
+    .toolbar {
+      display: none;
+    }
+
+    .a-card {
+      border: none;
+      box-shadow: none;
+      padding: 12px 0;
+      break-inside: avoid;
+    }
+
+    .a-card:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    body {
+      background: #fff;
+    }
+  }
 </style>
 </head>
 <body>
@@ -110,6 +158,9 @@
     <h1>📚 AI記事まとめ</h1>
     <p>ローカルAIまわりの気になるニュースをまとめています。</p>
   </header>
+  <div class="toolbar">
+    <button class="pdf-button" onclick="window.print()">📄 PDFとして保存</button>
+  </div>
   <div id="content" class="loading">読み込み中…</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
