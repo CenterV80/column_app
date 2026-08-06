@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### MiniMax-H3-Turbo-Lora - サンプリングを4ステップに短縮するLoRAとComfyUI対応情報
+[Hugging Face - larryvrh/MiniMax-H3-Turbo-Lora](https://huggingface.co/larryvrh/MiniMax-H3-Turbo-Lora) | [Discussion: For ComfyUI users](https://huggingface.co/larryvrh/MiniMax-H3-Turbo-Lora/discussions/6)
+
+MiniMax-H3向けに公開された、通常20ステップ前後かかるサンプリングを**わずか4ステップ**まで圧縮できるLoRA。映像と同期したステレオ音声を含めて生成でき、サンプリング時間ベースでおよそ5倍の高速化が見込める。bf16で約744MBのLoRAをベースモデルに標準的な低ランク更新として適用する仕組みで、公開者自身も「まだ学習途中のデモ版で、EMA（移動平均）も十分成熟していない」と位置付けているプレビュー版だが、それでもベースモデルの4ステップ生成と比べてディテールや音声の同期精度が明確に向上しているという。技術的な注意点として、MiniMax-H3は映像用（shift 12）と音声用（shift 3）で異なるフロースケジュールを使っており、4ステップのような超低ステップ数では音声側のスケジュールを大きく踏み越えてノイズが破綻しやすい。ComfyUIコミュニティのディスカッションでは、この問題への対処法として、LoRAをComfyUI用に変換するスクリプトの利用、「Power LoRa Loader」ノードで解像度720×720・4〜6ステップ・Euler-betaサンプラーを使う設定、さらに「spectrum apply minimax h3」ノードを併用すると画質劣化をほぼ抑えたまま生成時間を半減できるといったノウハウが共有されている。
+
 ### ComfyUI-MiniMax-H3-Promptor - 画像・動画を見て「シネマ級」のプロンプトを自動生成するカスタムノード
 [GitHub - 1038lab/ComfyUI-MiniMax-H3-Promptor](https://github.com/1038lab/ComfyUI-MiniMax-H3-Promptor)
 
