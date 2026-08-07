@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### LTX-2.3 GGUF 最新動向まとめ - 主要配布元の比較と量子化レベルの選び方
+[Hugging Face - QuantStack/LTX-2.3-GGUF](https://huggingface.co/QuantStack/LTX-2.3-GGUF) | [Hugging Face - unsloth/LTX-2.3-GGUF](https://huggingface.co/unsloth/LTX-2.3-GGUF) | [GitHub - city96/ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF)
+
+Lightricksが開発した音声・動画生成の基盤モデル「LTX-2.3」（22Bパラメータ、AVTransformer3DModelアーキテクチャ）は、コミュニティによってGGUF量子化版が複数公開されており、コンシューマー向けGPUでのローカル推論を可能にしている。配布元として実績・ダウンロード数で主流なのは2つ。**QuantStack/LTX-2.3-GGUF**はアップストリームの重みを素直に変換したもので、Q2_K（12.4GB）〜Q8_0（25.5GB）まで幅広いビット精度でdev版・蒸留版の両方を収録し、とにかく最小サイズを優先したい場合に向く。**unsloth/LTX-2.3-GGUF**は「Dynamic 2.0」という手法で重要なレイヤーだけ高精度にアップキャストしてから量子化しており、同じビット数でも画質面で有利な傾向がある。蒸留版LoRAをdev版の出力に重ねてリファインするワークフロー例も公開している。dev版は20ステップ以上必要な代わりに高品質な最終出力向き、蒸留版は4〜8ステップで生成できる分ドラフトやdev版出力の高速リファイン向きという住み分け。量子化レベルの目安としては、Q2_Kは動作確認・テスト用途で実運用には不向き、Q3_K_S/MはVRAMが厳しい環境向け、**Q4_K_M**はオリジナルに近い品質を保ちながらメモリ使用量を大幅削減できる「実用的な最低ライン」として人気が高く、Q5〜Q6はVRAMに余裕がある場合のさらなる高品質選択、Q8_0はほぼフル精度で25.5GB。実運用の目安は、画質重視でVRAMに余裕があればunsloth版Q4_K_M以上、VRAMが12GB前後と厳しければQuantStack版Q4_K_S/M、下書き・動作確認用途なら蒸留版のQ2_K〜Q3_K。注意点として、ファイル名だけで判断するとLTX-2.0（19B、旧アーキテクチャ）とLTX-2.3（22B、AVTransformer3DModel）を取り違えやすい（LTX-2.0 19B fp8は約23.5GB、LTX-2.3 22B GGUF Q4は約17.8GB）ため、ファイル名の「2.3」表記とモデルカードのアーキテクチャ表記を必ず確認することが推奨されている。ComfyUI環境での実行にはcity96氏の`ComfyUI-GGUF`ノードパックが必要。
+
 ### MiniMax-H3-Turbo-Lora - サンプリングを4ステップに短縮するLoRAとComfyUI高速化ノウハウ
 [Hugging Face - larryvrh/MiniMax-H3-Turbo-Lora](https://huggingface.co/larryvrh/MiniMax-H3-Turbo-Lora) | [Discussion: For ComfyUI users](https://huggingface.co/larryvrh/MiniMax-H3-Turbo-Lora/discussions/6) | [GitHub - kijai/ComfyUI-SolAttn_triton](https://github.com/kijai/ComfyUI-SolAttn_triton) | [GitHub - xmarre/ComfyUI-Spectrum-MiniMax-H3](https://github.com/xmarre/ComfyUI-Spectrum-MiniMax-H3)
 
