@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### ClipProj-MiniMax-H3 - テキストエンコーダを32B→4Bに置き換えてVRAM使用量を1/3に
+[Hugging Face - NicoLab28/ClipProj-MiniMax-H3](https://huggingface.co/NicoLab28/ClipProj-MiniMax-H3) | [GitHub - nicolab28/ComfyUI-ClipProj](https://github.com/nicolab28/ComfyUI-ClipProj)
+
+MiniMax-H3が標準で使うQwen3-VL-32Bのテキストエンコーダを、はるかに小さいQwen3-VL-4Bに置き換えるための「投影行列（projection matrices）」を公開したプロジェクト。拡散モデル本体やVAE、サンプラーには一切手を加えず、テキストエンコーダ部分だけをVRAM 15.7GBから**5.2GB**まで削減できるのが最大の特徴。仕組みとしては、Qwen3-VLシリーズはサイズが違ってもトークナイザーが共通（151,936トークン）であることを利用し、大きいモデルと小さいモデルの隠れ状態を位置ごとに対応づける線形変換をリッジ回帰だけで学習（勾配降下やエポック、学習率といった通常のニューラルネット学習は不要）することで、小さいモデルでも同等の条件付けベクトルを再現できるようにしている。公開者自身も「動作する検証段階のプロダクト（proof of concept）」と位置付けているが、実機で計測した結果として実際に良好な動画が生成できることを確認済み。利用には専用のComfyUIカスタムノード`ComfyUI-ClipProj`が必要で、投影行列ファイルは`ComfyUI/models/clip_projections/`に配置する。
+
 ### MiniMax H3、Apache 2.0ライセンスへの移行を検討 - 制限撤廃へ
 [PC Watch](https://pc.watch.impress.co.jp/docs/news/2131995.html)
 
