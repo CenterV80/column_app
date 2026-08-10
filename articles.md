@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### MiniMax-H3公式skills - プロンプト作成術をテンプレート化した公式スキル集
+[GitHub - MiniMax-AI/MiniMax-H3 (skills)](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills)
+
+MiniMax公式が、MiniMax-H3向けのプロンプトノウハウをテンプレート集として整理・公開したディレクトリ。内容は大きく2種類で、1つはT2VA・I2VA・FL2VA・L2VA・Ref2VAという5つの生成モードに対応した構造化プロンプトの書き方を支援する「h3-prompt-writing」スキル、もう1つはミニマリスト商品広告・3Dアニメーション短編・ペーパークラフトのストップモーション・ブランド販促ビデオ・字幕付きミュージックビデオ・協力ゲーム紹介・ペーパーコラージュ説明動画・手描きとライブアクションの融合動画という、スタイル別に特化した8つの動画生成スキルで構成されている。各スキルは英語・中国語の二言語対応。導入は専用のスキルCLIを使い、`npx skills add https://github.com/MiniMax-AI/MiniMax-H3`のようなコマンドで全スキルをまとめて取り込める。プロンプトを一から考えるのではなく、用途別のテンプレートから始めたい場合に参考になる公式リソース。
+
 ### LTX-2.3 GGUF 最新動向まとめ - 主要配布元の比較と量子化レベルの選び方
 [Hugging Face - QuantStack/LTX-2.3-GGUF](https://huggingface.co/QuantStack/LTX-2.3-GGUF) | [Hugging Face - unsloth/LTX-2.3-GGUF](https://huggingface.co/unsloth/LTX-2.3-GGUF) | [GitHub - city96/ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF)
 
