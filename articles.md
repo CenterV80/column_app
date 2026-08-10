@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### MiniMax H3、Apache 2.0ライセンスへの移行を検討 - 制限撤廃へ
+[PC Watch](https://pc.watch.impress.co.jp/docs/news/2131995.html)
+
+MiniMaxが、動画生成AI「MiniMax H3」のライセンスを、現行の「MiniMax H3 Community License」から**Apache 2.0**へ移行することを検討していると報じられた。現行ライセンスには、商用利用自体は可能なものの年間売上2,000万米ドルを超える企業は事前の書面承認が必須、UI上での目立つクレジット表記が義務付け、さらに米国・EU・英国・韓国の4地域は利用対象から除外され利用申請が必要、といった制約があった。Apache 2.0への移行が実現すれば、こうした売上規模やクレジット表記、地域制限がすべて撤廃され、開発者や企業が自社サービスへより柔軟に組み込めるようになる。移行の実施時期については、著作権まわりの課題が解決され次第検討するとされている。
+
 ### MiniMax-H3公式skills - プロンプト作成術をテンプレート化した公式スキル集
 [GitHub - MiniMax-AI/MiniMax-H3 (skills)](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills)
 
