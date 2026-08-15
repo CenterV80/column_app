@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### LTX-2.5 Pixel Spatial Upscaler - 低解像度で作った動画を高解像度に「生成的に」アップスケール
+[Hugging Face - Lightricks/LTX-2.5-22b-IC-LoRA-Pixel-Spatial-Upscaler](https://huggingface.co/Lightricks/LTX-2.5-22b-IC-LoRA-Pixel-Spatial-Upscaler)
+
+LTX-2.5（22B）向けに公開された、動画をアップスケールするIC-LoRA。現時点では2倍（2x）版が公開されている。単純な補間で解像度を上げるアップスケーラーとは異なり、低解像度の映像を参照にしながら細部を新たに合成する「生成的（generative）」なアップスケーラーである点が特徴。仕組みとしては、ノイズ除去中の潜在表現と一緒に参照動画を文脈（コンテキスト）として読み込ませるIC-LoRAの手法を用いており、学習時にはターゲットとなる高解像度クリップを縮小したものを参照として使うことで、低解像度の参照映像を同じシーンの高解像度レンダリングへ写像する対応関係を学習している。推奨される使い方は、まず約280pという低い基準解像度で構図やモーションに納得がいくまで動画を生成し、その完成したクリップを参照として2倍アップスケーラーに読み込ませ、最終的な高解像度出力を得るという2段階のワークフロー。ComfyUIのワークフローで使えるsafetensors形式のチェックポイントとして配布されている。
+
 ### awesome-minimax-H3 - MiniMax-H3関連リソースをまとめたキュレーションリスト
 [GitHub - wildminder/awesome-minimax-H3](https://github.com/wildminder/awesome-minimax-H3)
 
