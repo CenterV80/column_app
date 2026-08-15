@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### awesome-minimax-H3 - MiniMax-H3関連リソースをまとめたキュレーションリスト
+[GitHub - wildminder/awesome-minimax-H3](https://github.com/wildminder/awesome-minimax-H3)
+
+テキスト・画像・動画・オーディオを理解し、最大2K解像度・15秒の動画を生成できるオムニモーダルモデル「MiniMax-H3」まわりのリソースを一箇所にまとめた、いわゆる「Awesomeリスト」形式のリポジトリ。公式チェックポイント（BF16・INT8など複数精度、最初と最後のフレームを指定するFL2VAモード、参照素材を使うRef2VAモード）はもちろん、サンプリングを高速化するターボ（加速LoRA、約5倍高速化）、ConvRot・NVFP4・INT4といった各種量子化版、llama.cpp系ツール向けのGGUF形式、スタイル系・実験系のLoRA、個別のテキストエンコーダやVAE・Tiny Autoencoderといったコンポーネント単位のファイルまで幅広く整理されている。それぞれHugging Faceへの直接ダウンロードリンクが張られているほか、ComfyUI用カスタムノードやチュートリアル・技術ガイドへのリンクも網羅。これまで本ページで個別に紹介してきたGGUF量子化版、Turbo-Lora、ClipProjといったMiniMax-H3関連ツール群を俯瞰して探すのに便利な、いわば「索引」的な一覧。
+
 ### ComfyUI-MiniMax-H3-Image-Studio - 動画生成モデルを「画像生成」用途に転用するノード
 [GitHub - astropuzzo/ComfyUI-MiniMax-H3-Image-Studio](https://github.com/astropuzzo/ComfyUI-MiniMax-H3-Image-Studio)
 
