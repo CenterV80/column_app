@@ -74,6 +74,13 @@ const APPS = [
     category: "mini-apps",
   },
   {
+    name: "LTXプロンプトジェネレーター",
+    description: "日本語で入力するだけで、LTX-2.3/2.5の公式ガイドに沿った英語プロンプトをブラウザ内AI（WebLLM）が組み立てます。サーバー・APIキー不要。",
+    path: "apps/ltx-prompt-generator/",
+    icon: "✍️",
+    category: "ltx",
+  },
+  {
     name: "動画生成用タイムラインWeb UI 技術仕様書",
     description: "ComfyUIを実行エンジンとして使い、タイムラインUIを備えた独自Webフロントエンドを構築するための技術仕様書です。",
     path: "apps/comfyui-timeline-webui-spec/",
