@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### ComfyUI-MiniMax-H3-Image-Studio - 動画生成モデルを「画像生成」用途に転用するノード
+[GitHub - astropuzzo/ComfyUI-MiniMax-H3-Image-Studio](https://github.com/astropuzzo/ComfyUI-MiniMax-H3-Image-Studio)
+
+本来は動画生成モデルであるMiniMax-H3を、画像生成に特化した実用ツールとして使えるようにするComfyUIカスタムノード群。テキストから画像（T2I）、画像から画像（I2I）、参照画像を使った編集（REF2VA）という3つの生成モードに対応する。仕組みとしては、5/9/13/20フレームという複数のフレーム数プロファイルで短い動画を生成させたうえで、その中から最適な1枚の静止画を自動的に選び出すという、動画モデルならではのアプローチを取っている。高速処理向けの「LightX v0.1」アダプターにも対応し、GPUメモリ効率を考慮した設計になっているという。動作にはComfyUI 0.30.0以上が必須で、追加のPython依存関係は不要（ComfyUIが提供するPyTorchをそのまま利用）。GitHubからのクローンのほか、ComfyUI Manager経由でのインストールにも対応している。開発者自身も「実験的でAI支援により開発された」上級者向けツールと位置付けている。
+
 ### LTX-2.5 オープンウェイト公開 - ネイティブ4K HDR・マルチショット対応
 [LTXモデルページ](https://ltx.io/model/ltx-2-5) | [Hugging Face - Lightricks/LTX-2.5](https://huggingface.co/Lightricks/LTX-2.5/tree/main)
 
