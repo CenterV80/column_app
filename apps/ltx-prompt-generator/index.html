@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LTXプロンプトジェネレーター</title>
+<meta name="description" content="日本語で入力するだけで、LTX-2.3/2.5の公式プロンプトガイドに沿った英語プロンプトをブラウザ内AI（WebLLM）が組み立てます。サーバー・APIキー不要。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <a class="back-link" href="../../categories/ltx/index.html">← AI動画一覧</a>
+    <h1>✍️ LTXプロンプトジェネレーター</h1>
+    <p class="lead">日本語で項目を入力すると、ブラウザ内で動くAI（WebLLM）がLTX公式ガイドの構成に沿った英語プロンプトを組み立てます。サーバーにもAPIキーにも接続しません。</p>
+  </header>
+
+  <div id="webgpu-warning" class="warning-banner" hidden>
+    ⚠️ お使いのブラウザはWebGPUに対応していないため、このツールは利用できません。最新のChromeまたはEdgeでお試しください（Safariや一部のブラウザでは非対応の場合があります）。
+  </div>
+
+  <main id="main-grid">
+    <section id="form-pane" aria-label="入力フォーム">
+      <div class="control-row">
+        <div class="control-group">
+          <label for="version-select">LTXバージョン</label>
+          <select id="version-select">
+            <option value="2.3">LTX-2.3</option>
+            <option value="2.5" selected>LTX-2.5</option>
+          </select>
+        </div>
+        <div class="control-group" id="shot-mode-row">
+          <label for="shot-mode-select">ショットモード</label>
+          <select id="shot-mode-select">
+            <option value="single">シングルショット</option>
+            <option value="multi">マルチショット</option>
+          </select>
+        </div>
+        <div class="control-group" id="cut-count-row" hidden>
+          <label for="cut-count-select">カット数</label>
+          <select id="cut-count-select">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+        </div>
+      </div>
+
+      <section id="timeline-section" aria-label="時間軸">
+        <h2>時間軸</h2>
+        <div id="single-duration-row" class="duration-row">
+          <label for="total-seconds">全体の尺</label>
+          <input type="range" id="total-seconds" min="2" max="20" step="1" value="6">
+          <output id="total-seconds-value" for="total-seconds">6秒</output>
+        </div>
+        <div id="cuts-duration-row" class="duration-row" hidden></div>
+        <div id="timeline-bar" class="timeline-bar" aria-hidden="true"></div>
+      </section>
+
+      <form id="prompt-form">
+        <section id="fields-2-3" class="field-group" hidden>
+          <h2>LTX-2.3 入力項目</h2>
+          <div class="field-grid">
+            <label>メインアクション（1文で、何が起きるか）
+              <textarea id="f23-main-action" rows="2" placeholder="例：夕暮れの路地を女性が振り返りながら歩く"></textarea>
+            </label>
+            <label>動きの詳細（体の動き・速度・軌道など）
+              <textarea id="f23-motion" rows="2" placeholder="例：ゆっくりとした足取り、髪が風になびく"></textarea>
+            </label>
+            <label>キャラクターと環境（外見・服装・背景・場所）
+              <textarea id="f23-char-env" rows="2" placeholder="例：赤いコートを着た20代女性、ネオン看板が並ぶ路地"></textarea>
+            </label>
+            <label>カメラワークとライティング（最後に描写）
+              <textarea id="f23-camera-lighting" rows="2" placeholder="例：ゆっくり後退しながら追うトラッキングショット、暖色系のネオン照明"></textarea>
+            </label>
+            <label>特筆すべき変化・出来事（任意）
+              <textarea id="f23-change" rows="2" placeholder="例：一瞬立ち止まり、こちらを振り返る"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section id="fields-2-5" class="field-group">
+          <h2>LTX-2.5 入力項目</h2>
+          <div id="single-fields" class="field-grid">
+            <label>ショットタイプ（例：クローズアップ、ワイドショット）
+              <textarea id="f25-shot-type" rows="2"></textarea>
+            </label>
+            <label>シーン・照明
+              <textarea id="f25-scene-lighting" rows="2"></textarea>
+            </label>
+            <label>アクション（現在形の動作）
+              <textarea id="f25-action" rows="2"></textarea>
+            </label>
+            <label>キャラクター（年齢・髪型・服装・特徴。感情は仕草で）
+              <textarea id="f25-character" rows="2"></textarea>
+            </label>
+            <label>カメラワーク（動き方・タイミング・動いた後の見え方）
+              <textarea id="f25-camera" rows="2"></textarea>
+            </label>
+            <label>セリフ・音声
+              <textarea id="f25-audio" rows="2" placeholder="例：小さな声で「待って」とつぶやく"></textarea>
+            </label>
+          </div>
+          <div id="cuts-container"></div>
+          <label id="multi-continuity-row" hidden>カットをまたいだ音声の連続性（任意）
+            <textarea id="f25-multi-continuity" rows="2"></textarea>
+          </label>
+        </section>
+
+        <section id="negative-section">
+          <label class="checkbox-row">
+            <input type="checkbox" id="gen-negative" checked>
+            ネガティブプロンプトも生成する
+          </label>
+          <label id="negative-hints-row">避けたい要素（任意・日本語で）
+            <textarea id="negative-hints" rows="2" placeholder="例：手の破綻、字幕、ロゴ"></textarea>
+          </label>
+        </section>
+
+        <button type="submit" id="generate-btn" disabled>✨ プロンプトを生成</button>
+      </form>
+    </section>
+
+    <section id="output-pane" aria-label="生成結果">
+      <div id="model-controls">
+        <h2>モデル</h2>
+        <div class="control-row">
+          <select id="model-select">
+            <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Qwen2.5 1.5B（推奨・軽量）</option>
+            <option value="Qwen2.5-3B-Instruct-q4f16_1-MLC">Qwen2.5 3B（高品質）</option>
+            <option value="Llama-3.2-3B-Instruct-q4f16_1-MLC">Llama 3.2 3B</option>
+            <option value="Phi-3.5-mini-instruct-q4f16_1-MLC">Phi-3.5 mini</option>
+          </select>
+          <button id="load-model-btn" type="button">モデルを読み込む</button>
+        </div>
+        <p class="hint">日本語の理解度はモデルによって差があります。まずはQwen2.5シリーズをお試しください。初回はモデルのダウンロードが発生します（数百MB〜2GB程度）。2回目以降はブラウザにキャッシュされ、すぐに使えます。</p>
+        <div id="status" class="status">WebGPU対応を確認中...</div>
+        <progress id="load-progress" value="0" max="1" hidden></progress>
+      </div>
+
+      <div id="output-section" hidden>
+        <div class="output-card">
+          <h2>生成結果（ポジティブプロンプト）</h2>
+          <textarea id="output-positive" readonly rows="8"></textarea>
+          <button type="button" id="copy-positive-btn" class="copy-btn">📋 コピー</button>
+        </div>
+        <div id="output-negative-card" class="output-card" hidden>
+          <h2>ネガティブプロンプト</h2>
+          <textarea id="output-negative" readonly rows="3"></textarea>
+          <button type="button" id="copy-negative-btn" class="copy-btn">📋 コピー</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- app.jsは WebLLM (@mlc-ai/web-llm) をCDNから動的import()で読み込む（モデル読み込み時のみ）。
+     CDN接続に失敗してもフォーム等のUIが固まらないよう、あえてトップレベルの静的importは使わず
+     type="module"のスクリプトとして読み込んでいる。このリポジトリの他のミニアプリ（例: local-llm-chat）は
+     通常の<script src>読み込みだが、本アプリはブラウザ内推論のためこの点だけ異なる。 -->
+<script type="module" src="app.js"></script>
+</body>
+</html>
