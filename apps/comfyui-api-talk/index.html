@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComfyUIをAPIだけで使う方法 対話まとめ | column_app</title>
+<meta name="description" content="標準UIを使わずComfyUIをAPIだけで動かす方法、ワークフローのAPI形式エクスポート、WebUIとフロントエンドの呼び分け、通信を絞るファイアウォール設定について交わされた対話をまとめました。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <a class="back-link" href="../../categories/comfyui/index.html">← ComfyUIカテゴリに戻る</a>
+
+  <header class="hero">
+    <div class="hero-icon">💬</div>
+    <h1>ComfyUIを標準UIなし・APIだけで使う話</h1>
+    <p class="hero-lead">
+      「自分のタイムラインWebUIからComfyUIを動かしたいけど、標準フロントエンドは使いたくない」——
+      デザイナーAさんと、ComfyUIに詳しいBさんの対話をまとめました。API利用の考え方から、
+      ワークフローのAPI形式エクスポート、セキュリティを気にした通信の絞り方まで、実際にやり取りされた内容をそのまま掲載しています。
+    </p>
+    <div class="hero-badges">
+      <span class="badge">対話形式</span>
+      <span class="badge">ComfyUI API</span>
+      <span class="badge">公開日 2026.08.18</span>
+    </div>
+  </header>
+
+  <nav class="section" aria-label="目次">
+    <h2>この記事でわかること</h2>
+    <ul class="points">
+      <li><strong>標準UIなし運用は可能</strong> — ComfyUIはサーバーとUIが分離しているため、<code>/prompt</code>などのAPIだけを叩く使い方が普通にできる。</li>
+      <li><strong>安全性重視なら公式リポジトリのまま</strong> — サードパーティのフォークやラッパーを足さなくても、API用途としてはそのまま十分機能する。</li>
+      <li><strong>ワークフローはAPI形式でエクスポート</strong> — 「Enable Dev mode Options」→「Save (API Format)」で書き出したJSONをテンプレートとして使い回す。</li>
+      <li><strong>ミュートノードは除外されない</strong> — エクスポートには全ノードがそのまま含まれる。ミュートは処理をそこで止めるだけで、除外したいなら自前でプルーニングが必要。</li>
+      <li><strong>「WebUI」と「フロントエンド」の呼び分け</strong> — フロントエンドの方が広い概念、WebUIはブラウザで動くものを指す、という整理で問題ない。</li>
+      <li><strong>ファイアウォールで通信を絞れる</strong> — localhost同士の通信は制御対象外なので、<code>python.exe</code>の外部送信だけブロックしても自作WebUIとの連携は生きる。</li>
+    </ul>
+  </nav>
+
+  <section class="section" id="dialogue">
+    <h2>対話まとめ</h2>
+    <div class="chat">
+
+      <div class="msg from-a">
+        <span class="msg-name">👩‍🎨 デザイナーA</span>
+        <div class="msg-bubble">ComfyUIを使いたいんだけど、標準のフロントエンド無しで使う方法ってあるの？</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">ComfyUI詳しい人B 🧑‍💻</span>
+        <div class="msg-bubble">あるよ。ComfyUI自体、サーバー本体とUIが分離してる設計だから、標準UIの画面を一切開かずに、APIだけ叩く使い方が普通にできる。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👩‍🎨 デザイナーA</span>
+        <div class="msg-bubble">じゃあ将来的には自分のWebUI（タイムラインで画像を配置できるやつ）を作って、そこからAPI叩く感じにしたい。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">ComfyUI詳しい人B 🧑‍💻</span>
+        <div class="msg-bubble">それなら<code>main.py</code>で普通に起動して、<code>/prompt</code>エンドポイントに向けてJSONを送るだけでいい。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👩‍🎨 デザイナーA</span>
+        <div class="msg-bubble">ただセキュリティが気になるから、サードパーティのフォークとかラッパーは避けたいな。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">ComfyUI詳しい人B 🧑‍💻</span>
+        <div class="msg-bubble">それなら公式リポジトリをそのまま使うのが一番安全。追加コード足さなくてもAPIとして十分機能する。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👩‍🎨 デザイナーA</span>
+        <div class="msg-bubble">ワークフローをAPI用に書き出すにはどうするの？</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">ComfyUI詳しい人B 🧑‍💻</span>
+        <div class="msg-bubble">設定の「Enable Dev mode Options」をONにすると「Save (API Format)」ボタンが出てくる。それで書き出したJSONをテンプレートとして使い回す。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👩‍🎨 デザイナーA</span>
+        <div class="msg-bubble">そのJSON、出力に繋がってないノードとかミュートしたノードは自動で除かれるの？</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">ComfyUI詳しい人B 🧑‍💻</span>
+        <div class="msg-bubble">いや、エクスポート自体は全部そのまま入る。ミュートは「そこで処理が止まる」だけで、Bypassとは違って後続もブロックする。除外はしてくれないから、AIに渡す前提なら自分で軽くプルーニング処理を書くのが現実的。rgthreeとかComfyScriptにも近い発想の機能はあるけどね。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👩‍🎨 デザイナーA</span>
+        <div class="msg-bubble">ちなみに自分の作るブラウザで動くやつは「WebUI」って呼びたい。「フロントエンド」はちょっと恥ずかしくて。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">ComfyUI詳しい人B 🧑‍💻</span>
+        <div class="msg-bubble">全然普通の言葉だから気にしなくていいよ。強いて言うなら「フロントエンド」の方が広い概念（ブラウザに限らない）で、「WebUI」はその中でブラウザ動作のものを指す、くらいの整理。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👩‍🎨 デザイナーA</span>
+        <div class="msg-bubble">じゃあ自分は「ブラウザで動くもの＝WebUI」「単独でも動くアプリ＝フロントエンド」で使い分けるね。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">ComfyUI詳しい人B 🧑‍💻</span>
+        <div class="msg-bubble">それで十分伝わるよ。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👩‍🎨 デザイナーA</span>
+        <div class="msg-bubble">最後に、ComfyUI本体の通信をあえてWindowsのファイアウォールで止めたいんだけど。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">ComfyUI詳しい人B 🧑‍💻</span>
+        <div class="msg-bubble">それは有効な方法。localhost同士の通信はファイアウォールの制御対象外だから、外部への送信だけブロックしても自作WebUIとの連携は生きる。<code>python.exe</code>を「送信の規則」でブロックすればいい。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👩‍🎨 デザイナーA</span>
+        <div class="msg-bubble">カスタムノードのインストールとかManagerの通信も同じプロセス？</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">ComfyUI詳しい人B 🧑‍💻</span>
+        <div class="msg-bubble">うん、現状は全部同じPythonプロセス。将来的（Nodes v3構想）には分離される予定だけど、今はまだ。だから「ノード追加の時だけ一時的にブロックを解除する」運用が現実的だね。</div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section" id="terms">
+    <h2>用語整理：WebUI と フロントエンド</h2>
+    <table class="terms">
+      <tr><th>フロントエンド</th><td>サーバー（バックエンド）と対になる、利用者が直接操作する側全般。ブラウザで動くものに限らない広い概念。</td></tr>
+      <tr><th>WebUI</th><td>フロントエンドのうち、ブラウザ上で動作するもの。この記事でのタイムライン操作画面は「WebUI」にあたる。</td></tr>
+    </table>
+  </section>
+
+  <a class="back-link" href="../../categories/comfyui/index.html">← ComfyUIカテゴリに戻る</a>
+
+  <p class="footer-note">
+    ※本記事は、ComfyUIをAPI経由で利用する方法についてのやり取りをまとめた対話形式の記事です。設定名やボタン名はComfyUIのバージョンによって変わる場合があります。
+  </p>
+
+</div>
+</body>
+</html>
