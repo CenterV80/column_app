@@ -87,4 +87,11 @@ const APPS = [
     icon: "🎞️",
     category: "comfyui",
   },
+  {
+    name: "ComfyUIをAPIだけで使う方法 対話まとめ",
+    description: "標準UIを使わずAPIだけでComfyUIを動かす方法、ワークフローのAPI形式エクスポート、通信を絞るファイアウォール設定などについての対話をまとめました。",
+    path: "apps/comfyui-api-talk/",
+    icon: "💬",
+    category: "comfyui",
+  },
 ];
