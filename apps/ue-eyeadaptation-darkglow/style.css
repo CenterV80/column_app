@@ -151,6 +151,7 @@
 
 .chart-slider-row input[type="range"] {
   width: 100%;
+  min-width: 0;
   accent-color: #6d5bd0;
 }
 
@@ -159,6 +160,26 @@
   color: #6d5bd0;
   font-weight: 700;
   text-align: right;
+}
+
+@media (max-width: 480px) {
+  .chart-slider-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "label value" "input input";
+    row-gap: 4px;
+  }
+
+  .chart-slider-row label {
+    grid-area: label;
+  }
+
+  .chart-slider-value {
+    grid-area: value;
+  }
+
+  .chart-slider-row input[type="range"] {
+    grid-area: input;
+  }
 }
 
 .chart-svg-wrap {
