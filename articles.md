@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### MAI-Code-1.1-Flash - コスト4分の1でGitHub Copilotのコーディング性能を強化
+[Microsoft News](https://news.microsoft.com/source/asia/features/mai-code-1-1-flash-br-better-faster-at-a-quarter-of-the-cost/?lang=ja)
+
+Microsoftが、コーディング特化モデル「MAI-Code」の新版「MAI-Code-1.1-Flash」を公開した。6月のMicrosoft Buildで発表した前バージョンと比べて、コード品質の向上に加えてトークン効率が25%改善し、コストは4分の1に抑えられている。性能面では、GitHub Copilot CLI上のTerminal-Bench 2.1で22%、.NET関連タスクで15%の改善を確認。GitHub Copilot上ではトークンの出力速度が25%速くなり、タスク完了に必要なトークン数も25%削減されたという。料金は入力100万トークンあたり0.20ドル・キャッシュ済み入力は0.02ドル・出力は1.20ドルで、前バージョン「MAI-Code-1-Flash」（入力0.75ドル・キャッシュ0.075ドル・出力4.50ドル）から大幅に引き下げられている。加えて、コーディング作業の一環として画像を解析・理解できるネイティブなビジョン対応も新たに搭載。すでにGitHub Copilotの本番環境に投入されている。
+
 ### LTX-2.5 Pixel Spatial Upscaler - 低解像度で作った動画を高解像度に「生成的に」アップスケール
 [Hugging Face - Lightricks/LTX-2.5-22b-IC-LoRA-Pixel-Spatial-Upscaler](https://huggingface.co/Lightricks/LTX-2.5-22b-IC-LoRA-Pixel-Spatial-Upscaler)
 
