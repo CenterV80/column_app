@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComfyUI App Builder、結局どう使う？ 対話まとめ | column_app</title>
+<meta name="description" content="ComfyUIのApp Builderの使い方、共有される仕組み、想定される使い所、カスタムウィジェットとの相性について交わされた対話をまとめました。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <a class="back-link" href="../../categories/comfyui/index.html">← ComfyUIカテゴリに戻る</a>
+
+  <header class="hero">
+    <div class="hero-icon">💬</div>
+    <h1>ComfyUI App Builder、結局どう使う？</h1>
+    <p class="hero-lead">
+      ComfyUIの「App Builder」は、ノードグラフをそのまま見せずに操作させたいときに便利そうな機能。
+      でも実際どう動いて、どこで共有されて、独自のタイムラインUIを作りたい場合に代わりになり得るのか——
+      Q&amp;A形式の対話でまとめました。
+    </p>
+    <div class="hero-badges">
+      <span class="badge">対話形式</span>
+      <span class="badge">ComfyUI App Builder</span>
+    </div>
+  </header>
+
+  <nav class="section" aria-label="目次">
+    <h2>この記事でわかること</h2>
+    <ul class="points">
+      <li><strong>GUI完結の機能</strong> — スクリプト不要。「Build an app」からApp Builderを起動し、どのノード入出力をアプリ側に見せるか選ぶだけ。裏側のワークフロー自体は変更されない。</li>
+      <li><strong>単独アプリの書き出しではない</strong> — exeやappファイルにはならず、「ワークフロー設定＋レイアウトを含んだURL」として共有される形。開く側もComfy Cloudか自分のComfyUI環境でサーバーを動かす必要がある。</li>
+      <li><strong>想定用途は限定的</strong> — 社内の非エンジニアへの操作画面提供、納品したワークフローの一部を隠す、家族・チームでの軽い共有向け。サーバー環境ごと渡せない一般配布用途には不向き。</li>
+      <li><strong>標準ウィジェットのみが対象</strong> — App Builder自体はSTRING/INT/COMBO/IMAGEUPLOADなど既存の標準入力タイプを選んで表示するだけで、ゼロからのカスタムウィジェット作成機能はない。</li>
+      <li><strong>独自ウィジェットとの相性は未検証</strong> — js extensionの<code>getCustomWidgets</code>でカスタムウィジェットを作ること自体は可能だが、それがApp Builderの検出・表示にそのまま乗る保証はない。</li>
+    </ul>
+  </nav>
+
+  <section class="section" id="dialogue">
+    <h2>対話まとめ</h2>
+    <div class="chat">
+
+      <div class="msg from-q">
+        <span class="msg-name">Q</span>
+        <div class="msg-bubble">ComfyUIのApp Builderの使い方ってどんな感じ？スクリプトが必要？</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">A</span>
+        <div class="msg-bubble">いや、GUI完結の機能だよ。動くワークフローを用意→左上アイコンかサイドバーの「Apps」から「Build an app」→未設定なら自動でApp Builderが起動→どのノード入力/出力をアプリ側に見せるか選ぶだけ。裏側のワークフローは変更されず、UIだけが被さるイメージ。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">Q</span>
+        <div class="msg-bubble">前から実装されてるアプリモードを、単独で動くアプリとして書き出す機能かな？</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">A</span>
+        <div class="msg-bubble">それも違う。単独exeやappファイルとして書き出されるわけじゃなくて、「ワークフロー設定＋レイアウトを含んだURL」として共有される形。開いた人はComfy Cloud経由かその人自身のComfyUI環境でアプリを実行する。サーバーは常に必要。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">Q</span>
+        <div class="msg-bubble">つまりアプリモードのインターフェースだけ渡す用途か。使い所がよくわからないかも。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">A</span>
+        <div class="msg-bubble">想定される使い所は、社内の非エンジニアにノードグラフの複雑さを見せず操作させたい、クライアントに納品したワークフローの触られたくない部分を隠す、家族/チームでComfyUI環境を共有していてスマホから軽く操作したい、あたり。逆にサーバー環境ごと渡せない一般配布用途には向かない。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">Q</span>
+        <div class="msg-bubble">App Builderは特殊なウィジェットは作れる？</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">A</span>
+        <div class="msg-bubble">App Builder自体は既存ノードの標準入力タイプ（STRING/INT/COMBO/IMAGEUPLOADなど）を選んで表示するだけの仕組みで、ゼロからのカスタムウィジェット作成機能はない。ただしComfyUI側にjs extensionの<code>getCustomWidgets</code>という仕組みがあり、カスタムノードとして独自ウィジェット（キャンバス操作系のUIなど）を作ること自体は技術的に可能。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">Q</span>
+        <div class="msg-bubble">これだと既存のComfyUI自体のアプリモードで良いのでは？</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">A</span>
+        <div class="msg-bubble">一つ懸念があって、js extensionで作った独自ウィジェットがApp Builderの検出・表示にそのまま乗る保証がない。古いカスタムノードがApp Builderにうまく検出されないケースも実際にあるらしく、検証してみないと分からない。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">Q</span>
+        <div class="msg-bubble">うーん、これなら別で最初から組んだ方が早いと思った。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">A</span>
+        <div class="msg-bubble">同意。検証コストをかけてComfyUI側に寄せるより、要件（タイムラインで画像配置）を素直に満たせる独自フロントエンドを最初から組む方針で確実。</div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section" id="conclusion">
+    <h2>結論</h2>
+    <p class="conclusion">
+      <a href="../comfyui-timeline-webui-spec/">タイムライン操作用の独自フロントエンドを自作し、APIでComfyUIをバックエンドとして使う方針</a>
+      を維持する。App Builderは既存ノードの標準ウィジェットを見せる用途には向くが、
+      タイムラインのような独自UIをComfyUI側に寄せる検証コストは見合わないと判断。
+    </p>
+  </section>
+
+  <a class="back-link" href="../../categories/comfyui/index.html">← ComfyUIカテゴリに戻る</a>
+
+  <p class="footer-note">
+    ※本記事はComfyUIのApp Builder機能についてのやり取りをまとめた対話形式の記事です。機能名や挙動はComfyUIのバージョンによって変わる場合があります。
+  </p>
+
+</div>
+</body>
+</html>
