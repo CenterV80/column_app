@@ -7,8 +7,12 @@ function initDarkGlowChart() {
   const root = document.getElementById("darkglow-chart");
   if (!root) return;
 
-  function normal(ea) {
-    return Math.min(ea, 1);
+  // The final `/ EyeAdaptation` cancels Auto Exposure's own boost, so the
+  // on-screen brightness of the base emissive term is constant regardless
+  // of EyeAdaptation - that's the whole point of dividing instead of
+  // multiplying. Only the additive DarkGlow term actually varies.
+  function normal(_ea) {
+    return 1;
   }
   function darkGlowRaw(ea, k) {
     return 1 - Math.exp(-Math.max(ea - 1, 0) * k);
@@ -128,7 +132,7 @@ function initDarkGlowChart() {
     const probeTotalY = sy(total(ea, k, glow));
 
     svgWrap.innerHTML = `
-      <svg viewBox="0 0 ${W} ${H}" class="chart-svg" role="img" aria-label="EyeAdaptationに対するNormal項・DarkGlow項・合計のグラフ">
+      <svg viewBox="0 0 ${W} ${H}" class="chart-svg" role="img" aria-label="EyeAdaptationに対するNormal項・DarkGlow項・画面上の明るさのグラフ">
         <g>${gridLines}</g>
         <line x1="${breakX}" y1="${marginTop}" x2="${breakX}" y2="${marginTop + plotH}" class="chart-breakline" />
         <text x="${breakX}" y="${marginTop - 4}" class="chart-tick" text-anchor="middle">EA=1.0</text>
@@ -143,9 +147,9 @@ function initDarkGlowChart() {
         <line x1="${marginLeft}" y1="${marginTop}" x2="${marginLeft}" y2="${marginTop + plotH}" class="chart-axis" />
       </svg>
       <div class="chart-legend">
-        <span class="chart-legend-item"><i class="chart-swatch chart-swatch-normal"></i>Normal項 (min(EA, 1))</span>
+        <span class="chart-legend-item"><i class="chart-swatch chart-swatch-normal"></i>Normal項 (常に1、除算で露出と相殺)</span>
         <span class="chart-legend-item"><i class="chart-swatch chart-swatch-glow"></i>DarkGlow項 (×GlowIntensity)</span>
-        <span class="chart-legend-item"><i class="chart-swatch chart-swatch-total"></i>合計 (Normal + DarkGlow)</span>
+        <span class="chart-legend-item"><i class="chart-swatch chart-swatch-total"></i>画面上の明るさ (Normal + DarkGlow)</span>
       </div>
     `;
 
@@ -153,7 +157,7 @@ function initDarkGlowChart() {
       `EyeAdaptation = <strong>${ea.toFixed(2)}</strong> のとき　` +
       `Normal項 = <strong>${normal(ea).toFixed(3)}</strong>　` +
       `DarkGlow項 = <strong>${(glow * darkGlowRaw(ea, k)).toFixed(3)}</strong>　` +
-      `合計 = <strong>${total(ea, k, glow).toFixed(3)}</strong>`;
+      `画面上の明るさ = <strong>${total(ea, k, glow).toFixed(3)}</strong>`;
   }
 
   kCtrl.input.addEventListener("input", render);

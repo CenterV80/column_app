@@ -103,7 +103,7 @@ const APPS = [
   },
   {
     name: "UEマテリアル小技:EyeAdaptationで暗所グロー",
-    description: "EyeAdaptationノードで、通常時は乗算表現を保ちつつ暗所だけ加算で光を足すマテリアルの組み方を解説します。",
+    description: "EyeAdaptationノードで、EmissiveColorを除算して露出変化と相殺しつつ暗所だけ加算で光を足すマテリアルの組み方を解説します。",
     path: "apps/ue-eyeadaptation-darkglow/",
     icon: "🧱",
     category: "ue",
