@@ -21,6 +21,7 @@
   </p>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
+<script src="chart.js"></script>
 <script>
   fetch("article.md")
     .then((res) => res.text())
@@ -28,6 +29,7 @@
       const content = document.getElementById("content");
       content.classList.remove("loading");
       content.innerHTML = marked.parse(markdown);
+      initDarkGlowChart();
     })
     .catch(() => {
       document.getElementById("content").textContent = "記事を読み込めませんでした。";

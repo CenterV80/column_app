@@ -25,6 +25,10 @@ DarkGlow = 1.0 - exp(-DarkGlow * k)        // 頭打ちカーブ
 FinalEmissiveColor = Normal + GlowColor * DarkGlow * GlowIntensity
 ```
 
+下のグラフでは、`k`と`GlowIntensity`を動かしながらNormal項・DarkGlow項・合計カーブの形を確認できます。EyeAdaptationスライダーを動かすと、その値での各項の実数値も表示されます。
+
+<div id="darkglow-chart" class="chart-embed"></div>
+
 ### 各項の役割
 
 **Normal項(通常表現の維持)**
