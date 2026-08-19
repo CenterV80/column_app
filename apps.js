@@ -94,4 +94,11 @@ const APPS = [
     icon: "💬",
     category: "comfyui",
   },
+  {
+    name: "ComfyUI App Builder、結局どう使う？",
+    description: "App Builderの使い方や共有の仕組み、想定される使い所、カスタムウィジェットとの相性についての対話をQ&A形式でまとめました。",
+    path: "apps/comfyui-app-builder-talk/",
+    icon: "🧩",
+    category: "comfyui",
+  },
 ];
