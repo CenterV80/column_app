@@ -44,4 +44,11 @@ const CATEGORIES = [
     path: "categories/comfyui/",
     icon: "🧵",
   },
+  {
+    id: "ue",
+    name: "UE",
+    description: "Unreal Engineのマテリアルまわりの小技・Tipsをまとめています。",
+    path: "categories/ue/",
+    icon: "🧱",
+  },
 ];
