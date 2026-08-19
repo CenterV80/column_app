@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### ComfyUI「App Mode」「App Builder」「ComfyHub」- ワークフローをインストール不要のWebアプリに変換
+[CGinterest](https://cginterest.com/2026/03/12/comfyui%E3%80%81%E3%83%AF%E3%83%BC%E3%82%AF%E3%83%95%E3%83%AD%E3%83%BC%E3%82%92web%E3%82%A2%E3%83%97%E3%83%AA%E3%81%AB%E5%A4%89%E6%8F%9B%E3%81%99%E3%82%8B%E6%96%B0%E3%81%97%E3%81%84%E3%83%84%E3%83%BC/)
+
+ComfyUIが、複雑なノードのワークフローを、インストール不要のシンプルなWebアプリとして使えるようにする新機能群を発表した。中心となる「**App Mode**」は、既存のComfyUIとは別のアプリケーションを作るのではなく、その場でUIだけを切り替える仕組みで、バックエンドやキュー管理は通常のComfyUIと共通のまま動く。「**App Builder**」は、そのApp Mode画面の見た目を設定するためのインターフェースで、ワークフロー内のどのノードの入力をアプリの入力欄として見せるか、どのノードの出力をアプリの出力として見せるかを選んで組み立てられる。作成したアプリは、ワークフロー設定・App Modeのレイアウト・ノードの紐づけといった必要な情報がすべてURL内にエンコードされる形で、URL1本を共有するだけで他の人にも使ってもらえる。これらの機能を軸にした共有プラットフォーム「**ComfyHub**」も合わせて発表されており、ノードの繋ぎ方を知らない人でも、作られたワークフローをアプリ感覚で使い回せるようにすることを狙いとしている。
+
 ### MAI-Code-1.1-Flash - コスト4分の1でGitHub Copilotのコーディング性能を強化
 [Microsoft News](https://news.microsoft.com/source/asia/features/mai-code-1-1-flash-br-better-faster-at-a-quarter-of-the-cost/?lang=ja)
 
