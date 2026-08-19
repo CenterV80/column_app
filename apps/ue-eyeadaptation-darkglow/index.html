@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UEマテリアル小技:EyeAdaptationで「暗い場所だけ少し光る」表現を作る | column_app</title>
-<meta name="description" content="UnrealEngineのEyeAdaptationノードを使い、通常時は乗算・暗所だけ加算で光を足す「DarkGlow」表現をマテリアルで作る小技をまとめました。">
+<meta name="description" content="UnrealEngineのEyeAdaptationノードを使い、通常時はEmissiveColorを除算して露出変化を相殺しつつ、暗所だけ加算で光を足す「DarkGlow」表現をマテリアルで作る小技をまとめました。">
 <link rel="stylesheet" href="../../hub.css">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -13,7 +13,7 @@
   <a class="back-link" href="../../categories/ue/index.html">← UEカテゴリに戻る</a>
   <header>
     <h1>🧱 UEマテリアル小技:EyeAdaptationで「暗い場所だけ少し光る」表現を作る</h1>
-    <p>EyeAdaptationノードで、通常時は今まで通りの乗算表現を保ちつつ、暗所だけ「少しだけ」加算で光を足すマテリアルの組み方を解説します。</p>
+    <p>EyeAdaptationノードで、EmissiveColorを除算して露出変化と相殺しつつ、暗所だけ「少しだけ」加算で光を足すマテリアルの組み方を解説します。</p>
   </header>
   <div id="content" class="doc loading">読み込み中…</div>
   <p style="margin-top: 24px;">
