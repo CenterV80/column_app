@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HoudiniでObjectレベルのHDAをSOPレベルに変換する方法 | column_app</title>
+<meta name="description" content="Houdiniでうっかりオブジェクト(ジオメトリ)レベルでHDA化してしまったものを、SOPレベルの部品として作り直す2つの方法を図解で解説します。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <a class="back-link" href="../../categories/houdini/index.html">← Houdiniカテゴリに戻る</a>
+
+  <header class="hero">
+    <div class="hero-icon">🎛️</div>
+    <h1>ObjectレベルのHDAを<br>SOPレベルに変換する方法</h1>
+    <p class="hero-lead">
+      サブネットを組んでDigital Asset(HDA)化するとき、うっかりObject(ジオメトリ)レベルで
+      HDA化してしまい、「本当はSOPレベルの部品として他のネットワークに組み込みたかった」——
+      これは意外とよくある失敗です。この記事では、その状態から
+      SOPレベルの部品として作り直す2つの方法を図解でまとめます。
+    </p>
+    <div class="hero-badges">
+      <span class="badge">Houdini</span>
+      <span class="badge">Digital Asset (HDA)</span>
+      <span class="badge">図解あり</span>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="目次">
+    <div class="toc-title">この記事でわかること</div>
+    <ol>
+      <li><a href="#levels">Objectレベルと SOPレベルの違い</a></li>
+      <li><a href="#problem">何が問題になるのか</a></li>
+      <li><a href="#method1">方法1：ノードを選び直してサブネット化</a></li>
+      <li><a href="#method2">方法2：既存HDAの中身を移植する</a></li>
+      <li><a href="#params">パラメータの移植手順</a></li>
+      <li><a href="#summary">まとめ：どちらを選ぶべきか</a></li>
+    </ol>
+  </nav>
+
+  <section id="levels" class="section">
+    <h2><span class="step-badge">1</span>Objectレベルと SOPレベルの違い</h2>
+    <p>
+      Houdiniのネットワークには階層があります。シーンビュー直下の
+      <strong>Objectレベル</strong>には、ジオメトリノード(geo)やカメラ、ライトといった
+      「オブジェクト」が並びます。そのジオメトリノードの中に入ると、Box・Transform・Merge…
+      といった実際の形状を作るノード群が並ぶ<strong>SOPレベル</strong>があります。
+    </p>
+
+    <div class="level-diagram">
+      <div class="level-object">
+        <span class="level-object-label">📦 Objectレベル（/obj）</span>
+        <div class="level-sop">
+          <span class="level-sop-label">🧩 SOPレベル（/obj/geo1 の中）</span>
+          <div class="node-chips">
+            <span class="node-chip arrow">Box</span>
+            <span class="node-chip arrow">Transform</span>
+            <span class="node-chip">Merge</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">図1：Objectレベルの中に、SOPレベルのノード群が入れ子になっている</p>
+
+    <div class="point-box">
+      <strong>ポイント：</strong> HDA化は「その時点でどの階層のノードを選択していたか」によって、
+      Objectレベルの部品にもSOPレベルの部品にもなります。SOPレベルの部品は他のジオメトリ
+      ネットワークの中に他のSOPノードと並べて置けますが、Objectレベルの部品はそれができません。
+    </div>
+  </section>
+
+  <section id="problem" class="section">
+    <h2><span class="step-badge">2</span>何が問題になるのか</h2>
+    <p>
+      サブネットをまとめて選択した状態で<code>Create Digital Asset</code>を実行すると、
+      HDAの「境界」はその時いたコンテキスト(階層)に応じて決まります。Objectレベルで実行すれば
+      HDAはObjectレベルの部品として作られ、他のSOPネットワークの中には組み込めません。
+    </p>
+
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <div class="compare-title">❌ Objectレベルで作ってしまった</div>
+        <div class="hda-boundary">
+          <div class="hda-boundary-label">HDAの境界</div>
+          <div class="mini-box">📦 geo1（Object）</div>
+          <div class="mini-box">└ Box / Transform / Merge（SOP）</div>
+        </div>
+        <p class="compare-note">他のSOPネットワークの中には部品として置けない</p>
+      </div>
+      <div class="compare-card good">
+        <div class="compare-title">✅ SOPレベルで作り直す</div>
+        <div class="hda-boundary">
+          <div class="hda-boundary-label">HDAの境界</div>
+          <div class="mini-box">Box / Transform / Merge（SOP）</div>
+        </div>
+        <p class="compare-note">他のSOPネットワークに部品として組み込める</p>
+      </div>
+    </div>
+    <p class="caption">図2：HDA化する時点の階層によって「境界」の位置が変わる</p>
+  </section>
+
+  <section id="method1" class="section">
+    <h2><span class="step-badge">3</span>方法1：ノードを選び直してサブネット化</h2>
+    <span class="method-pill m1">🆕 ノード構成がシンプルな場合に向く</span>
+    <p>
+      該当のSOPノード群を選び直し、SOPレベルのサブネットとして作り直してからHDA化する方法です。
+      最初からやり直す形になりますが、手順自体はシンプルです。
+    </p>
+
+    <div class="flow-diagram">
+      <div class="flow-box">
+        <div class="flow-emoji">🖱️</div>
+        <div class="flow-label">SOPノード群を選択</div>
+        <div class="flow-sub">Object内のgeoに入って選ぶ</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight-sop">
+        <div class="flow-emoji">🧩</div>
+        <div class="flow-label">Subnetworkに格納</div>
+        <div class="flow-sub">Tab→Subnetwork／右クリック→Collapse into Subnet</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight-obj">
+        <div class="flow-emoji">💾</div>
+        <div class="flow-label">Create Digital Asset</div>
+        <div class="flow-sub">SOPレベルのHDAとして書き出す</div>
+      </div>
+    </div>
+    <p class="caption">図3：方法1の流れ</p>
+  </section>
+
+  <section id="method2" class="section">
+    <h2><span class="step-badge">4</span>方法2：既存HDAの中身を移植する</h2>
+    <span class="method-pill m2">🛠️ 作り込み済みのパラメータがある場合に向く</span>
+    <p>
+      すでにパラメータをプロモートするなど作り込んでいる場合は、既存のObjectレベルHDAの中身を
+      新規SOPレベルのサブネットへ移植する方が手間が少なく済みます。
+    </p>
+
+    <div class="flow-diagram">
+      <div class="flow-box highlight-obj">
+        <div class="flow-emoji">📦</div>
+        <div class="flow-label">既存ObjectレベルHDA</div>
+        <div class="flow-sub">中のSOPノード群をコピー</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-emoji">📋</div>
+        <div class="flow-label">新規SOPサブネットへペースト</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight-sop">
+        <div class="flow-emoji">💾</div>
+        <div class="flow-label">Create Digital Asset</div>
+        <div class="flow-sub">Table を必ず「Sop」に</div>
+      </div>
+    </div>
+    <p class="caption">図4：方法2の流れ</p>
+
+    <div class="warn-box">
+      <strong>注意：</strong> HDA化のダイアログでは、コンテキスト(Table)が
+      <code>Sop</code>になっているかを必ず確認してください。ここが<code>Object</code>のままだと、
+      せっかく移植してもまたObjectレベルのHDAになってしまいます。
+    </div>
+  </section>
+
+  <section id="params" class="section">
+    <h2><span class="step-badge">5</span>パラメータの移植手順</h2>
+    <p>
+      パラメータ数が多い場合(数十個規模でも)、以下の流れが現実的です。
+    </p>
+
+    <div class="step-cards">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Type Propertiesごとコピー</h4>
+          <p>
+            元HDAの<code>Type Properties → Parameters</code>タブで、フォルダ/パラメータをまとめて選択し
+            <code>Copy Parameters</code>。新HDA側の<code>Type Properties → Parameters</code>に
+            <code>Paste Parameters</code>することで、フォルダ構成ごと一括移植できる。
+          </p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>チャンネル参照の確認</h4>
+          <p>
+            パラメータ定義をコピーしても、SOPノード側の<code>ch("../param名")</code>のような
+            参照式は自動では追従しない場合がある。相対パス構造が変わっていないか、
+            フォルダ単位で確認するとチェック漏れを防ぎやすい。
+          </p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>動作確認</h4>
+          <p>
+            HDAをインスタンス化し、各パラメータを実際に動かしてジオメトリが追従するか目視で確認する。
+            特にモデリング系のHDAでは、Transform・Group・Boolean系のノードが絡むことが多く、
+            数値のズレが見た目にわかりにくいバグにつながりやすいため、パラメータを極端な値に振って
+            挙動を確認するのが有効。
+          </p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>参照が壊れている場合</h4>
+          <p>
+            式の書き直しではなく、SOPノード側のパラメータを右クリック→<code>Link Parameter...</code>
+            から新HDAのパラメータへ再リンクする方法もある。手間はかかるが、式の記述ミスを避けられる。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="summary" class="section">
+    <h2><span class="step-badge">まとめ</span>どちらを選ぶべきか</h2>
+
+    <div class="summary-table-wrap">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>方法</th>
+            <th>向いているケース</th>
+            <th>手間</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>方法1：選び直してサブネット化</td>
+            <td>ノード構成がシンプル</td>
+            <td>最初からやり直すが手順は少ない</td>
+          </tr>
+          <tr>
+            <td>方法2：既存HDAの中身を移植</td>
+            <td>パラメータを作り込み済み</td>
+            <td>コピー＆ペーストで済むが参照チェックが必要</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="point-box">
+      <strong>共通ポイント：</strong> どちらの方法でも、HDA化時のコンテキスト指定
+      (<code>Table</code>を<code>Sop</code>にすること)を忘れずに確認するのが重要です。
+    </div>
+  </section>
+
+  <footer class="page-footer">
+    <p>
+      ※本記事はHoudiniにおけるDigital Asset(HDA)の作り直し手順を一般的な操作としてまとめたものです。
+      メニュー名やショートカットはHoudiniのバージョンによって多少異なる場合があります。
+    </p>
+    <a class="back-link" href="../../categories/houdini/index.html">← Houdiniカテゴリに戻る</a>
+  </footer>
+
+</div>
+
+</body>
+</html>
