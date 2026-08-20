@@ -115,4 +115,11 @@ const APPS = [
     icon: "✨",
     category: "ue",
   },
+  {
+    name: "HoudiniでObjectレベルのHDAをSOPレベルに変換する方法",
+    description: "うっかりObjectレベルでHDA化してしまった部品を、SOPレベルの部品として作り直す2つの方法を図解でまとめます。",
+    path: "apps/houdini-object-to-sop-hda/",
+    icon: "🎛️",
+    category: "houdini",
+  },
 ];
