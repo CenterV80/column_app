@@ -51,4 +51,11 @@ const CATEGORIES = [
     path: "categories/ue/",
     icon: "🧱",
   },
+  {
+    id: "houdini",
+    name: "Houdini",
+    description: "Houdiniのネットワーク構築・HDA(Digital Asset)まわりの小技をまとめています。",
+    path: "categories/houdini/",
+    icon: "🎛️",
+  },
 ];

@@ -1,0 +1,580 @@
+:root {
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --surface-alt: #f1f1f4;
+  --text: #1f2124;
+  --text-muted: #63666e;
+  --border: #e3e3e7;
+  --accent: #ff7a1a;
+  --accent-soft: #ffe9d8;
+  --obj: #3a6fd8;
+  --obj-soft: #e6edfc;
+  --sop: #ff7a1a;
+  --sop-soft: #ffe9d8;
+  --ok: #2f8f6f;
+  --ok-soft: #e4f5ee;
+  --shadow: 0 4px 18px rgba(20, 20, 30, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181c;
+    --surface: #1f2126;
+    --surface-alt: #262832;
+    --text: #edeef2;
+    --text-muted: #a2a5b0;
+    --border: #34363f;
+    --accent: #ff9c4d;
+    --accent-soft: #3a2a1a;
+    --obj: #7ea6f5;
+    --obj-soft: #202b40;
+    --sop: #ff9c4d;
+    --sop-soft: #3a2a1a;
+    --ok: #6fd6ac;
+    --ok-soft: #1c352c;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+    "Yu Gothic", Meiryo, sans-serif;
+  line-height: 1.8;
+}
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+.back-link {
+  display: inline-block;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.back-link:hover {
+  color: var(--accent);
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 28px 12px 8px;
+}
+
+.hero-icon {
+  font-size: 42px;
+  margin-bottom: 8px;
+}
+
+.hero h1 {
+  font-size: 26px;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.hero-lead {
+  color: var(--text-muted);
+  font-size: 15px;
+  max-width: 620px;
+  margin: 0 auto 18px;
+  text-align: left;
+}
+
+.hero-badges {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.badge {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+/* Table of contents */
+.toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin: 28px 0 40px;
+  box-shadow: var(--shadow);
+}
+
+.toc-title {
+  font-weight: 700;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.toc ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.toc li {
+  margin: 6px 0;
+}
+
+.toc a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.toc a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* Sections */
+.section {
+  margin: 48px 0;
+}
+
+.section h2 {
+  font-size: 21px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  scroll-margin-top: 16px;
+}
+
+.sub-heading {
+  font-size: 16px;
+  margin: 24px 0 10px;
+  color: var(--text-muted);
+}
+
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.section p {
+  margin: 0 0 14px;
+  font-size: 15.5px;
+}
+
+.check-list {
+  padding-left: 20px;
+  margin: 0 0 14px;
+}
+
+.check-list li {
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+/* Analogy / note box */
+.analogy-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin: 18px 0;
+  box-shadow: var(--shadow);
+}
+
+.analogy-title {
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.analogy-box p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14.5px;
+}
+
+/* Point box */
+.point-box {
+  background: var(--ok-soft);
+  border: 1px solid var(--ok);
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 14.5px;
+  margin-top: 18px;
+}
+
+.warn-box {
+  background: var(--sop-soft);
+  border: 1px solid var(--sop);
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 14.5px;
+  margin-top: 18px;
+}
+
+/* Nested level diagram (Object level containing SOP level) */
+.level-diagram {
+  margin: 24px 0 8px;
+}
+
+.level-object {
+  background: var(--obj-soft);
+  border: 2px solid var(--obj);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.level-object-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--obj);
+  background: var(--surface);
+  border: 1px solid var(--obj);
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-bottom: 12px;
+}
+
+.level-sop {
+  background: var(--sop-soft);
+  border: 2px dashed var(--sop);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.level-sop-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--sop);
+  background: var(--surface);
+  border: 1px solid var(--sop);
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-bottom: 12px;
+}
+
+.node-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.node-chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+
+.node-chip.arrow::after {
+  content: "→";
+  margin-left: 8px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.node-chip:last-child.arrow::after {
+  content: "";
+}
+
+/* Before / after HDA-boundary comparison */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0 4px;
+}
+
+.compare-card {
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.compare-card.bad {
+  background: var(--surface);
+  border: 2px solid #d95c5c;
+}
+
+.compare-card.good {
+  background: var(--surface);
+  border: 2px solid var(--ok);
+}
+
+.compare-title {
+  font-weight: 700;
+  font-size: 13.5px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.compare-card.bad .compare-title {
+  color: #d95c5c;
+}
+
+.compare-card.good .compare-title {
+  color: var(--ok);
+}
+
+.hda-boundary {
+  border: 2px dashed currentColor;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.hda-boundary-label {
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
+.compare-card.bad .hda-boundary {
+  color: #d95c5c;
+}
+
+.compare-card.good .hda-boundary {
+  color: var(--ok);
+}
+
+.mini-box {
+  background: var(--surface-alt);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  margin-bottom: 6px;
+}
+
+.compare-note {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+/* Flow diagram (reused for method steps) */
+.flow-diagram {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 24px 0 8px;
+}
+
+.flow-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 12px;
+  min-width: 140px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  flex: 1 1 140px;
+}
+
+.flow-box.highlight-obj {
+  border-color: var(--obj);
+  background: var(--obj-soft);
+}
+
+.flow-box.highlight-sop {
+  border-color: var(--sop);
+  background: var(--sop-soft);
+}
+
+.flow-emoji {
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.flow-label {
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.flow-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: block;
+}
+
+.flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--text-muted);
+  flex: 0 0 auto;
+  padding: 0 2px;
+}
+
+.caption {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Method header pills */
+.method-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 5px 12px;
+  margin-bottom: 14px;
+}
+
+.method-pill.m1 {
+  background: var(--obj-soft);
+  color: var(--obj);
+}
+
+.method-pill.m2 {
+  background: var(--sop-soft);
+  color: var(--sop);
+}
+
+/* Numbered step cards */
+.step-cards {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0 4px;
+}
+
+.step-card {
+  display: flex;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-body h4 {
+  margin: 0 0 4px;
+  font-size: 14.5px;
+}
+
+.step-body p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Summary table */
+.summary-table-wrap {
+  overflow-x: auto;
+  margin: 20px 0;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  font-size: 14px;
+}
+
+.summary-table th, .summary-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.summary-table th {
+  background: var(--surface-alt);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.summary-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Footer */
+.page-footer {
+  margin-top: 56px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 560px) {
+  .hero h1 {
+    font-size: 22px;
+  }
+
+  .flow-arrow {
+    transform: rotate(90deg);
+  }
+
+  .flow-diagram {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .compare-grid {
+    grid-template-columns: 1fr;
+  }
+}
