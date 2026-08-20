@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UEマテリアル小技:白飛びを飼いならす3つの技 | column_app</title>
+<meta name="description" content="EmissiveのIntensityを上げるとすぐ白飛びして安っぽく見える問題を、カスタムトーンカーブ・Kelvin色温度・独自Bloomの3つの技でデザインする方法を、博士と助手の対話形式で解説します。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <a class="back-link" href="../../categories/ue/index.html">← UEカテゴリに戻る</a>
+
+  <header class="hero">
+    <div class="hero-icon">✨</div>
+    <h1>白飛びを飼いならす3つの技</h1>
+    <p class="hero-lead">
+      Emissiveの明るさを上げていくと、なぜか光の「色」まで消えて真っ白なノッペリした塊になる——
+      よくあるこの悩みを、博士と助手の対話形式で深掘りします。白飛びを消すのではなく、
+      「白くなる過程」そのものをデザインしてしまう3つのアプローチのお話です。
+    </p>
+    <div class="hero-badges">
+      <span class="badge">対話形式</span>
+      <span class="badge">UEマテリアル</span>
+      <span class="badge">白飛び対策</span>
+    </div>
+  </header>
+
+  <nav class="section" aria-label="目次">
+    <h2>この記事でわかること</h2>
+    <ul class="points">
+      <li><strong>①カスタムトーンカーブ/LUT</strong> — ACESの代わりに自作のLUTやトーンマッピング関数を使い、「白飛びが始まる明るさ」と「白への寄り方」を自分で設計する</li>
+      <li><strong>②Kelvin色温度ベースの発光色</strong> — 現実の発光体と同じ「赤→オレンジ→黄→白→青白」の変化を再現し、白くなること自体を物理的に説得力のある演出にする</li>
+      <li><strong>③Emissive分離+カスタムBloom</strong> — 発光要素だけを別レンダーターゲットに描き出し、にじみ方や色の残り方を自前で作り込む</li>
+      <li><strong>使い分けの目安</strong> — 「暗所でほんのり光る」程度なら①か②が手軽、炎や爆発など強い発光エフェクトの作り込みには③が向く</li>
+    </ul>
+  </nav>
+
+  <section class="section" id="dialogue">
+    <h2>博士と助手の対話</h2>
+    <div class="chat">
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">博士、聞いてください。Emissiveのintensityをちょっと強めただけで、光がすぐ真っ白になってしまうんです。色も質感も消えて、ただの白い塊……なんだか安っぽく見えて困ってます。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">ああ、それは「白飛び」だね。実はその現象、力業で消そうとするより、白くなる過程そのものを設計してしまう方が面白い結果になるんだ。今日は代表的な3つの技を紹介しよう。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">3つも!? 一体何が原因でそんなに白くなるんですか?</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">UEのデフォルトは<strong>ACES</strong>というトーンマッピングを使っていてね。ハイライト(明るい部分)に近づくほど彩度を落として白に収束させる、という性質を持ったカーブなんだ。つまり「明るくなる=色が抜けていく」ように最初から設計されている。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">なるほど……そのカーブ自体をいじれないんですか?</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">それが1つ目の技、<strong>「Filmic Tonemapperのハイライト部分をカスタムカーブで制御」</strong>だよ。ACESの代わりに自分で作ったLUT(ルックアップテーブル)やカスタムカーブに置き換えれば、白飛びの「始まる明るさ」と「白への寄り方」を自由に設計できる。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">具体的にはどう組むんです?</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">
+          やり方は2通りある。
+          <ul>
+            <li>Post Process VolumeでColor Grading LUTを有効化し、Photoshop等でLUT画像(通常256×16などのテクスチャ)を編集して独自のトーンカーブを作る</li>
+            <li>もしくは、UEのPost Process Materialでカスタムのトーンマッピング関数をシェーダーグラフに組む。ACESの代わりに自作のS字カーブ+彩度保持ロジックを実装するんだ</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">見た目を細かくコントロールできそうですね! デメリットは無いんですか?</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">もちろんある。LUT制作やシェーダー調整には手間がかかるし、何より<strong>プロジェクト全体の絵作りに影響する</strong>。トーンマッピングは画面全体にかかる処理だからね。他のエフェクトとのバランス調整は避けて通れないよ。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">画面全体をいじらずに、発光オブジェクト自体の「色」で解決する方法はないんですか?</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">いい質問だ。それが2つ目の技、<strong>「Kelvin色温度ベースの発光色制御」</strong>。現実の発光体——炎、加熱された金属、電球——は温度が上がるほど「赤→オレンジ→黄→白→青白」と色が変化するのを知ってるかい? 鍛冶屋が鉄を熱していくと赤から白へ変わっていくのと同じ原理だよ。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">あ、それ聞いたことあります! それをEmissiveに応用するんですね。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">その通り。この変化をKelvin値(色温度)で表現して、Intensityが上がるほど自動的に色温度も上げていく。そうすれば「白くなる」こと自体が不自然な白飛びではなく、<strong>物理的に説得力のある演出</strong>として使えるんだ。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">Kelvin値からRGBへの変換って、自分で計算するんですか?</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">
+          方法は2つ。
+          <ul>
+            <li>CIE 1931色度図やPlanckianロコス(黒体放射曲線)をベースにKelvin→RGB変換するノード/関数を組む(マテリアル関数として自作、もしくは既存の<code>Blackbody</code>ノードを利用)</li>
+            <li>Emissive Intensityの値に応じてKelvin値を線形補間し、それをRGBに変換してEmissiveColorに渡す</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">これも万能ってわけじゃないですよね?</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">鋭いね。この技は「白くなること自体が自然に見える」のが強みだけど、色温度変化が似合うのは炎や金属のような<strong>熱源系の表現</strong>に限られる。汎用的な淡い光や魔法エフェクトには不向きな場合があるよ。青白い魔法の光が急に赤っぽくなったら変だろう?</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">確かに(笑)。じゃあ最後の3つ目は? さっきから「光がにじむ感じ」も気になってたんです。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">それが3つ目、<strong>「Emissiveを別RTに分離してカスタムBloom/Glowを実装」</strong>だ。標準のBloomは「明るい部分を検出→ぼかして合成」という処理をしていて、これが強く効くと白くにじんで見える。原因は分かるかい?</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">うーん……ぼかす時に色の情報も一緒に薄まっちゃう、とか?</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">そのイメージで合ってるよ。標準Bloomのぼかし方・合成方法はエンジン任せだからね。そこで標準Bloomを使わず、発光要素だけを別のレンダーターゲット(RT)に描画して、<strong>自分でぼかし方・合成方法をコントロール</strong>する。そうすればにじみ方や色の残り方を細かく調整できる。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">具体的な仕込み方を教えてください。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">
+          <ul>
+            <li>Scene Captureやカスタムパスを使って発光オブジェクトのみを別RTに描画する</li>
+            <li>そのRTに対して独自のガウシアンブラーやカラー合成処理をPost Process Materialで実装し、最終画面に加算合成する</li>
+          </ul>
+          標準Bloomでは出せない独特な光の質感——にじみ方や色の残し方——を作り込めるのが強みだ。
+        </div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">やっぱり手間がかかりそうな雰囲気がプンプンします……。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">その通り。実装コストが高く、<strong>パフォーマンスへの影響</strong>も考慮する必要がある。別RTへの描画とブラー処理が増える分、負荷は確実に上がるからね。本気で作り込みたいエフェクト向けの技だと思っておくといい。</div>
+      </div>
+
+      <div class="msg from-q">
+        <span class="msg-name">🙋 助手</span>
+        <div class="msg-bubble">じゃあ結局、前回教わった<a href="../ue-eyeadaptation-darkglow/">EyeAdaptationで「暗所でほんのり光る」表現</a>くらいのお手軽な演出なら、どれを使えばいいんですか?</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">博士 🧑‍🔬</span>
+        <div class="msg-bubble">いい振り返りだね。まとめると、今回のEyeAdaptation×EmissiveColorの案件のように「暗所でほんのり光る」程度の表現であれば、<strong>①のカスタムトーンカーブか、②の色温度ベースが比較的取り入れやすい</strong>。③は炎や爆発など強い発光エフェクトを本格的に作り込みたい場合向けだよ。</div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section" id="conclusion">
+    <h2>まとめ</h2>
+    <p class="conclusion">
+      白飛びは「消すべき不具合」ではなく「デザインできる現象」。<strong>①カスタムトーンカーブ/LUT</strong>で画面全体の白への寄り方を作り込むか、
+      <strong>②Kelvin色温度</strong>で発光色そのものに物理的な説得力を持たせるかは、軽めの演出なら取り入れやすい選択肢。
+      <strong>③Emissive分離+カスタムBloom</strong>は実装・パフォーマンスコストと引き換えに、標準では出せない独特な光の質感を狙える本格派の技として使い分けよう。
+    </p>
+  </section>
+
+  <a class="back-link" href="../../categories/ue/index.html">← UEカテゴリに戻る</a>
+
+  <p class="footer-note">
+    ※本記事はUEマテリアルでの白飛び対策についてのやり取りをまとめた対話形式の記事です。挙動やノード名はエンジンのバージョンによって変わる場合があります。
+  </p>
+
+</div>
+</body>
+</html>

@@ -108,4 +108,11 @@ const APPS = [
     icon: "🧱",
     category: "ue",
   },
+  {
+    name: "UEマテリアル小技:白飛びを飼いならす3つの技",
+    description: "Emissiveがすぐ真っ白になる悩みを、カスタムトーンカーブ・Kelvin色温度・独自Bloomの3技法で解決する方法を博士と助手の対話形式で解説します。",
+    path: "apps/ue-highlight-control-techniques/",
+    icon: "✨",
+    category: "ue",
+  },
 ];
