@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### Minimax-h3-Turbo-SLA - スパース＋リニアアテンションで約2.5倍高速化する4ステップLoRA
+[Hugging Face - lightx2v/Minimax-h3-Turbo-SLA](https://huggingface.co/lightx2v/Minimax-h3-Turbo-SLA)
+
+MiniMax-H3向けに公開された、4ステップに蒸留したFL2V（最初と最後のフレーム指定）用のLoRAチェックポイント。単に蒸留してステップ数を減らすだけでなく、**SLA（Sparse-Linear Attention）**と呼ばれる、アテンション計算を疎（スパース）かつ線形にする手法を組み合わせているのが特徴で、アテンションのスパース率は85%に達する。開発元であるLightX2Vの検証環境（RTX 5090）では、視覚品質を維持しつつ約2.5倍の推論高速化を確認したという。配布されているのはLoRAの重みのみで、推論には元のMiniMax-H3本体が別途必要。LightX2Vネイティブ環境向けと、ComfyUIでも扱えるBF16チェックポイントの両方が用意されている。
+
 ### LTX-2.5でVideoDecodeが遅い問題への対処法 - VAE設定とVRAMクリーンで高速化
 (サイト運営者による実践メモ)
 
