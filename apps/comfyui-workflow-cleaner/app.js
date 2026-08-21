@@ -10,6 +10,13 @@ const OUTPUT_TYPE_HINTS = [
   "save", "preview", "vhs_video", "videocombine", "combine",
 ];
 
+// KJNodes' Set/Get nodes ("variable nodes") are virtual: GetNode has no real
+// graph link, it resolves its value by matching its saved name (widgets_values[0])
+// against a SetNode with the same name elsewhere in the graph. We special-case
+// them below so pruning doesn't strand a GetNode's matching SetNode.
+const SET_NODE_TYPE = "SetNode";
+const GET_NODE_TYPE = "GetNode";
+
 let parsedData = null;
 let parsedFormat = null; // "ui" | "api"
 let nodeOptions = []; // [{id, label, isCandidate}]
@@ -229,6 +236,17 @@ function pruneUi(data, keepId) {
   const linksById = new Map(data.links.map((l) => [l[0], l]));
   const keep = new Set();
 
+  const setNodesByName = new Map();
+  for (const node of data.nodes) {
+    if (node.type === SET_NODE_TYPE) {
+      const name = Array.isArray(node.widgets_values) ? node.widgets_values[0] : undefined;
+      if (name !== undefined) {
+        if (!setNodesByName.has(name)) setNodesByName.set(name, []);
+        setNodesByName.get(name).push(node.id);
+      }
+    }
+  }
+
   function visit(id) {
     if (keep.has(id)) return;
     const node = nodesById.get(id);
@@ -239,6 +257,10 @@ function pruneUi(data, keepId) {
         const link = linksById.get(input.link);
         if (link) visit(link[1]);
       }
+    }
+    if (node.type === GET_NODE_TYPE) {
+      const name = Array.isArray(node.widgets_values) ? node.widgets_values[0] : undefined;
+      for (const setId of setNodesByName.get(name) || []) visit(setId);
     }
   }
 
