@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### ComfyUI-MAINodes - 素早い動きのブレを「時間を引き伸ばして」修正するMotion Lab
+[GitHub - matlowai/ComfyUI-MAINodes](https://github.com/matlowai/ComfyUI-MAINodes)
+
+MiniMax-H3向けのカスタムノードパックで、2つの主要機能を持つ。1つ目の「**Motion Lab**」は、動画内で動きが速すぎてブレてしまう区間を、時間軸を引き伸ばした（スローモーションの）クロックで生成し直し、その後で実時間に圧縮して戻す「デローピング（de-rope）」という手法でブレを修正する仕組み。学習は不要で、生成後の後処理として機能する。この工程がより安定して動くよう、ランク16・38クリップで数時間かけて学習した専用の小型LoRAも同梱されている。2つ目の「**Contact-Sheet diffusion**」は、1枚の参照画像から同じ被写体の5つの異なる視点をまとめて生成できる機能で、ターンアラウンド用のLoRAと組み合わせて使うことを想定している。このほか低VRAM向けのメモリ効率的な処理パイプラインや、会話シーンの修正に対応する音声合成の初期対応も含まれる。なお開発者自身が「Concept Lab」「タイムライン機能」「モーションアダプター」「手動マスク」などは開発途上と位置付けており、Motion LabとContact-Sheetの2つが現時点で完成度の高い部分。GPL-3.0-or-laterライセンスで公開。
+
 ### Minimax-h3-Turbo-SLA - スパース＋リニアアテンションで約2.5倍高速化する4ステップLoRA
 [Hugging Face - lightx2v/Minimax-h3-Turbo-SLA](https://huggingface.co/lightx2v/Minimax-h3-Turbo-SLA)
 
