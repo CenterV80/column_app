@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### LTX-2.5でVideoDecodeが遅い問題への対処法 - VAE設定とVRAMクリーンで高速化
+(サイト運営者による実践メモ)
+
+LTX-2.5でVideoDecodeの処理が遅くなる問題に対する、実際に効果が確認された対処法。①video-vaeを`conv-bf16`に変更する、②VAEDecode（Tiled）の設定を`tile_size=512`・`temp_size=2048`にする、③VAEDecodeノードの直前に「Clean VRAM Used」ノードを挟む、という3点を組み合わせることで、体感できるレベルで高速化したとのこと。VAEのタイル処理設定やVRAMの明示的な解放が絡む問題のため、同様に生成が重いと感じている場合は試す価値がある組み合わせ。
+
 ### Minimax_h3_latent_Upscaler - VAEを経由せず潜在表現のまま高速アップスケール
 [Hugging Face - LBH-123-AI/Minimax_h3_latent_Upscaler](https://huggingface.co/LBH-123-AI/Minimax_h3_latent_Upscaler/tree/main/workflow_templates)
 
