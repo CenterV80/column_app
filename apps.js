@@ -102,6 +102,13 @@ const APPS = [
     category: "comfyui",
   },
   {
+    name: "ComfyUI ワークフロー クリーナー",
+    description: "残したい出力ノードを1つ選ぶだけで、そこに繋がっていない未接続・未使用のノードを丸ごと削除し、きれいなワークフローJSONを作れます。",
+    path: "apps/comfyui-workflow-cleaner/",
+    icon: "🧹",
+    category: "comfyui",
+  },
+  {
     name: "UEマテリアル小技:EyeAdaptationで暗所グロー",
     description: "EyeAdaptationノードで、EmissiveColorを除算して露出変化と相殺しつつ暗所だけ加算で光を足すマテリアルの組み方を解説します。",
     path: "apps/ue-eyeadaptation-darkglow/",
