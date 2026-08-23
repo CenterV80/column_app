@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Next.js+PrismaアプリをVercelにデプロイしてハマった話 | column_app</title>
+<meta name="description" content="SQLiteで作ったNext.js+PrismaアプリをVercel+Neon Postgresで動かすまでに実際につまずいたポイントを、図解付きでまとめました。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <a class="back-link" href="../../categories/github/index.html">← GitHub使い方に戻る</a>
+
+  <header class="hero">
+    <div class="hero-icon">🚧</div>
+    <h1>Next.js+PrismaアプリをVercelに<br>デプロイしてハマった話</h1>
+    <p class="hero-lead">
+      ローカルのSQLiteで動いていたNext.js+Prismaアプリを、iPhoneのSafariからも
+      触れるようにVercelへデプロイしました。「pushして終わり」のはずが、実際には
+      DBの切り替え・ネットワーク制限・ブランチの取り違え・接続方式の相性問題と、
+      いくつもの壁にぶつかりました。この記事はその実録です。
+    </p>
+    <div class="hero-badges">
+      <span class="badge">Next.js</span>
+      <span class="badge">Prisma</span>
+      <span class="badge">Vercel</span>
+      <span class="badge">Neon Postgres</span>
+      <span class="badge">図解あり</span>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="目次">
+    <div class="toc-title">この記事でわかること</div>
+    <ol>
+      <li><a href="#overview">全体の構成と、やりたかったこと</a></li>
+      <li><a href="#trouble1">つまずき1：SQLiteのままではVercelで動かない</a></li>
+      <li><a href="#trouble2">つまずき2：作業環境からDBに直接つなげなかった</a></li>
+      <li><a href="#trouble3">つまずき3：違うブランチがデプロイされていた</a></li>
+      <li><a href="#trouble4">つまずき4：DB接続方式の相性でビルドが固まる</a></li>
+      <li><a href="#trouble5">つまずき5：スマホ版の管理画面で迷子になる</a></li>
+      <li><a href="#summary">まとめ：つまずきポイント一覧</a></li>
+    </ol>
+  </nav>
+
+  <section id="overview" class="section">
+    <h2><span class="step-badge">1</span>全体の構成と、やりたかったこと</h2>
+    <p>
+      作っていたのは、あらすじからコマ割り(ネーム)を自動生成するNext.jsアプリです。
+      DBはローカル開発用にSQLiteを使っていました。これをVercelにデプロイして、
+      iPhoneのSafariから実際に触れるようにするのが今回のゴールです。
+    </p>
+
+    <div class="flow-diagram">
+      <div class="flow-box">
+        <div class="flow-emoji">💻</div>
+        <div class="flow-label">ローカルで開発</div>
+        <div class="flow-sub">SQLite + Next.js</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-emoji">🐙</div>
+        <div class="flow-label">GitHubにPush</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight">
+        <div class="flow-emoji">▲</div>
+        <div class="flow-label">Vercelがビルド</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-emoji">📱</div>
+        <div class="flow-label">iPhoneでアクセス</div>
+      </div>
+    </div>
+    <p class="caption">図1：想定していたシンプルな流れ</p>
+
+    <div class="point-box">
+      <strong>想定：</strong> GitHubと連携させてボタンひとつでデプロイできるだろう、
+      くらいの気持ちで始めました。実際には、この後の5つのつまずきを一つずつ
+      片付けていくことになります。
+    </div>
+  </section>
+
+  <section id="trouble1" class="section">
+    <h2><span class="step-badge">2</span>つまずき1：SQLiteのままではVercelで動かない</h2>
+    <p>
+      Vercelはリクエストのたびに使い捨てのサーバーレス環境が動く仕組みです。
+      SQLiteはアプリと同じディスク上にファイルとしてDBを持つ方式なので、
+      デプロイのたびに、あるいは実行環境が変わるたびに保存内容が消えてしまいます。
+    </p>
+
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <div class="compare-title">❌ SQLite（ファイルDB）</div>
+        <div class="mini-box">アプリと同じディスクに保存</div>
+        <div class="mini-box">実行環境が使い捨てだと消える</div>
+        <p class="compare-note">ストーリー生成→コンテ生成のように、複数リクエストをまたいでデータを残せない</p>
+      </div>
+      <div class="compare-card good">
+        <div class="compare-title">✅ Neon Postgres（外部DB）</div>
+        <div class="mini-box">アプリとは別の場所で常時稼働</div>
+        <div class="mini-box">どのリクエストからも同じDBに接続</div>
+        <p class="compare-note">Vercelのサーバーレス環境と相性が良い</p>
+      </div>
+    </div>
+    <p class="caption">図2：SQLiteとPostgresの違い</p>
+
+    <div class="point-box">
+      <strong>対処：</strong> Prismaのdatasourceを<code>sqlite</code>から<code>postgresql</code>に変更し、
+      DB接続用のアダプタも<code>better-sqlite3</code>から<code>pg</code>に差し替えました。
+      DB本体は、Vercelのダッシュボードから追加できるNeon(Postgres)の無料枠を利用しています。
+    </div>
+  </section>
+
+  <section id="trouble2" class="section">
+    <h2><span class="step-badge">3</span>つまずき2：作業環境からDBに直接つなげなかった</h2>
+    <p>
+      Postgresに切り替えたら、今度は作業環境(このセッション)自体から
+      Neonのデータベースに直接つなごうとして失敗しました。理由は、この作業環境の
+      ネットワークがHTTPS通信専用のプロキシ経由に制限されていて、Postgresが使う
+      生のTCP接続がそもそも通らない構成だったためです。
+    </p>
+
+    <div class="flow-diagram">
+      <div class="flow-box highlight-bad">
+        <div class="flow-emoji">💻</div>
+        <div class="flow-label">作業環境</div>
+        <div class="flow-sub">HTTPSのみ通過可</div>
+      </div>
+      <div class="flow-arrow">✕</div>
+      <div class="flow-box">
+        <div class="flow-emoji">🗄️</div>
+        <div class="flow-label">Neon Postgres</div>
+        <div class="flow-sub">生TCP接続が必要</div>
+      </div>
+    </div>
+    <p class="caption">図3：作業環境からPostgresへの直接接続がブロックされる構成</p>
+
+    <div class="point-box">
+      <strong>対処：</strong> <code>prisma migrate dev</code>のようにDBへ実際に接続するコマンドは使わず、
+      <code>prisma migrate diff --from-empty --to-schema</code>で、スキーマ定義だけからマイグレーション用の
+      SQLをオフラインで生成しました。実際にPostgresへ接続してマイグレーションを適用する処理は、
+      ネットワーク制限のないVercelのビルドサーバー側で行うようにし、ビルドコマンドに
+      <code>prisma migrate deploy</code>を組み込みました。
+    </div>
+  </section>
+
+  <section id="trouble3" class="section">
+    <h2><span class="step-badge">4</span>つまずき3：違うブランチがデプロイされていた</h2>
+    <p>
+      設定を整えてデプロイしたのに、開いたページは404。調べてみると、ビルドがわずか1秒で
+      終わっていました。実際のアプリはfeatureブランチ上で作業していたのに、Vercelは
+      「まだREADMEしかないmainブランチ」の方をビルドしていたのが原因でした。
+    </p>
+
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <div class="compare-title">❌ mainブランチ</div>
+        <div class="mini-box">README.mdのみ</div>
+        <div class="mini-box">ビルドするものが無く1秒で完了</div>
+        <p class="compare-note">当然ページも存在せず404</p>
+      </div>
+      <div class="compare-card good">
+        <div class="compare-title">✅ featureブランチ</div>
+        <div class="mini-box">アプリ本体一式</div>
+        <div class="mini-box">Next.jsとして正しくビルドされる</div>
+        <p class="compare-note">ここをデプロイ対象にする必要があった</p>
+      </div>
+    </div>
+    <p class="caption">図4：デプロイされていたブランチの中身の違い</p>
+
+    <div class="warn-box">
+      <strong>つまずきポイント：</strong> Vercelの設定画面で「Production Branch」を
+      切り替える方法を探しましたが、スマートフォンのブラウザ表示ではその項目自体が
+      見当たりませんでした。デスクトップ向けの手順書がそのままモバイル画面に
+      当てはまるとは限らない、という点も合わせてのつまずきです。
+    </div>
+
+    <div class="point-box">
+      <strong>対処：</strong> Vercelの設定を探すのではなく、featureブランチの内容を
+      そのまま<code>main</code>ブランチにマージしてpushしました。Vercelは特別な設定がなければ
+      <code>main</code>を見にいく仕組みなので、これで正しいコードがデプロイされるようになりました。
+    </div>
+  </section>
+
+  <section id="trouble4" class="section">
+    <h2><span class="step-badge">5</span>つまずき4：DB接続方式の相性でビルドが固まる</h2>
+    <p>
+      ブランチの問題を直して再デプロイすると、今度はビルドログが
+      <code>prisma migrate deploy</code>を実行した直後でピタッと止まってしまいました。
+      エラーは出ず、ただ進まなくなる状態です。
+    </p>
+    <p>
+      Neonが発行するDB接続文字列には、大量の接続をさばくための「pooler」(接続プーリング)
+      経由のものと、DBに直接つながる経由なしのものの2種類があります。マイグレーション処理は
+      内部的にロックの取得を必要としますが、pooler経由の接続ではこのロックの仕組みがうまく
+      機能せず、待ち続けて固まってしまう相性の問題が知られています。
+    </p>
+
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <div class="compare-title">❌ pooler経由の接続</div>
+        <div class="mini-box">ホスト名に <code>-pooler</code> を含む</div>
+        <div class="mini-box">マイグレーションのロック待ちで停止</div>
+        <p class="compare-note">通常のクエリ向けには最適だが、マイグレーションには不向き</p>
+      </div>
+      <div class="compare-card good">
+        <div class="compare-title">✅ 直接接続</div>
+        <div class="mini-box">ホスト名に <code>-pooler</code> を含まない</div>
+        <div class="mini-box">ロックが正常に機能する</div>
+        <p class="compare-note">マイグレーション専用として使う</p>
+      </div>
+    </div>
+    <p class="caption">図5：pooler経由と直接接続の違い（推定される原因）</p>
+
+    <div class="warn-box">
+      <strong>つまずきポイント：</strong> Vercelの環境変数は、Neon連携によって自動生成された
+      ものが「Sensitive(値の編集不可)」として保護されており、値を書き換えることができません
+      でした。「編集画面から直そう」という当初の方針自体が行き詰まりました。
+    </div>
+
+    <div class="point-box">
+      <strong>対処：</strong> Neon連携は<code>DATABASE_URL</code>とは別に、直接接続用の
+      <code>DATABASE_URL_UNPOOLED</code>という環境変数も自動的に用意してくれていました。
+      ビルドコマンドを
+      <code>DATABASE_URL=$DATABASE_URL_UNPOOLED prisma migrate deploy</code>
+      のように書き換え、マイグレーションの瞬間だけ直接接続を使うようにしたところ、
+      Vercelの画面を一切操作せずに解決できました。
+    </div>
+  </section>
+
+  <section id="trouble5" class="section">
+    <h2><span class="step-badge">6</span>つまずき5：スマホ版の管理画面で迷子になる</h2>
+    <p>
+      今回、作業はすべてiPhoneのSafariからVercelの管理画面を操作して行われました。
+      デスクトップ版を前提にした一般的な手順（メニューの位置など）が、モバイル版の
+      レイアウトとは異なっていることが何度かあり、画面を探し回る場面がありました。
+    </p>
+
+    <div class="step-cards">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>デスクトップ基準の案内が通用しない</h4>
+          <p>「Settings→Git内にProduction Branchがある」という一般的な案内をそのまま伝えたが、
+            実機のモバイル画面には該当項目が見当たらなかった。</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>スクリーンショットで実機を確認する</h4>
+          <p>言葉で場所を説明するより、実際の画面のスクリーンショットを送ってもらった方が
+            早く正確に状況を把握できた。</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>迷ったら直接URLでアクセスする</h4>
+          <p>アカウント設定のトークン発行ページなど、メニューを辿らず
+            <code>vercel.com/account/tokens</code>のような固定URLを直接開いてもらう方が
+            確実だった。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="summary" class="section">
+    <h2><span class="step-badge">まとめ</span>つまずきポイント一覧</h2>
+
+    <div class="summary-table-wrap">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>つまずき</th>
+            <th>原因</th>
+            <th>対処</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>SQLiteが動かない</td>
+            <td>サーバーレス環境はディスクが使い捨て</td>
+            <td>Postgres(Neon)に切り替え</td>
+          </tr>
+          <tr>
+            <td>DBに直接つなげない</td>
+            <td>作業環境がHTTPS専用プロキシ経由</td>
+            <td>マイグレーションSQLをオフライン生成</td>
+          </tr>
+          <tr>
+            <td>404が出る</td>
+            <td>READMEしかないmainがデプロイ対象だった</td>
+            <td>featureブランチをmainにマージ</td>
+          </tr>
+          <tr>
+            <td>ビルドが固まる</td>
+            <td>pooler接続とマイグレーションの相性問題</td>
+            <td>DATABASE_URL_UNPOOLEDに切り替え</td>
+          </tr>
+          <tr>
+            <td>設定画面が見つからない</td>
+            <td>デスクトップ前提の案内とモバイルUIの差</td>
+            <td>スクリーンショット確認・直接URLアクセス</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="point-box">
+      <strong>ふりかえり：</strong> どれも一つひとつは特別難しい話ではありませんが、
+      「動かない」の裏側には複数の要因が重なっていることが多いです。ビルドログの
+      所要時間やステータスといった小さな手がかりを見逃さないことが、原因の切り分けに
+      つながりました。
+    </div>
+  </section>
+
+  <footer class="page-footer">
+    <p>
+      ※本記事は特定のプロジェクトでの実体験をもとにまとめたものです。
+      Vercel・Neonの画面構成や挙動は将来的に変更される可能性があります。
+    </p>
+    <a class="back-link" href="../../categories/github/index.html">← GitHub使い方に戻る</a>
+  </footer>
+
+</div>
+
+</body>
+</html>
