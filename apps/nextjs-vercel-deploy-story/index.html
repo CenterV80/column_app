@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Next.js+PrismaアプリをVercelにデプロイしてハマった話 | column_app</title>
-<meta name="description" content="SQLiteで作ったNext.js+PrismaアプリをVercel+Neon Postgresで動かすまでに実際につまずいたポイントを、図解付きでまとめました。">
+<title>Next.js+Prisma+Geminiで漫画ジェネレーターを作った話 | column_app</title>
+<meta name="description" content="あらすじからコマ割り(ネーム)を自動生成するNext.js+Prisma+Gemini APIアプリを作った手順を、設計からPWA対応まで図解でまとめました。おまけでVercelデプロイのつまずきも紹介します。">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,262 +14,304 @@
   <a class="back-link" href="../../categories/github/index.html">← GitHub使い方に戻る</a>
 
   <header class="hero">
-    <div class="hero-icon">🚧</div>
-    <h1>Next.js+PrismaアプリをVercelに<br>デプロイしてハマった話</h1>
+    <div class="hero-icon">📖</div>
+    <h1>Next.js+Prisma+Geminiで<br>漫画ジェネレーターを作った話</h1>
     <p class="hero-lead">
-      ローカルのSQLiteで動いていたNext.js+Prismaアプリを、iPhoneのSafariからも
-      触れるようにVercelへデプロイしました。「pushして終わり」のはずが、実際には
-      DBの切り替え・ネットワーク制限・ブランチの取り違え・接続方式の相性問題と、
-      いくつもの壁にぶつかりました。この記事はその実録です。
+      短いあらすじを入力すると、AIがコマ割り(ネーム)を自動生成してくれるWebアプリを作りました。
+      「セリフは画像に焼き込まず、あとから編集できる別レイヤーにする」という設計方針のもと、
+      DB設計・AIによるストーリー生成・SVGでのコンテ生成・PWA対応までの手順を図解でまとめます。
+      おまけとして、最後にVercelへのデプロイでハマった点も少しだけ紹介します。
     </p>
     <div class="hero-badges">
       <span class="badge">Next.js</span>
       <span class="badge">Prisma</span>
-      <span class="badge">Vercel</span>
-      <span class="badge">Neon Postgres</span>
-      <span class="badge">図解あり</span>
+      <span class="badge">Gemini API</span>
+      <span class="badge">SVG</span>
+      <span class="badge">PWA</span>
     </div>
   </header>
 
   <nav class="toc" aria-label="目次">
     <div class="toc-title">この記事でわかること</div>
     <ol>
-      <li><a href="#overview">全体の構成と、やりたかったこと</a></li>
-      <li><a href="#trouble1">つまずき1：SQLiteのままではVercelで動かない</a></li>
-      <li><a href="#trouble2">つまずき2：作業環境からDBに直接つなげなかった</a></li>
-      <li><a href="#trouble3">つまずき3：違うブランチがデプロイされていた</a></li>
-      <li><a href="#trouble4">つまずき4：DB接続方式の相性でビルドが固まる</a></li>
-      <li><a href="#trouble5">つまずき5：スマホ版の管理画面で迷子になる</a></li>
-      <li><a href="#summary">まとめ：つまずきポイント一覧</a></li>
+      <li><a href="#overview">作ったものと設計方針</a></li>
+      <li><a href="#schema">Prismaスキーマ設計</a></li>
+      <li><a href="#story">あらすじからストーリーを生成する</a></li>
+      <li><a href="#storyboard">SVGでラフなコンテを生成する</a></li>
+      <li><a href="#screen">入力〜プレビュー画面の実装</a></li>
+      <li><a href="#pwa">PWA対応</a></li>
+      <li><a href="#trouble">おまけ：Vercelデプロイでのつまずき</a></li>
+      <li><a href="#summary">まとめ</a></li>
     </ol>
   </nav>
 
   <section id="overview" class="section">
-    <h2><span class="step-badge">1</span>全体の構成と、やりたかったこと</h2>
+    <h2><span class="step-badge">1</span>作ったものと設計方針</h2>
     <p>
-      作っていたのは、あらすじからコマ割り(ネーム)を自動生成するNext.jsアプリです。
-      DBはローカル開発用にSQLiteを使っていました。これをVercelにデプロイして、
-      iPhoneのSafariから実際に触れるようにするのが今回のゴールです。
-    </p>
-
-    <div class="flow-diagram">
-      <div class="flow-box">
-        <div class="flow-emoji">💻</div>
-        <div class="flow-label">ローカルで開発</div>
-        <div class="flow-sub">SQLite + Next.js</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box">
-        <div class="flow-emoji">🐙</div>
-        <div class="flow-label">GitHubにPush</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box highlight">
-        <div class="flow-emoji">▲</div>
-        <div class="flow-label">Vercelがビルド</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box">
-        <div class="flow-emoji">📱</div>
-        <div class="flow-label">iPhoneでアクセス</div>
-      </div>
-    </div>
-    <p class="caption">図1：想定していたシンプルな流れ</p>
-
-    <div class="point-box">
-      <strong>想定：</strong> GitHubと連携させてボタンひとつでデプロイできるだろう、
-      くらいの気持ちで始めました。実際には、この後の5つのつまずきを一つずつ
-      片付けていくことになります。
-    </div>
-  </section>
-
-  <section id="trouble1" class="section">
-    <h2><span class="step-badge">2</span>つまずき1：SQLiteのままではVercelで動かない</h2>
-    <p>
-      Vercelはリクエストのたびに使い捨てのサーバーレス環境が動く仕組みです。
-      SQLiteはアプリと同じディスク上にファイルとしてDBを持つ方式なので、
-      デプロイのたびに、あるいは実行環境が変わるたびに保存内容が消えてしまいます。
-    </p>
-
-    <div class="compare-grid">
-      <div class="compare-card bad">
-        <div class="compare-title">❌ SQLite（ファイルDB）</div>
-        <div class="mini-box">アプリと同じディスクに保存</div>
-        <div class="mini-box">実行環境が使い捨てだと消える</div>
-        <p class="compare-note">ストーリー生成→コンテ生成のように、複数リクエストをまたいでデータを残せない</p>
-      </div>
-      <div class="compare-card good">
-        <div class="compare-title">✅ Neon Postgres（外部DB）</div>
-        <div class="mini-box">アプリとは別の場所で常時稼働</div>
-        <div class="mini-box">どのリクエストからも同じDBに接続</div>
-        <p class="compare-note">Vercelのサーバーレス環境と相性が良い</p>
-      </div>
-    </div>
-    <p class="caption">図2：SQLiteとPostgresの違い</p>
-
-    <div class="point-box">
-      <strong>対処：</strong> Prismaのdatasourceを<code>sqlite</code>から<code>postgresql</code>に変更し、
-      DB接続用のアダプタも<code>better-sqlite3</code>から<code>pg</code>に差し替えました。
-      DB本体は、Vercelのダッシュボードから追加できるNeon(Postgres)の無料枠を利用しています。
-    </div>
-  </section>
-
-  <section id="trouble2" class="section">
-    <h2><span class="step-badge">3</span>つまずき2：作業環境からDBに直接つなげなかった</h2>
-    <p>
-      Postgresに切り替えたら、今度は作業環境(このセッション)自体から
-      Neonのデータベースに直接つなごうとして失敗しました。理由は、この作業環境の
-      ネットワークがHTTPS通信専用のプロキシ経由に制限されていて、Postgresが使う
-      生のTCP接続がそもそも通らない構成だったためです。
-    </p>
-
-    <div class="flow-diagram">
-      <div class="flow-box highlight-bad">
-        <div class="flow-emoji">💻</div>
-        <div class="flow-label">作業環境</div>
-        <div class="flow-sub">HTTPSのみ通過可</div>
-      </div>
-      <div class="flow-arrow">✕</div>
-      <div class="flow-box">
-        <div class="flow-emoji">🗄️</div>
-        <div class="flow-label">Neon Postgres</div>
-        <div class="flow-sub">生TCP接続が必要</div>
-      </div>
-    </div>
-    <p class="caption">図3：作業環境からPostgresへの直接接続がブロックされる構成</p>
-
-    <div class="point-box">
-      <strong>対処：</strong> <code>prisma migrate dev</code>のようにDBへ実際に接続するコマンドは使わず、
-      <code>prisma migrate diff --from-empty --to-schema</code>で、スキーマ定義だけからマイグレーション用の
-      SQLをオフラインで生成しました。実際にPostgresへ接続してマイグレーションを適用する処理は、
-      ネットワーク制限のないVercelのビルドサーバー側で行うようにし、ビルドコマンドに
-      <code>prisma migrate deploy</code>を組み込みました。
-    </div>
-  </section>
-
-  <section id="trouble3" class="section">
-    <h2><span class="step-badge">4</span>つまずき3：違うブランチがデプロイされていた</h2>
-    <p>
-      設定を整えてデプロイしたのに、開いたページは404。調べてみると、ビルドがわずか1秒で
-      終わっていました。実際のアプリはfeatureブランチ上で作業していたのに、Vercelは
-      「まだREADMEしかないmainブランチ」の方をビルドしていたのが原因でした。
-    </p>
-
-    <div class="compare-grid">
-      <div class="compare-card bad">
-        <div class="compare-title">❌ mainブランチ</div>
-        <div class="mini-box">README.mdのみ</div>
-        <div class="mini-box">ビルドするものが無く1秒で完了</div>
-        <p class="compare-note">当然ページも存在せず404</p>
-      </div>
-      <div class="compare-card good">
-        <div class="compare-title">✅ featureブランチ</div>
-        <div class="mini-box">アプリ本体一式</div>
-        <div class="mini-box">Next.jsとして正しくビルドされる</div>
-        <p class="compare-note">ここをデプロイ対象にする必要があった</p>
-      </div>
-    </div>
-    <p class="caption">図4：デプロイされていたブランチの中身の違い</p>
-
-    <div class="warn-box">
-      <strong>つまずきポイント：</strong> Vercelの設定画面で「Production Branch」を
-      切り替える方法を探しましたが、スマートフォンのブラウザ表示ではその項目自体が
-      見当たりませんでした。デスクトップ向けの手順書がそのままモバイル画面に
-      当てはまるとは限らない、という点も合わせてのつまずきです。
-    </div>
-
-    <div class="point-box">
-      <strong>対処：</strong> Vercelの設定を探すのではなく、featureブランチの内容を
-      そのまま<code>main</code>ブランチにマージしてpushしました。Vercelは特別な設定がなければ
-      <code>main</code>を見にいく仕組みなので、これで正しいコードがデプロイされるようになりました。
-    </div>
-  </section>
-
-  <section id="trouble4" class="section">
-    <h2><span class="step-badge">5</span>つまずき4：DB接続方式の相性でビルドが固まる</h2>
-    <p>
-      ブランチの問題を直して再デプロイすると、今度はビルドログが
-      <code>prisma migrate deploy</code>を実行した直後でピタッと止まってしまいました。
-      エラーは出ず、ただ進まなくなる状態です。
-    </p>
-    <p>
-      Neonが発行するDB接続文字列には、大量の接続をさばくための「pooler」(接続プーリング)
-      経由のものと、DBに直接つながる経由なしのものの2種類があります。マイグレーション処理は
-      内部的にロックの取得を必要としますが、pooler経由の接続ではこのロックの仕組みがうまく
-      機能せず、待ち続けて固まってしまう相性の問題が知られています。
-    </p>
-
-    <div class="compare-grid">
-      <div class="compare-card bad">
-        <div class="compare-title">❌ pooler経由の接続</div>
-        <div class="mini-box">ホスト名に <code>-pooler</code> を含む</div>
-        <div class="mini-box">マイグレーションのロック待ちで停止</div>
-        <p class="compare-note">通常のクエリ向けには最適だが、マイグレーションには不向き</p>
-      </div>
-      <div class="compare-card good">
-        <div class="compare-title">✅ 直接接続</div>
-        <div class="mini-box">ホスト名に <code>-pooler</code> を含まない</div>
-        <div class="mini-box">ロックが正常に機能する</div>
-        <p class="compare-note">マイグレーション専用として使う</p>
-      </div>
-    </div>
-    <p class="caption">図5：pooler経由と直接接続の違い（推定される原因）</p>
-
-    <div class="warn-box">
-      <strong>つまずきポイント：</strong> Vercelの環境変数は、Neon連携によって自動生成された
-      ものが「Sensitive(値の編集不可)」として保護されており、値を書き換えることができません
-      でした。「編集画面から直そう」という当初の方針自体が行き詰まりました。
-    </div>
-
-    <div class="point-box">
-      <strong>対処：</strong> Neon連携は<code>DATABASE_URL</code>とは別に、直接接続用の
-      <code>DATABASE_URL_UNPOOLED</code>という環境変数も自動的に用意してくれていました。
-      ビルドコマンドを
-      <code>DATABASE_URL=$DATABASE_URL_UNPOOLED prisma migrate deploy</code>
-      のように書き換え、マイグレーションの瞬間だけ直接接続を使うようにしたところ、
-      Vercelの画面を一切操作せずに解決できました。
-    </div>
-  </section>
-
-  <section id="trouble5" class="section">
-    <h2><span class="step-badge">6</span>つまずき5：スマホ版の管理画面で迷子になる</h2>
-    <p>
-      今回、作業はすべてiPhoneのSafariからVercelの管理画面を操作して行われました。
-      デスクトップ版を前提にした一般的な手順（メニューの位置など）が、モバイル版の
-      レイアウトとは異なっていることが何度かあり、画面を探し回る場面がありました。
+      作ったのは、短いあらすじ・ページ数・1ページあたりのコマ数を入力するだけで、
+      各コマのセリフ・構図・カメラアングルをAIが考え、ラフなコマ割り(ネーム)として
+      表示してくれるアプリのステップ1です。実際のイラスト生成は次のステップに回し、
+      まずは「構成を考える」部分を作りました。
     </p>
 
     <div class="step-cards">
       <div class="step-card">
         <div class="step-num">1</div>
         <div class="step-body">
-          <h4>デスクトップ基準の案内が通用しない</h4>
-          <p>「Settings→Git内にProduction Branchがある」という一般的な案内をそのまま伝えたが、
-            実機のモバイル画面には該当項目が見当たらなかった。</p>
+          <h4>セリフは画像に焼き込まない</h4>
+          <p>画像生成AIには「ふきだし・文字のない絵」だけを描かせ、セリフはSVG/HTMLの
+            テキストレイヤーとして上に重ねる。あとから文言を編集しやすくするため。</p>
         </div>
       </div>
       <div class="step-card">
         <div class="step-num">2</div>
         <div class="step-body">
-          <h4>スクリーンショットで実機を確認する</h4>
-          <p>言葉で場所を説明するより、実際の画面のスクリーンショットを送ってもらった方が
-            早く正確に状況を把握できた。</p>
+          <h4>1ページ縦スクロール表示</h4>
+          <p>見開きのような複雑なレイアウトは使わず、スマホでそのまま読める縦スクロール
+            1本に統一する。</p>
         </div>
       </div>
       <div class="step-card">
         <div class="step-num">3</div>
         <div class="step-body">
-          <h4>迷ったら直接URLでアクセスする</h4>
-          <p>アカウント設定のトークン発行ページなど、メニューを辿らず
-            <code>vercel.com/account/tokens</code>のような固定URLを直接開いてもらう方が
-            確実だった。</p>
+          <h4>コマは完成した順に表示</h4>
+          <p>全部そろうまで待たせず、生成できたコマから順次見せる設計にしておく
+            (画像生成は次のステップだが、土台をこの時点で用意)。</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="summary" class="section">
-    <h2><span class="step-badge">まとめ</span>つまずきポイント一覧</h2>
+  <section id="schema" class="section">
+    <h2><span class="step-badge">2</span>Prismaスキーマ設計</h2>
+    <p>
+      データはProject(作品) → Character(登場人物) / Page(ページ) → Panel(コマ)という
+      階層で持たせました。実装前にこの設計をまとめて提示し、認識合わせをしてから
+      コードに進んでいます。
+    </p>
+
+    <div class="schema-diagram">
+      <div class="schema-root">Project</div>
+      <div class="schema-children">
+        <div class="schema-branch">
+          <span class="schema-rel">1 : N</span>
+          <div class="schema-node">Character</div>
+          <div class="schema-fields">
+            <span>name</span><span>appearance</span>
+          </div>
+        </div>
+        <div class="schema-branch">
+          <span class="schema-rel">1 : N</span>
+          <div class="schema-node">Page</div>
+          <div class="schema-fields">
+            <span>pageNumber</span>
+          </div>
+          <div class="schema-sub">
+            <span class="schema-rel">1 : N</span>
+            <div class="schema-node">Panel</div>
+            <div class="schema-fields">
+              <span>dialogue</span><span>sceneDescription</span>
+              <span>cameraAngle</span><span>panelSize</span>
+              <span>layoutSvg</span><span>imageUrl</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">図1：Project / Character / Page / Panel の関係</p>
+
+    <div class="point-box">
+      <strong>ポイント：</strong> Panelの<code>imageUrl</code>はステップ1では常に空のままにしています。
+      画像生成(次のステップ)が完了したらここにURLを入れる想定で、先に器だけ用意しておく形です。
+    </div>
+  </section>
+
+  <section id="story" class="section">
+    <h2><span class="step-badge">3</span>あらすじからストーリーを生成する</h2>
+    <p>
+      <code>/api/generate-story</code>で、短いあらすじ・ページ数・コマ数目安をGemini APIに渡し、
+      あらすじを膨らませたうえで各コマの内容に分解してもらいます。JSON Schemaで出力形式を
+      固定し、パースしやすい構造化データとして受け取っています。
+    </p>
+
+    <div class="flow-diagram">
+      <div class="flow-box">
+        <div class="flow-emoji">✏️</div>
+        <div class="flow-label">短いあらすじ</div>
+        <div class="flow-sub">+ページ数・コマ数目安</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight">
+        <div class="flow-emoji">✨</div>
+        <div class="flow-label">Gemini API</div>
+        <div class="flow-sub">構造化JSON出力</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight-ok">
+        <div class="flow-emoji">🗄️</div>
+        <div class="flow-label">DBに保存</div>
+        <div class="flow-sub">Page・Panelとして分解済み</div>
+      </div>
+    </div>
+    <p class="caption">図2：ストーリー生成の流れ</p>
+
+    <div class="warn-box">
+      <strong>プロンプトの工夫：</strong> sceneDescription(絵の説明)には、
+      「セリフ・ふきだし・書き文字など、絵の中に文字として現れるものは一切含めない」と
+      明記しています。画像生成AIに渡すのはあくまで絵の指示だけにするためです。
+    </div>
+  </section>
+
+  <section id="storyboard" class="section">
+    <h2><span class="step-badge">4</span>SVGでラフなコンテを生成する</h2>
+    <p>
+      <code>/api/generate-storyboard</code>では、各Panelの<code>cameraAngle</code>と
+      <code>panelSize</code>をもとに、コマ枠・簡易的な人物配置(丸+棒人間)・ふきだし当たりを
+      SVGで組み立てます。この時点ではイラストは生成せず、あくまで構図のラフです。
+    </p>
+
+    <div class="flow-diagram">
+      <div class="flow-box">
+        <div class="flow-emoji">⬛</div>
+        <div class="flow-label">①コマ枠</div>
+        <div class="flow-sub">panelSizeの比率で高さ配分</div>
+      </div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box">
+        <div class="flow-emoji">🧍</div>
+        <div class="flow-label">②棒人間</div>
+        <div class="flow-sub">cameraAngleごとに配置パターンを変える</div>
+      </div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box">
+        <div class="flow-emoji">💬</div>
+        <div class="flow-label">③ふきだし＋セリフ</div>
+        <div class="flow-sub">楕円の当たり＋SVG textを重ねる</div>
+      </div>
+      <div class="flow-arrow">=</div>
+      <div class="flow-box highlight-ok">
+        <div class="flow-emoji">🖼️</div>
+        <div class="flow-label">1コマ分のSVG</div>
+        <div class="flow-sub">単体で完結した&lt;svg&gt;</div>
+      </div>
+    </div>
+    <p class="caption">図3：1コマ分のSVGを組み立てるレイヤー構成</p>
+
+    <p>
+      cameraAngleに応じて、棒人間の描き方を変えています。
+    </p>
+    <div class="step-cards">
+      <div class="step-card">
+        <div class="step-num">🔍</div>
+        <div class="step-body">
+          <h4>close-up（アップ）</h4>
+          <p>大きめの頭(円)だけをコマ中央〜上寄りに1つ配置。</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">🧍</div>
+        <div class="step-body">
+          <h4>medium / low-angle</h4>
+          <p>頭(円)+胴体・手足(直線)の棒人間を1体、コマ下部中央に配置。</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">👥</div>
+        <div class="step-body">
+          <h4>wide（引き）</h4>
+          <p>小さめの棒人間を2体、コマ下部に横並びで配置。</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">🗺️</div>
+        <div class="step-body">
+          <h4>birds-eye（俯瞰）</h4>
+          <p>頭(円)のみを小さく複数配置し、上から見た配置感を出す。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="point-box">
+      <strong>セリフレイヤーの重ね方：</strong> ふきだし当たり(楕円)の中心座標に対して、
+      SVGの<code>&lt;text&gt;</code>を<code>text-anchor="middle"</code>で配置しています。
+      次のステップでイラスト(<code>&lt;image&gt;</code>)をコマ枠の下に差し込むだけで、
+      セリフは常にその上に独立して乗る構造です。
+    </div>
+  </section>
+
+  <section id="screen" class="section">
+    <h2><span class="step-badge">5</span>入力〜プレビュー画面の実装</h2>
+    <p>
+      <code>/new</code>画面では、あらすじ・ページ数・コマ数を入力して生成ボタンを押すと、
+      ストーリー生成→コンテ生成を続けて呼び出し、結果を1ページ縦スクロールでプレビュー表示します。
+    </p>
+
+    <div class="flow-diagram">
+      <div class="flow-box">
+        <div class="flow-emoji">📝</div>
+        <div class="flow-label">あらすじ入力</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-emoji">1️⃣</div>
+        <div class="flow-label">generate-story</div>
+        <div class="flow-sub">「ストーリー生成中…」</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="flow-emoji">2️⃣</div>
+        <div class="flow-label">generate-storyboard</div>
+        <div class="flow-sub">「コンテ生成中…」</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight-ok">
+        <div class="flow-emoji">📱</div>
+        <div class="flow-label">縦スクロールで表示</div>
+      </div>
+    </div>
+    <p class="caption">図4：ボタン1つで2段階のAPI呼び出しを連続実行</p>
+  </section>
+
+  <section id="pwa" class="section">
+    <h2><span class="step-badge">6</span>PWA対応</h2>
+    <p>
+      iPhoneのSafariで違和感なく使えるように、manifest.jsonとアイコンを用意し、
+      ホーム画面への追加に対応しました。あわせて、ノッチ部分の余白(safe-area)や
+      入力時の意図しない拡大を防ぐ調整も行っています。
+    </p>
+    <div class="step-cards">
+      <div class="step-card">
+        <div class="step-num">✓</div>
+        <div class="step-body">
+          <h4>manifest.json + アイコン</h4>
+          <p>ホーム画面に追加すると、アプリのように起動できるようにする。</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">✓</div>
+        <div class="step-body">
+          <h4>safe-areaへの対応</h4>
+          <p><code>env(safe-area-inset-*)</code>を使い、ノッチやホームインジケーターに
+            コンテンツが隠れないようにする。</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">✓</div>
+        <div class="step-body">
+          <h4>入力欄のフォントサイズ</h4>
+          <p>16px未満だとiOS Safariがフォーカス時に自動ズームしてしまうため、
+            入力欄は16px以上に統一。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="trouble" class="section">
+    <h2><span class="step-badge">おまけ</span>Vercelデプロイでのつまずき</h2>
+    <p>
+      ここまでで作ったアプリをiPhoneの実機でも触れるようにVercelへデプロイしたところ、
+      いくつか小さくないつまずきがありました。詳細は割愛しますが、要点だけ表にまとめます。
+    </p>
 
     <div class="summary-table-wrap">
       <table class="summary-table">
@@ -301,27 +343,26 @@
             <td>pooler接続とマイグレーションの相性問題</td>
             <td>DATABASE_URL_UNPOOLEDに切り替え</td>
           </tr>
-          <tr>
-            <td>設定画面が見つからない</td>
-            <td>デスクトップ前提の案内とモバイルUIの差</td>
-            <td>スクリーンショット確認・直接URLアクセス</td>
-          </tr>
         </tbody>
       </table>
     </div>
+    <p class="caption">図5：デプロイ時のつまずきと対処の要約</p>
+  </section>
 
+  <section id="summary" class="section">
+    <h2><span class="step-badge">まとめ</span></h2>
     <div class="point-box">
-      <strong>ふりかえり：</strong> どれも一つひとつは特別難しい話ではありませんが、
-      「動かない」の裏側には複数の要因が重なっていることが多いです。ビルドログの
-      所要時間やステータスといった小さな手がかりを見逃さないことが、原因の切り分けに
-      つながりました。
+      <strong>できたこと：</strong> あらすじ入力→AIによるストーリー分解→SVGでのラフなコンテ生成→
+      縦スクロールプレビューという、ステップ1のゴールを一通り実装できました。セリフを別レイヤーに
+      分離した設計のおかげで、次のステップ(実際のイラスト生成)は「コマ枠の下に画像を差し込むだけ」
+      で済む見通しが立っています。
     </div>
   </section>
 
   <footer class="page-footer">
     <p>
-      ※本記事は特定のプロジェクトでの実体験をもとにまとめたものです。
-      Vercel・Neonの画面構成や挙動は将来的に変更される可能性があります。
+      ※本記事は特定のプロジェクトでの実装内容・実体験をもとにまとめたものです。
+      使用しているAPIやサービスの仕様は将来的に変更される可能性があります。
     </p>
     <a class="back-link" href="../../categories/github/index.html">← GitHub使い方に戻る</a>
   </footer>
