@@ -25,10 +25,10 @@ const APPS = [
     category: "github",
   },
   {
-    name: "Next.js+PrismaアプリをVercelにデプロイしてハマった話",
-    description: "SQLiteで作ったアプリをVercel+Neon Postgresで動かすまでに実際につまずいたポイントを、図解付きの実録でまとめました。",
+    name: "Next.js+Prisma+Geminiで漫画ジェネレーターを作った話",
+    description: "あらすじからコマ割りを自動生成するアプリの、DB設計・AI生成・SVGコンテ生成・PWA対応までの手順を図解でまとめました。おまけでVercelデプロイのつまずきも紹介します。",
     path: "apps/nextjs-vercel-deploy-story/",
-    icon: "🚧",
+    icon: "📖",
     category: "github",
   },
   {
