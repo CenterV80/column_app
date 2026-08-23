@@ -25,6 +25,13 @@ const APPS = [
     category: "github",
   },
   {
+    name: "Next.js+PrismaアプリをVercelにデプロイしてハマった話",
+    description: "SQLiteで作ったアプリをVercel+Neon Postgresで動かすまでに実際につまずいたポイントを、図解付きの実録でまとめました。",
+    path: "apps/nextjs-vercel-deploy-story/",
+    icon: "🚧",
+    category: "github",
+  },
+  {
     name: "pip コマンド一覧",
     description: "install・uninstall・list・freezeなど、Pythonのパッケージ管理でよく使うpipコマンドをまとめました。",
     path: "pip-commands.html",
