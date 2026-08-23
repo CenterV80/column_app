@@ -4,6 +4,13 @@
 // categories.js so the item shows up on the right category page.
 const APPS = [
   {
+    name: "生成AIのしくみ入門",
+    description: "文章生成AI・画像/動画生成AIが答えを作る仕組みを、専門知識なしでも図解でわかるように解説します。",
+    path: "apps/generative-ai-basics-guide/",
+    icon: "🧠",
+    category: "ltx",
+  },
+  {
     name: "GitHub用語辞典",
     description: "Repository・Commit・Push・Pullなど、GitHub初心者がつまずきやすい用語をやさしく解説します。",
     path: "github-glossary.html",
