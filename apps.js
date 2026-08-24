@@ -143,4 +143,11 @@ const APPS = [
     icon: "🎛️",
     category: "houdini",
   },
+  {
+    name: "セッションログ運用ワークフロー(GitHub Copilot向け)",
+    description: "LLMとの作業で得た気づき・躓いた点と対処法を蓄積し、次回セッションで再利用するための運用ルールをテンプレ付きでまとめました。",
+    path: "apps/session-log-workflow-guide.html",
+    icon: "🤖",
+    category: "ai-coding",
+  },
 ];

@@ -58,4 +58,11 @@ const CATEGORIES = [
     path: "categories/houdini/",
     icon: "🎛️",
   },
+  {
+    id: "ai-coding",
+    name: "AIコーディング",
+    description: "GitHub CopilotやClaude CodeなどAIコーディングツールと効率よく付き合うための運用ルール・Tipsをまとめています。",
+    path: "categories/ai-coding/",
+    icon: "🤖",
+  },
 ];
