@@ -58,4 +58,11 @@ const CATEGORIES = [
     path: "categories/houdini/",
     icon: "🎛️",
   },
+  {
+    id: "markdown",
+    name: "Markdown記法",
+    description: "見出し・リストなど、Markdownの書き方を簡単なものから順にまとめています。",
+    path: "categories/markdown/",
+    icon: "📝",
+  },
 ];
