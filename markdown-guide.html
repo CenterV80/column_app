@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown記法ガイド</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #667eea;
+            font-weight: 700;
+        }
+
+        .term {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .term h3 {
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .term-description {
+            color: #666;
+            font-size: 1em;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .term-description strong {
+            color: #667eea;
+        }
+
+        .term-example {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 12px 0;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .term-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-size: 0.95em;
+            color: #856404;
+        }
+
+        .term-preview {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-size: 0.95em;
+            color: #1565c0;
+        }
+
+        .term-preview code {
+            background: rgba(0, 0, 0, 0.06);
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        .divider {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 40px 0;
+        }
+
+        footer {
+            background: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.4em;
+            }
+        }
+
+        .back-link {
+            display: inline-block;
+            margin: 20px 0 0 30px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="back-link" href="categories/markdown/index.html">← Markdown記法に戻る</a>
+        <header>
+            <h1>📝 Markdown記法ガイド</h1>
+            <p>簡単なものから順に並べた、書き方の早見表</p>
+        </header>
+
+        <div class="content">
+            <!-- 初級 -->
+            <div class="section">
+                <h2 class="section-title">🌱 初級：まずはこれだけ</h2>
+
+                <div class="term">
+                    <h3>見出し（<code>#</code>）</h3>
+                    <div class="term-description"><strong><code>#</code>の数で見出しレベルを表します。</strong>1つで一番大きい見出し、増えるほど小さくなります。</div>
+                    <div class="term-example"># 見出し1
+## 見出し2
+### 見出し3</div>
+                    <div class="term-note">
+                        <strong>注意：</strong> <code>#</code>の後ろに半角スペースを1つ入れます。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>段落と改行</h3>
+                    <div class="term-description"><strong>空行を1つ入れると新しい段落</strong>になります。同じ段落内で改行したいときは、行末に半角スペースを2つ入れます。</div>
+                    <div class="term-example">1行目
+2行目（行末にスペース2つ）
+
+ここから新しい段落</div>
+                </div>
+
+                <div class="term">
+                    <h3>強調（太字・斜体）</h3>
+                    <div class="term-description"><strong>アスタリスク<code>*</code>やアンダースコア<code>_</code>で文字を囲む</strong>と、強調表示になります。</div>
+                    <div class="term-example">*斜体* または _斜体_
+**太字** または __太字__
+***太字斜体***</div>
+                </div>
+
+                <div class="term">
+                    <h3>リスト（箇条書き・番号付き）</h3>
+                    <div class="term-description"><strong>箇条書きは<code>-</code>・<code>*</code>・<code>+</code></strong>のいずれか、<strong>番号付きリストは数字と<code>.</code></strong>を使います。</div>
+                    <div class="term-example">- 項目A
+- 項目B
+  - 項目Bの子項目
+
+1. 最初の手順
+2. 次の手順</div>
+                    <div class="term-note">
+                        <strong>ポイント：</strong> 子項目は半角スペース2〜4個でインデントします。
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- 中級 -->
+            <div class="section">
+                <h2 class="section-title">🎓 中級：もう少し使いこなす</h2>
+
+                <div class="term">
+                    <h3>リンク</h3>
+                    <div class="term-description"><strong><code>[表示文字](URL)</code>の形式</strong>で書きます。</div>
+                    <div class="term-example">[GitHub](https://github.com)</div>
+                </div>
+
+                <div class="term">
+                    <h3>画像</h3>
+                    <div class="term-description"><strong>リンクの先頭に<code>!</code>を付ける</strong>と画像になります。</div>
+                    <div class="term-example">![代替テキスト](画像のURL)</div>
+                </div>
+
+                <div class="term">
+                    <h3>引用（<code>&gt;</code>）</h3>
+                    <div class="term-description"><strong>行頭に<code>&gt;</code>を付ける</strong>と引用ブロックになります。<code>&gt;</code>を重ねると引用の中に引用を作れます。</div>
+                    <div class="term-example">&gt; これは引用です。
+&gt;&gt; これは引用の中の引用です。</div>
+                </div>
+
+                <div class="term">
+                    <h3>水平線</h3>
+                    <div class="term-description"><strong><code>-</code>・<code>*</code>・<code>_</code>を3つ以上単独の行に並べる</strong>と、区切り線になります。</div>
+                    <div class="term-example">---</div>
+                </div>
+
+                <div class="term">
+                    <h3>コード（インライン・ブロック）</h3>
+                    <div class="term-description">短いコードは<strong>バッククォート1つ</strong>で、複数行のコードは<strong>バッククォート3つ</strong>で囲みます。言語名を添えるとシンタックスハイライトが付きます。</div>
+                    <div class="term-example">`インラインコード`
+
+```python
+def hello():
+    print("Hello")
+```</div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- 上級 -->
+            <div class="section">
+                <h2 class="section-title">🔬 上級：表現の幅を広げる</h2>
+
+                <div class="term">
+                    <h3>テーブル（表）</h3>
+                    <div class="term-description"><strong><code>|</code>で列を区切り</strong>、1行目の下にハイフンの行を入れてヘッダーとの区切りにします。<code>:</code>の位置で揃え方を指定できます。</div>
+                    <div class="term-example">| 名前 | 説明 |
+| --- | --- |
+| # | 見出し |
+| - | リスト |
+
+| 左揃え | 中央揃え | 右揃え |
+| :--- | :---: | ---: |
+| a | b | c |</div>
+                </div>
+
+                <div class="term">
+                    <h3>タスクリスト（チェックボックス）</h3>
+                    <div class="term-description">リストの項目に<strong><code>[ ]</code>または<code>[x]</code></strong>を付けると、チェックボックス付きのリストになります。</div>
+                    <div class="term-example">- [x] 完了したタスク
+- [ ] 未完了のタスク</div>
+                    <div class="term-note">
+                        <strong>注意：</strong> GitHub Flavored Markdownなど、一部の環境のみ対応しています。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>脚注</h3>
+                    <div class="term-description"><strong><code>[^1]</code>のような記号を本文に置き</strong>、別の行で内容を定義します。</div>
+                    <div class="term-example">これは本文です[^1]。
+
+[^1]: これが脚注の内容です。</div>
+                    <div class="term-note">
+                        <strong>注意：</strong> 対応していない環境もあります。
+                    </div>
+                </div>
+
+                <div class="term">
+                    <h3>エスケープ</h3>
+                    <div class="term-description"><strong><code>*</code>や<code>#</code>などの記号をそのまま表示したいときは、直前に<code>\</code>（バックスラッシュ）</strong>を付けます。</div>
+                    <div class="term-example">\*これは強調されません\*</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>📅 最終更新：2026年8月24日</p>
+        </footer>
+    </div>
+</body>
+</html>

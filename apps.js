@@ -143,4 +143,11 @@ const APPS = [
     icon: "🎛️",
     category: "houdini",
   },
+  {
+    name: "Markdown記法ガイド",
+    description: "見出し・リスト・リンクからテーブル・脚注まで、Markdownの書き方を簡単なものから順にまとめました。",
+    path: "markdown-guide.html",
+    icon: "📝",
+    category: "markdown",
+  },
 ];
