@@ -229,26 +229,48 @@
             margin-bottom: 8px;
         }
 
-        .when-badge {
+        .flow-intro {
+            background: #f4f2fa;
+            border-radius: 4px;
+            padding: 12px 18px;
+            margin-bottom: 18px;
+            font-size: 0.95em;
+            color: #444;
+        }
+
+        .moment {
+            margin-bottom: 22px;
+            padding: 18px 20px;
+            border-radius: 4px;
+            border-left: 4px solid #40337a;
+            background: #f6f6f8;
+        }
+
+        .moment-tag {
             display: inline-block;
-            background: #fff3cd;
-            color: #856404;
-            font-size: 0.8em;
+            font-size: 0.78em;
             font-weight: 700;
             padding: 3px 10px;
             border-radius: 999px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
-        .jump-table a {
-            color: #40337a;
-            font-weight: 600;
-            text-decoration: none;
+        .moment h3 {
+            font-size: 1.15em;
+            margin-bottom: 6px;
         }
 
-        .jump-table a:hover {
-            text-decoration: underline;
-        }
+        .moment.m-start { border-left-color: #2e8b57; }
+        .moment.m-start .moment-tag { background: #e5f4ec; color: #1f6e42; }
+
+        .moment.m-log { border-left-color: #2b6cb0; }
+        .moment.m-log .moment-tag { background: #e6f0fa; color: #1e4e79; }
+
+        .moment.m-issue { border-left-color: #d97706; }
+        .moment.m-issue .moment-tag { background: #fdf0dd; color: #8a5a12; }
+
+        .moment.m-compress { border-left-color: #6e5494; }
+        .moment.m-compress .moment-tag { background: #ede8f5; color: #40337a; }
 
         footer {
             background: #f8f9fa;
@@ -308,7 +330,7 @@
                     LLMとのコーディング作業は、セッションが終わるとその場の気づきや躓きポイントが消えてしまいがち。
                     「やったこと・気づき・躓いた点と対処法」をファイルに蓄積し、次回セッションで読み込んで
                     再利用できるようにする運用ルールです。<strong>まず下のセットアップを1回だけ行えば、
-                    あとは早見表のタイミングでプロンプトを打つだけ</strong>で回ります。
+                    あとは訪れたタイミングの見出しをそのままコピペするだけ</strong>で回ります。
                 </div>
             </div>
 
@@ -346,79 +368,26 @@
                         </div>
                     </div>
 
-                    <div class="step">
-                        <div class="step-num">3</div>
-                        <div class="step-body">
-                            <h3>あとは下の早見表どおりに使うだけ</h3>
-                            <div class="cmd-description">セットアップはこれで完了。次回セッションを開くとき・問題を解決したとき・月末など、タイミングが来たら下の表で該当する行を探してプロンプトをコピペしてください。</div>
-                        </div>
-                    </div>
                 </div>
+                <div class="note">セットアップはこの2つだけで完了です。あとは下のタイミングが来るたびに、そのままコピペしてください（探す・ジャンプする手間はありません）。</div>
             </div>
 
             <div class="section">
-                <h2 class="section-title">📌 いつ・何をする 早見表</h2>
-                <div class="cmd jump-table">
-                    <table>
-                        <tr>
-                            <th>タイミング</th>
-                            <th>すること</th>
-                            <th>使うもの</th>
-                        </tr>
-                        <tr>
-                            <td data-label="タイミング">新しいセッションを始めるとき</td>
-                            <td data-label="すること">直近のログを読み込ませてから作業開始</td>
-                            <td data-label="使うもの"><a href="#tpl-start">①セッション開始プロンプト</a></td>
-                        </tr>
-                        <tr>
-                            <td data-label="タイミング">問題を解決した直後</td>
-                            <td data-label="すること">躓いた点→原因→対処を1エントリ追記（Copilotが自動でやる想定。手動で頼む時はこれ）</td>
-                            <td data-label="使うもの"><a href="#tpl-log">②ログ追記フォーマット</a></td>
-                        </tr>
-                        <tr>
-                            <td data-label="タイミング">作業がひと区切り（コミット前）</td>
-                            <td data-label="すること">やったことを1〜2行で追記</td>
-                            <td data-label="使うもの"><a href="#tpl-log">②ログ追記フォーマット</a></td>
-                        </tr>
-                        <tr>
-                            <td data-label="タイミング">同じエラーに複数回遭遇</td>
-                            <td data-label="すること"><code>known-issues.md</code> に「エラーパターン→対処法」を追記</td>
-                            <td data-label="使うもの"><a href="#tpl-log">②ログ追記フォーマット</a>（保存先だけ変える）</td>
-                        </tr>
-                        <tr>
-                            <td data-label="タイミング">月1ペース（ログが増えてきたら）</td>
-                            <td data-label="すること">1ヶ月以上前のログを要約してアーカイブに移す</td>
-                            <td data-label="使うもの"><a href="#tpl-compress">③圧縮プロンプト</a></td>
-                        </tr>
-                        <tr>
-                            <td data-label="タイミング">同一セッション継続中</td>
-                            <td data-label="すること">何もしない（既にコンテキストにあるので読み直し不要）</td>
-                            <td data-label="使うもの">—</td>
-                        </tr>
-                    </table>
-                    <ul class="do-dont">
-                        <li>❌ 1日の終わりにまとめて書く（詳細が抜ける）</li>
-                        <li>❌ 変更のたびに書く（ノイズが多い）</li>
-                        <li>✅ タスク単位・問題解決単位で都度書く</li>
-                    </ul>
-                </div>
-            </div>
+                <h2 class="section-title">📅 あとは、このタイミングで使うだけ</h2>
+                <div class="flow-intro">実際に作業していて訪れる順番に並んでいます：①セッションを開始する → ②きりのいいところで記録する → （③同じエラーが繰り返し出たら）→ ④月1回まとめて整理する。</div>
 
-            <div class="section">
-                <h2 class="section-title">💬 テンプレ集（コピペ用）</h2>
-
-                <div class="cmd" id="tpl-start">
-                    <span class="when-badge">🕐 いつ使う：新しいセッションを始めるとき</span>
-                    <h3>① セッション開始プロンプト</h3>
+                <div class="moment m-start">
+                    <span class="moment-tag">🟢 セッションを開始するとき</span>
+                    <h3>① まずこれを貼ってから作業を始める</h3>
                     <div class="code-block">docs/session-log.md の直近10件と docs/known-issues.md を読んでから作業を始めて。
 今日やるのは○○です。</div>
                     <div class="note"><strong>VS Code拡張の場合：</strong> <code>@workspace docs/session-log.md を踏まえて、○○を実装したい</code></div>
                 </div>
 
-                <div class="cmd" id="tpl-log">
-                    <span class="when-badge">🕐 いつ使う：問題を解決した直後 ／ コミット前 ／ 同じエラーに複数回遭遇したとき</span>
-                    <h3>② ログ追記フォーマット</h3>
-                    <div class="file-path">docs/session-log.md に追記する1エントリ分（known-issues.mdもこの形式）</div>
+                <div class="moment m-log">
+                    <span class="moment-tag">🔵 問題を解決した直後 ／ 作業がひと区切り（コミット前）</span>
+                    <h3>② このフォーマットで1エントリ追記する</h3>
+                    <div class="file-path">追記先：docs/session-log.md</div>
                     <div class="code-block">## [日付] [作業タイトル]
 - やったこと: （1〜2行で）
 - 気づき: （次回に活きる発見。無ければ省略可）
@@ -427,12 +396,23 @@
   - 原因:
   - 対処:
 - 次回への申し送り: （あれば）</div>
-                    <div class="note"><strong>ポイント：</strong> 自由記述にすると質にばらつきが出るので、このフォーマットを固定して使うのがコツです。普段はステップ2のルールに沿ってCopilotが自動で書くので、手動で頼むのは「今すぐ書いて」と念押ししたい時だけでOKです。</div>
+                    <div class="note">セットアップ済みなら、これは普段Copilotが自動でやります。「今すぐ書いて」と念押ししたい時だけ手動でこのフォーマットを渡してください。</div>
+                    <ul class="do-dont">
+                        <li>❌ 1日の終わりにまとめて書く（詳細が抜ける）</li>
+                        <li>❌ 変更のたびに書く（ノイズが多い）</li>
+                        <li>✅ タスク単位・問題解決単位で都度書く</li>
+                    </ul>
                 </div>
 
-                <div class="cmd" id="tpl-compress">
-                    <span class="when-badge">🕐 いつ使う：月1ペース（session-log.mdが肥大化してきたら）</span>
-                    <h3>③ 圧縮プロンプト</h3>
+                <div class="moment m-issue">
+                    <span class="moment-tag">🟠 同じエラーに複数回遭遇したとき</span>
+                    <h3>③ ②と同じフォーマットのまま、保存先だけ変える</h3>
+                    <div class="cmd-description">上の②のフォーマットをそのまま使い、追記先を <code>docs/known-issues.md</code> に変えるだけです。新しいフォーマットを覚える必要はありません。</div>
+                </div>
+
+                <div class="moment m-compress">
+                    <span class="moment-tag">🟣 月1回（session-log.mdが肥大化してきたら）</span>
+                    <h3>④ 古いログを圧縮する</h3>
                     <div class="code-block">docs/session-log.md の中で1ヶ月以上前のエントリを、
 「日付範囲 / 主なテーマ / 得られた知見」の3行程度に要約して
 docs/session-log-archive.md に移し、元のファイルからは削除して。
