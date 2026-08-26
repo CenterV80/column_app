@@ -137,6 +137,13 @@ const APPS = [
     category: "ue",
   },
   {
+    name: "UEマテリアル小技:台形カーブによるRチャンネル走査デバッグ表示",
+    description: "Rチャンネルの256階調をTimeで走査し、一致する階調だけを台形カーブでsaturateのみを使って浮かび上がらせるデバッグ表示の作り方をまとめました。",
+    path: "apps/ue-rchannel-scan-debug/",
+    icon: "📶",
+    category: "ue",
+  },
+  {
     name: "HoudiniでObjectレベルのHDAをSOPレベルに変換する方法",
     description: "うっかりObjectレベルでHDA化してしまった部品を、SOPレベルの部品として作り直す2つの方法を図解でまとめます。",
     path: "apps/houdini-object-to-sop-hda/",
