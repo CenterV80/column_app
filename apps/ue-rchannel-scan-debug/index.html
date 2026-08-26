@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UEマテリアル小技:台形カーブによるRチャンネル走査デバッグ表示 | column_app</title>
+<meta name="description" content="テクスチャのRチャンネルを256階調として扱い、Timeで走査レベルを動かして特定階調だけを台形カーブで浮かび上がらせるUEデバッグ表示のHLSL実装をまとめました。">
+<link rel="stylesheet" href="../../hub.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hub">
+  <a class="back-link" href="../../categories/ue/index.html">← UEカテゴリに戻る</a>
+  <header>
+    <h1>📶 UEマテリアル小技:台形カーブによるRチャンネル走査デバッグ表示</h1>
+    <p>Rチャンネルの256階調をTimeで走査し、一致する階調だけを台形カーブでsaturateのみを使って浮かび上がらせるデバッグ表示の作り方をまとめました。</p>
+  </header>
+  <div id="content" class="doc loading">読み込み中…</div>
+  <p style="margin-top: 24px;">
+    <a class="back-link" href="../../categories/ue/index.html">← UEカテゴリに戻る</a>
+  </p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
+<script src="chart.js"></script>
+<script>
+  fetch("article.md")
+    .then((res) => res.text())
+    .then((markdown) => {
+      const content = document.getElementById("content");
+      content.classList.remove("loading");
+      content.innerHTML = marked.parse(markdown);
+      initScanChart();
+    })
+    .catch(() => {
+      document.getElementById("content").textContent = "記事を読み込めませんでした。";
+    });
+</script>
+</body>
+</html>
