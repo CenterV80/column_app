@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Design × Git Copilot で進めるUIモック作成ワークフロー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #24292e 0%, #6e5494 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #24292e 0%, #40337a 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.9em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.05em;
+            opacity: 0.95;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin: 20px 0 0 30px;
+            color: #40337a;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            padding: 20px 30px 40px;
+        }
+
+        .section {
+            margin-bottom: 45px;
+        }
+
+        .section-title {
+            font-size: 1.6em;
+            color: #40337a;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #40337a;
+            font-weight: 700;
+        }
+
+        .lead {
+            background: #f4f2fa;
+            border-left: 4px solid #6e5494;
+            padding: 14px 18px;
+            border-radius: 4px;
+            color: #444;
+        }
+
+        .cmd {
+            margin-bottom: 20px;
+            padding: 18px 20px;
+            background: #f6f6f8;
+            border-left: 4px solid #40337a;
+            border-radius: 4px;
+        }
+
+        .cmd-description {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 14px 16px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.88em;
+            overflow-x: auto;
+            margin: 8px 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.95em;
+            color: #856404;
+        }
+
+        code {
+            background: #eef0f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        ul.tips {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        ul.tips li {
+            margin-bottom: 8px;
+        }
+
+        .steps {
+            counter-reset: step;
+            margin-top: 10px;
+        }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .step-num {
+            flex: 0 0 auto;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #40337a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.05em;
+        }
+
+        .step-body {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .step-body h3 {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .flow-intro {
+            background: #f4f2fa;
+            border-radius: 4px;
+            padding: 12px 18px;
+            margin-bottom: 18px;
+            font-size: 0.95em;
+            color: #444;
+        }
+
+        .prompt-block {
+            margin-bottom: 22px;
+            padding: 18px 20px;
+            border-radius: 4px;
+            border-left: 4px solid #40337a;
+            background: #f6f6f8;
+        }
+
+        .prompt-tag {
+            display: inline-block;
+            font-size: 0.78em;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+            margin-bottom: 8px;
+            background: #ede8f5;
+            color: #40337a;
+        }
+
+        .prompt-block h3 {
+            font-size: 1.15em;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            background: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.4em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.25em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="back-link" href="../categories/ai-coding/index.html">← AIコーディングに戻る</a>
+        <header>
+            <h1>🎨 Claude Design × Git Copilot で進めるUIモック作成ワークフロー</h1>
+            <p>「仕様書 → モック → 実装」をAIで効率化する2AI連携フローと、実際に使ったプロンプト</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2 class="section-title">はじめに</h2>
+                <div class="lead">
+                    WEBアプリ開発において、「仕様書 → モック → 実装」の流れをAIでどこまで効率化できるか試してみました。
+                    ここでは、Git CopilotとClaude Designを組み合わせたワークフローと、実際に使ったプロンプトを紹介します。
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🔄 全体の流れ</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-num">1</div>
+                        <div class="step-body">
+                            <h3>Git Copilotに仕様書を書いてもらう</h3>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">2</div>
+                        <div class="step-body">
+                            <h3>その仕様書をClaude Designに渡してUIモック(HTML/CSS)を作成</h3>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <div class="step-body">
+                            <h3>できたモックをGit Copilotに読ませて、実装に反映</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="note">
+                    ポイントは、各ステップで「渡す相手に合わせて情報の粒度を変える」ことです。仕様書は実装の詳細を書かず画面の中身に絞り、
+                    モック反映時は逆にプロジェクトの技術スタックを明示する、という使い分けをしています。
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">📝 使ったプロンプト</h2>
+                <div class="flow-intro">実際の流れの順番に並んでいます：①仕様書を書いてもらう → ②モックを実装に反映する。</div>
+
+                <div class="prompt-block">
+                    <span class="prompt-tag">① Git Copilotに「Claude Design用仕様書」を書いてもらうプロンプト</span>
+                    <div class="cmd-description">Claude Designが画面を組み立てやすい形(画面単位・要素単位・状態)で仕様書を出力させるのがコツです。</div>
+                    <div class="code-block">これから作るWEBアプリの仕様書を、UIモック作成AI(Claude Design)に渡すために書いてください。
+以下の構成でまとめてください。
+
+1. アプリの概要と目的(誰が何のために使うか)
+2. 想定ユーザーと利用シーン
+3. 画面一覧(画面名・役割を簡潔に)
+4. 各画面の詳細
+   - 表示する要素(見出し、ボタン、フォーム項目、リストなど)
+   - ユーザーの操作とその結果(何を押すと何が起きるか)
+   - 画面の状態(初期表示、ローディング中、エラー時、空データ時など)
+5. 画面遷移(どの画面からどの画面に移動するか、簡単な図か箇条書きで)
+6. トーン・雰囲気の希望(あれば。ミニマル/カジュアル/業務的など)
+7. 参考にしたい既存サービスやデザインがあれば明記
+
+実装の詳細(使用フレームワーク、DB設計、API仕様など)は不要です。
+あくまで「画面に何が表示され、何ができるか」が伝わる粒度で書いてください。</div>
+                    <div class="note"><strong>ポイント：</strong> 「実装の詳細は不要」と明示するのが重要です。Copilotは放っておくと技術仕様(API、DB、ライブラリ)まで書き込みがちで、Claude Designにはノイズになります。</div>
+                </div>
+
+                <div class="prompt-block">
+                    <span class="prompt-tag">② モックをGit Copilotに反映させる時のプロンプト</span>
+                    <div class="cmd-description">こちらは逆に、Copilotに「デザインの意図」を正しく汲み取らせる指示が要点です。</div>
+                    <div class="code-block">添付のHTML/CSS(Claude Designで作成したUIモック)を、このプロジェクトの実装に反映してください。
+
+- モックの見た目・レイアウト・コンポーネント構成をできるだけ忠実に再現してください
+- ただし現在使用しているフレームワーク/CSS手法([Reactか, Vueか, プレーンJSか]/[Tailwindか, CSS Modulesか, 素のCSSか]など、実際の構成を指定)に合わせて書き換えてください
+- 既存のコンポーネント([ボタン, カードなど既存の共通コンポーネント名])があれば流用し、モックのクラス名やスタイルをそのまま持ち込まないでください
+- レスポンシブ対応(該当あれば)やアクセシビリティ(alt属性、aria属性など)も適切に補ってください
+- 反映後、モックと実装の差分(意図的に変更した箇所)を簡単にまとめてください</div>
+                    <div class="note"><code>[ ]</code> の部分はプロジェクトの実際のスタックに置き換えて使います。特に「既存コンポーネントを流用させる」の一文が抜けると、Copilotがモックのベタ書きCSSをそのままコピーしてきて、後で二重管理になりがちなので注意が必要です。</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">💡 Claude Designについて</h2>
+                <div class="cmd">
+                    <div class="cmd-description">
+                        Claude Designは2026年4月にリリースされたAnthropicのデザイン作成ツールで、チャットで指示を出すだけでWebサイトやアプリのUIプロトタイプ、
+                        スライドなどを作成できます。Claudeの有料プラン限定機能で、デスクトップアプリにも対応しています。
+                    </div>
+                    <div class="cmd-description">
+                        作成できるのは画面デザインやプロトタイプといったUI部分のみで、会員登録や決済などのバックエンド機能には対応していません。
+                        本格的な開発に進む際は、Claude Codeへデザインデータを引き継いで実装に移行する流れになっており、双方向同期にも対応しています。
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🔍 まとめ</h2>
+                <div class="cmd">
+                    <ul class="tips">
+                        <li>仕様書作成とモック反映では、AIに渡す情報の粒度を変えるのがコツ</li>
+                        <li>仕様書は「画面に何が表示され、何ができるか」に絞る</li>
+                        <li>モック反映時は技術スタックと既存コンポーネントの流用を明示する</li>
+                    </ul>
+                    <div class="note">今後実際にこのワークフローで作業してみて、気づいた点があれば追記していきます。</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>📅 最終更新：2026年8月26日</p>
+        </footer>
+    </div>
+</body>
+</html>
