@@ -164,4 +164,18 @@ const APPS = [
     icon: "🎨",
     category: "ai-coding",
   },
+  {
+    name: "Markdown記法ガイド",
+    description: "見出し・リスト・リンクからテーブル・脚注まで、Markdownの書き方を簡単なものから順にまとめました。",
+    path: "markdown-guide.html",
+    icon: "📝",
+    category: "markdown",
+  },
+  {
+    name: "MiniMax H3をComfyUIで動かす環境構築",
+    description: "動画・音声同時生成モデルMiniMax H3のベースモデル選定からTurbo LoRAによる高速化、速度の目安までまとめました。",
+    path: "minimax-h3-comfyui-setup.html",
+    icon: "⚙️",
+    category: "minimax-h3",
+  },
 ];
