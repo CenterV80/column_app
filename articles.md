@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### MiniMax H3 Director Cut Studio - Premiere Pro風タイムラインで動画を企画・生成する統合スタジオ
+[GitHub - karuvanan/MiniMax-H3-Director-Cut-Studio](https://github.com/karuvanan/MiniMax-H3-Director-Cut-Studio)
+
+Adobe Premiere Proに着想を得た、PySide6製の動画編集・生成スタジオアプリ。Shot・Dialogue・Marker・Ending Holdといった要素をマルチトラックのタイムライン上に配置してプロンプトごと計画・生成できるのが特徴。「Design」ページでは、LM Studio経由でテキストプロンプトから構造化された動画の企画案を自動生成し、Z-Imageでコンセプト参考画像を作成、BLIPによる視覚解析を経てから本生成に進むというAI主導のワークフローを備える。15秒を超える長尺動画にも対応した「Shot-aware Smart Long Render」機能では、動画を自動的に分割・生成・再合成し、既存セグメントはキャッシュして編集した箇所だけを再生成することで効率化を図っている。また、Whisperによる音声認識とBLIPによる画像理解を組み合わせて素材（メディアプール）の内容を自動解析する「AI enrichment」機能もあり、詳細な視覚・音声コンテキストを抽出できる。動画生成そのものはComfyUI経由でMiniMax-H3のRef2VAモデルを呼び出す構成で、LM StudioやFFmpegとも連携する。
+
 ### MiniMax-H3-Acc-LoRAs - Alibaba製、FL2V・Ref2V対応の加速LoRA
 [Hugging Face - alibaba-pai/MiniMax-H3-Acc-LoRAs](https://huggingface.co/alibaba-pai/MiniMax-H3-Acc-LoRAs)
 
