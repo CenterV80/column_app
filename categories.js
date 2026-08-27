@@ -65,4 +65,11 @@ const CATEGORIES = [
     path: "categories/markdown/",
     icon: "📝",
   },
+  {
+    id: "minimax-h3",
+    name: "MiniMax H3",
+    description: "動画・音声同時生成AI「MiniMax H3」をComfyUIで動かす環境構築や使い方をまとめています。",
+    path: "categories/minimax-h3/",
+    icon: "⚙️",
+  },
 ];

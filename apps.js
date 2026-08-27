@@ -150,4 +150,11 @@ const APPS = [
     icon: "📝",
     category: "markdown",
   },
+  {
+    name: "MiniMax H3をComfyUIで動かす環境構築",
+    description: "動画・音声同時生成モデルMiniMax H3のベースモデル選定からTurbo LoRAによる高速化、速度の目安までまとめました。",
+    path: "minimax-h3-comfyui-setup.html",
+    icon: "⚙️",
+    category: "minimax-h3",
+  },
 ];
