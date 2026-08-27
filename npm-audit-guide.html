@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>npm audit の使い方</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f7df1e 0%, #323330 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #323330 0%, #1a1a1a 100%);
+            color: #f7df1e;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1em;
+            color: #f5f5f5;
+            opacity: 0.9;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin: 20px 0 0 30px;
+            color: #b8952f;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            padding: 20px 30px 40px;
+        }
+
+        .section {
+            margin-bottom: 45px;
+        }
+
+        .section-title {
+            font-size: 1.7em;
+            color: #b8952f;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #f7df1e;
+            font-weight: 700;
+        }
+
+        .cmd {
+            margin-bottom: 20px;
+            padding: 18px 20px;
+            background: #fffdf0;
+            border-left: 4px solid #f7df1e;
+            border-radius: 4px;
+        }
+
+        .cmd h3 {
+            color: #333;
+            font-size: 1.15em;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .cmd-description {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 12px 15px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 8px 0;
+            line-height: 1.6;
+            white-space: pre;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.95em;
+            color: #856404;
+        }
+
+        .tip {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.95em;
+            color: #1565c0;
+        }
+
+        code {
+            background: #f5f0d5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        footer {
+            background: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.6em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="back-link" href="categories/javascript/index.html">← JavaScriptに戻る</a>
+        <header>
+            <h1>🟨 npm audit の使い方</h1>
+            <p>npmパッケージの脆弱性を検出・修正する基本コマンド</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2 class="section-title">🔍 脆弱性を検出する</h2>
+
+                <div class="cmd">
+                    <h3>npm audit（脆弱性の検出）</h3>
+                    <div class="cmd-description">インストール済みの依存パッケージに、既知の脆弱性がないかをまとめてチェックします。</div>
+                    <div class="code-block">npm audit</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🛠️ 自動修正する</h2>
+
+                <div class="cmd">
+                    <h3>npm audit fix（自動修正）</h3>
+                    <div class="cmd-description">検出された脆弱性のうち、互換性を壊さない範囲(パッチ・マイナー更新)で自動的に修正します。</div>
+                    <div class="code-block">npm audit fix</div>
+                </div>
+
+                <div class="cmd">
+                    <h3>npm audit fix --force（強制修正）</h3>
+                    <div class="cmd-description"><code>--force</code>を付けると、通常のfixでは直せない脆弱性も修正しようとします。</div>
+                    <div class="code-block">npm audit fix --force</div>
+                    <div class="note">
+                        <strong>要注意：</strong> <code>--force</code>はメジャーバージョンの更新も含みます。破壊的変更(Breaking Changes)によって動作しなくなる可能性があるため、実行後は必ず動作確認をしてください。
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">💡 運用のヒント</h2>
+                <div class="cmd">
+                    <div class="cmd-description">
+                        npm auditはその場でのチェック・修正には便利ですが、継続的に脆弱性を監視するには限界があります。チーム開発のリポジトリでは、依存パッケージの更新を自動で検知・PR作成してくれる<strong>Dependabot</strong>のようなツールを併用するのがおすすめです。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>📅 最終更新：2026年8月27日</p>
+        </footer>
+    </div>
+</body>
+</html>
