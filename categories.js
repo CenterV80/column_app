@@ -59,6 +59,13 @@ const CATEGORIES = [
     icon: "🎛️",
   },
   {
+    id: "ai-coding",
+    name: "AIコーディング",
+    description: "GitHub CopilotやClaude CodeなどAIコーディングツールと効率よく付き合うための運用ルール・Tipsをまとめています。",
+    path: "categories/ai-coding/",
+    icon: "🤖",
+  },
+  {
     id: "markdown",
     name: "Markdown記法",
     description: "見出し・リストなど、Markdownの書き方を簡単なものから順にまとめています。",
