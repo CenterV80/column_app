@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### MiniMax-H3-Acc-LoRAs - Alibaba製、FL2V・Ref2V対応の加速LoRA
+[Hugging Face - alibaba-pai/MiniMax-H3-Acc-LoRAs](https://huggingface.co/alibaba-pai/MiniMax-H3-Acc-LoRAs)
+
+AlibabaがMiniMax-H3向けに公開した加速LoRA群。larryvrhのTurbo-Loraと同様、通常より大幅に少ないステップ数で動画を生成できるようにするもので、**FL2VA**（最初と最後のフレーム指定）・**Ref2VA**（参照素材利用）の両モードに対応するチェックポイントが用意されている。単純なLoRAではなく、ランク64の基幹LoRAに加えて、モダリティごとに32個の区間別最終層射影を持つ「**PDD（Parallel Decoding Distillation）**」ヘッドバンクを組み合わせた構成になっているのが技術的な特徴で、これによりCFG（Classifier-Free Guidance）不要で8ステップ（設定によっては4ステップ）での音声付き動画生成を実現している。公式にはDiffusersのMiniMax-H3 ModularPipeline（diffusers 0.40.0以上が必要）を使い、`predict_t2v.py`や`predict_ref2v.py`にモデルパスとLoRAパスを指定して実行する形。ComfyUIで使う場合は、このAlibaba公式チェックポイントをそのまま読み込める専用のカスタムノードパック（`ComfyUI-MiniMax-H3-PDD-Acc`）が別途必要で、FL2VAはfl2va用、Ref2VAはref2va用のUNET（bf16・int8-convrotいずれのビルドも可）と組み合わせて使う。
+
 ### ComfyUI-MAINodes - 低VRAM環境でも長尺のブレ補正を可能にするメモリ最適化を追加
 [GitHub - matlowai/ComfyUI-MAINodes](https://github.com/matlowai/ComfyUI-MAINodes)
 
