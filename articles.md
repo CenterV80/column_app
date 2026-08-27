@@ -1,5 +1,20 @@
 ## 2026年8月
 
+### Qwen3.8-Flash-Next GGUF - Qwen4アーキテクチャの試作版をローカルで動かせるUnsloth量子化版
+[Hugging Face - unsloth/Qwen3.8-Flash-Next-GGUF](https://huggingface.co/unsloth/Qwen3.8-Flash-Next-GGUF)
+
+Qwenチームが公開した「Qwen3.8-Flash-Next」のGGUF量子化版。Qwen3.8-Flash-Next自体は、次世代アーキテクチャ「Qwen4」の実験的なプレビュー版と位置付けられているモデルで、アテンション・残差接続・埋め込み・最適化という4つの側面を刷新している。構成は125Bパラメータ（1トークンあたり6Bが活性化するMoE、いわゆる125B-A6B）に加えて51BのN-gram埋め込みを備え、MoE層は512エキスパートの中からtop-10をルーティングする形式に1つの共有エキスパートを組み合わせている。アテンション機構は、履歴を効率よく圧縮するGated DeltaNet（GDN）と、マイクロブロック単位で重要な文脈を軽量なインデクサで選び出すQwen Sparse Attention（QSA）を組み合わせたハイブリッド構成。オプティマイザにはMuonを採用。コンテキスト長はネイティブで262,144トークン、最大100万トークンまで拡張可能。今回配布されているGGUFファイルは72.5GBで、Unslothの「Dynamic」手法による量子化により、他の量子化版と比べて高い精度を保っているとされる。
+
+### MiniMax H3 Director Cut Studio - Premiere Pro風タイムラインで動画を企画・生成する統合スタジオ
+[GitHub - karuvanan/MiniMax-H3-Director-Cut-Studio](https://github.com/karuvanan/MiniMax-H3-Director-Cut-Studio)
+
+Adobe Premiere Proに着想を得た、PySide6製の動画編集・生成スタジオアプリ。Shot・Dialogue・Marker・Ending Holdといった要素をマルチトラックのタイムライン上に配置してプロンプトごと計画・生成できるのが特徴。「Design」ページでは、LM Studio経由でテキストプロンプトから構造化された動画の企画案を自動生成し、Z-Imageでコンセプト参考画像を作成、BLIPによる視覚解析を経てから本生成に進むというAI主導のワークフローを備える。15秒を超える長尺動画にも対応した「Shot-aware Smart Long Render」機能では、動画を自動的に分割・生成・再合成し、既存セグメントはキャッシュして編集した箇所だけを再生成することで効率化を図っている。また、Whisperによる音声認識とBLIPによる画像理解を組み合わせて素材（メディアプール）の内容を自動解析する「AI enrichment」機能もあり、詳細な視覚・音声コンテキストを抽出できる。動画生成そのものはComfyUI経由でMiniMax-H3のRef2VAモデルを呼び出す構成で、LM StudioやFFmpegとも連携する。
+
+### MiniMax-H3-Acc-LoRAs - Alibaba製、FL2V・Ref2V対応の加速LoRA
+[Hugging Face - alibaba-pai/MiniMax-H3-Acc-LoRAs](https://huggingface.co/alibaba-pai/MiniMax-H3-Acc-LoRAs)
+
+AlibabaがMiniMax-H3向けに公開した加速LoRA群。larryvrhのTurbo-Loraと同様、通常より大幅に少ないステップ数で動画を生成できるようにするもので、**FL2VA**（最初と最後のフレーム指定）・**Ref2VA**（参照素材利用）の両モードに対応するチェックポイントが用意されている。単純なLoRAではなく、ランク64の基幹LoRAに加えて、モダリティごとに32個の区間別最終層射影を持つ「**PDD（Parallel Decoding Distillation）**」ヘッドバンクを組み合わせた構成になっているのが技術的な特徴で、これによりCFG（Classifier-Free Guidance）不要で8ステップ（設定によっては4ステップ）での音声付き動画生成を実現している。公式にはDiffusersのMiniMax-H3 ModularPipeline（diffusers 0.40.0以上が必要）を使い、`predict_t2v.py`や`predict_ref2v.py`にモデルパスとLoRAパスを指定して実行する形。ComfyUIで使う場合は、このAlibaba公式チェックポイントをそのまま読み込める専用のカスタムノードパック（`ComfyUI-MiniMax-H3-PDD-Acc`）が別途必要で、FL2VAはfl2va用、Ref2VAはref2va用のUNET（bf16・int8-convrotいずれのビルドも可）と組み合わせて使う。
+
 ### ComfyUI-MAINodes - 低VRAM環境でも長尺のブレ補正を可能にするメモリ最適化を追加
 [GitHub - matlowai/ComfyUI-MAINodes](https://github.com/matlowai/ComfyUI-MAINodes)
 

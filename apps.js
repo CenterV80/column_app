@@ -25,10 +25,10 @@ const APPS = [
     category: "github",
   },
   {
-    name: "Next.js+PrismaアプリをVercelにデプロイしてハマった話",
-    description: "SQLiteで作ったアプリをVercel+Neon Postgresで動かすまでに実際につまずいたポイントを、図解付きの実録でまとめました。",
+    name: "Next.js+Prisma+Geminiで漫画ジェネレーターを作った話",
+    description: "あらすじからコマ割りを自動生成するアプリの、DB設計・AI生成・SVGコンテ生成・PWA対応までの手順を図解でまとめました。おまけでVercelデプロイのつまずきも紹介します。",
     path: "apps/nextjs-vercel-deploy-story/",
-    icon: "🚧",
+    icon: "📖",
     category: "github",
   },
   {
@@ -137,11 +137,32 @@ const APPS = [
     category: "ue",
   },
   {
+    name: "UEマテリアル小技:台形カーブによるRチャンネル走査デバッグ表示",
+    description: "Rチャンネルの256階調をTimeで走査し、一致する階調だけを台形カーブでsaturateのみを使って浮かび上がらせるデバッグ表示の作り方をまとめました。",
+    path: "apps/ue-rchannel-scan-debug/",
+    icon: "📶",
+    category: "ue",
+  },
+  {
     name: "HoudiniでObjectレベルのHDAをSOPレベルに変換する方法",
     description: "うっかりObjectレベルでHDA化してしまった部品を、SOPレベルの部品として作り直す2つの方法を図解でまとめます。",
     path: "apps/houdini-object-to-sop-hda/",
     icon: "🎛️",
     category: "houdini",
+  },
+  {
+    name: "セッションログ運用ワークフロー(GitHub Copilot向け)",
+    description: "LLMとの作業で得た気づき・躓いた点と対処法を蓄積し、次回セッションで再利用するための運用ルールをテンプレ付きでまとめました。",
+    path: "apps/session-log-workflow-guide.html",
+    icon: "🤖",
+    category: "ai-coding",
+  },
+  {
+    name: "Claude Design × Git Copilot で進めるUIモック作成ワークフロー",
+    description: "「仕様書 → モック → 実装」をAIで効率化する2AI連携フローと、実際に使ったプロンプトをまとめました。",
+    path: "apps/claude-design-git-copilot-workflow.html",
+    icon: "🎨",
+    category: "ai-coding",
   },
   {
     name: "Markdown記法ガイド",
