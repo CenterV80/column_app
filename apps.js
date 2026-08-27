@@ -178,4 +178,11 @@ const APPS = [
     icon: "⚙️",
     category: "minimax-h3",
   },
+  {
+    name: "npm audit の使い方",
+    description: "npm auditで既知の脆弱性を検出し、npm audit fixで修正する基本コマンドと注意点をまとめました。",
+    path: "npm-audit-guide.html",
+    icon: "🟨",
+    category: "javascript",
+  },
 ];
