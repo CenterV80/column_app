@@ -185,4 +185,11 @@ const APPS = [
     icon: "🟨",
     category: "javascript",
   },
+  {
+    name: "JSのライブラリ管理とnpm auditにまつわる対話まとめ",
+    description: "npmとpipの違い、AIにライブラリを追加させる不安、Node.js本体とnode_modulesの関係についての対話をまとめました。",
+    path: "apps/js-library-management-talk/",
+    icon: "📦",
+    category: "javascript",
+  },
 ];
