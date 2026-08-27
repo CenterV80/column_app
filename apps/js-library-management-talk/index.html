@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSのライブラリ管理とnpm auditにまつわる対話まとめ | column_app</title>
+<meta name="description" content="npmとpipの違い、AIにライブラリを追加させる不安（タイポスクワッティング・サプライチェーン攻撃・slopsquatting）、Node.js本体とnode_modulesの違い、npm auditの使い方についての対話をまとめました。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <a class="back-link" href="../../categories/javascript/index.html">← JavaScriptカテゴリに戻る</a>
+
+  <header class="hero">
+    <div class="hero-icon">📦</div>
+    <h1>JSのライブラリ管理とnpm auditにまつわる話</h1>
+    <p class="hero-lead">
+      ComfyUIのフロントエンド開発をきっかけに交わした、JavaScriptのライブラリ管理についての対話をまとめました。
+      npmとpipの考え方の違いから、AIにライブラリを追加させる不安、Node.js本体とnode_modulesの関係、
+      npm auditの使い方まで、実際にやり取りされた内容をそのまま掲載しています。
+    </p>
+    <div class="hero-badges">
+      <span class="badge">対話形式</span>
+      <span class="badge">npm / Node.js</span>
+      <span class="badge">公開日 2026.08.27</span>
+    </div>
+  </header>
+
+  <nav class="section" aria-label="目次">
+    <h2>この記事でわかること</h2>
+    <ul class="points">
+      <li><strong>npm/pipの考え方は似ている</strong> — ただしnode_modulesはプロジェクトごとに自然分離されるのに対し、Pythonは明示的にvenvを作る必要がある。</li>
+      <li><strong>JSはやや複雑</strong> — ブラウザ/Node.jsの環境差、CommonJS/ESMという2つのモジュール形式、babel/viteなどのビルド工程がある分、Pythonより覚えることが多い。</li>
+      <li><strong>AIにライブラリを入れさせる不安は正当</strong> — タイポスクワッティング、サプライチェーン攻撃、AIの幻覚由来の「slopsquatting」は実在するリスク。</li>
+      <li><strong>対策は地道な確認の積み重ね</strong> — 知らないライブラリは検索して確認、有名どころを優先、<code>npm audit</code>や<code>pip-audit</code>を定期実行、AIの提案コードは実行前に目視する。</li>
+      <li><strong>Node.js本体はPCに1つ</strong> — グローバルにインストールされ、<code>which node</code>で場所を確認できる。node_modulesとは別物。</li>
+      <li><strong>node_modulesの肥大化は正常</strong> — 依存関係が芋づる式に入るため、ファイル数が数千〜数万になるのは普通のこと。<code>.gitignore</code>に入れておけば問題ない。</li>
+      <li><strong>npm auditの基本</strong> — <code>npm audit</code>で既知の脆弱性を検出、<code>npm audit fix</code>で自動修正。<code>--force</code>はメジャー更新も含むので要注意。</li>
+    </ul>
+  </nav>
+
+  <section class="section" id="dialogue">
+    <h2>対話まとめ</h2>
+    <div class="chat">
+
+      <div class="msg from-a">
+        <span class="msg-name">👨‍💻 開発者A</span>
+        <div class="msg-bubble">JSのライブラリ管理って、Pythonのpipと何が違うの？似たようなものだと思ってたんだけど。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">詳しい人B 🦉</span>
+        <div class="msg-bubble">考え方自体はよく似てるよ。npm/pipどちらも「パッケージをダウンロードして依存関係を解決する」ツール。ただし大きな違いが1つあって、node_modulesはプロジェクトのフォルダ内に作られるから、何もしなくてもプロジェクトごとに自然に分離される。Pythonは明示的にvenv（仮想環境）を作らないと、環境が混ざってしまう。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👨‍💻 開発者A</span>
+        <div class="msg-bubble">へえ、じゃあJSの方が楽なんだ。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">詳しい人B 🦉</span>
+        <div class="msg-bubble">分離の面ではね。でも別の部分でJSの方がやや複雑になりがち。ブラウザで動くコードとNode.jsで動くコードは環境が違うし、モジュールの書き方もCommonJS（require）とESM（import）の2形式が混在してる。さらにbabelやviteみたいなビルド工程が入ることも多い。Pythonにはそのあたりの複雑さはあまりないから、一長一短だね。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👨‍💻 開発者A</span>
+        <div class="msg-bubble">最近AIにコードを書いてもらうことが増えたんだけど、知らないライブラリをどんどんnpm installされるのがちょっと怖い。考えすぎかな。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">詳しい人B 🦉</span>
+        <div class="msg-bubble">考えすぎじゃないよ、実在するリスクだから。似た名前の悪意あるパッケージを掴ませる「タイポスクワッティング」、正規パッケージの依存先を乗っ取る「サプライチェーン攻撃」に加えて、最近はAIが存在しないパッケージ名を幻覚で生成し、攻撃者がその名前を先回りして登録しておく「slopsquatting」という手口も報告されてる。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👨‍💻 開発者A</span>
+        <div class="msg-bubble">それは怖い……。どう対策すればいいの？</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">詳しい人B 🦉</span>
+        <div class="msg-bubble">特別なことは必要なくて、地道な確認の積み重ねでいい。知らないライブラリ名が出てきたら一度検索して実在・信頼できるか確認する。できるだけダウンロード数の多い有名どころを優先する。<code>npm audit</code>や<code>pip-audit</code>を定期的に回す。そしてAIが書いたコードは、実行する前に一度目を通す。この4つだけでリスクはかなり減る。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👨‍💻 開発者A</span>
+        <div class="msg-bubble">ちなみに、Node.js本体とnode_modulesの関係がいまだによくわかってない。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">詳しい人B 🦉</span>
+        <div class="msg-bubble">全くの別物だよ。Node.js本体はPCに1つだけインストールされる「実行環境」で、グローバルな存在。<code>which node</code>コマンドで、今使っているNode.jsがどこにあるか確認できる。一方node_modulesは、各プロジェクトのフォルダの中に作られる「そのプロジェクトが使うライブラリ置き場」。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👨‍💻 開発者A</span>
+        <div class="msg-bubble">そのnode_modules、開いたらファイルが数万個あってビビったんだけど、壊れてるの？</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">詳しい人B 🦉</span>
+        <div class="msg-bubble">壊れてない、それが正常な状態。1つのライブラリが別のライブラリに依存し、そのライブラリがまた別のライブラリに依存し……と芋づる式に入っていくから、ファイル数が数千〜数万になるのはよくあること。<code>.gitignore</code>に入れてリポジトリには含めないようにしておけば、特に問題にはならないよ。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👨‍💻 開発者A</span>
+        <div class="msg-bubble">さっき出てきたnpm auditって、具体的にはどう使うんだっけ。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">詳しい人B 🦉</span>
+        <div class="msg-bubble"><code>npm audit</code>を実行すると、インストール済みの依存パッケージに既知の脆弱性がないかをまとめてチェックしてくれる。見つかったものは<code>npm audit fix</code>で自動修正できる。ただし<code>--force</code>を付けるとメジャーバージョンの更新まで含めてしまうから、破壊的変更が入る可能性がある。実行後は必ず動作確認をした方がいい。</div>
+      </div>
+
+      <div class="msg from-a">
+        <span class="msg-name">👨‍💻 開発者A</span>
+        <div class="msg-bubble">チームで開発してるリポジトリだと、それだけだと不安な気もする。</div>
+      </div>
+
+      <div class="msg from-b">
+        <span class="msg-name">詳しい人B 🦉</span>
+        <div class="msg-bubble">その感覚は正しいよ。<code>npm audit</code>はその場でのチェックにしかならないから、継続的に監視したいならDependabotのような、依存パッケージの更新を自動で検知してPRを作ってくれるツールを併用するのがおすすめ。</div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section" id="terms">
+    <h2>用語整理：Node.js本体・node_modules・venv</h2>
+    <table class="terms">
+      <tr><th>Node.js本体</th><td>PCに1つだけインストールされるJavaScriptの実行環境。グローバルな存在で、<code>which node</code>で場所を確認できる。</td></tr>
+      <tr><th>node_modules</th><td>各プロジェクトのフォルダ内に作られる、そのプロジェクトが使うライブラリの置き場。依存関係が芋づる式に入るため肥大化するのが普通。</td></tr>
+      <tr><th>venv</th><td>Pythonでプロジェクトごとにライブラリを分離するための仮想環境。node_modulesと違い、明示的に作成する必要がある。</td></tr>
+    </table>
+  </section>
+
+  <a class="back-link" href="../../categories/javascript/index.html">← JavaScriptカテゴリに戻る</a>
+
+  <p class="footer-note">
+    ※本記事は、JavaScriptのライブラリ管理とnpm auditについてのやり取りをまとめた対話形式の記事です。
+  </p>
+
+</div>
+</body>
+</html>
