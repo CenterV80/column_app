@@ -79,4 +79,11 @@ const CATEGORIES = [
     path: "categories/minimax-h3/",
     icon: "⚙️",
   },
+  {
+    id: "javascript",
+    name: "JavaScript",
+    description: "JavaScript/npmまわりのコマンドや使い方を初心者向けにまとめています。",
+    path: "categories/javascript/",
+    icon: "🟨",
+  },
 ];
