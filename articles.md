@@ -1,5 +1,10 @@
 ## 2026年8月
 
+### Qwen3.8-Flash-Next GGUF - Qwen4アーキテクチャの試作版をローカルで動かせるUnsloth量子化版
+[Hugging Face - unsloth/Qwen3.8-Flash-Next-GGUF](https://huggingface.co/unsloth/Qwen3.8-Flash-Next-GGUF)
+
+Qwenチームが公開した「Qwen3.8-Flash-Next」のGGUF量子化版。Qwen3.8-Flash-Next自体は、次世代アーキテクチャ「Qwen4」の実験的なプレビュー版と位置付けられているモデルで、アテンション・残差接続・埋め込み・最適化という4つの側面を刷新している。構成は125Bパラメータ（1トークンあたり6Bが活性化するMoE、いわゆる125B-A6B）に加えて51BのN-gram埋め込みを備え、MoE層は512エキスパートの中からtop-10をルーティングする形式に1つの共有エキスパートを組み合わせている。アテンション機構は、履歴を効率よく圧縮するGated DeltaNet（GDN）と、マイクロブロック単位で重要な文脈を軽量なインデクサで選び出すQwen Sparse Attention（QSA）を組み合わせたハイブリッド構成。オプティマイザにはMuonを採用。コンテキスト長はネイティブで262,144トークン、最大100万トークンまで拡張可能。今回配布されているGGUFファイルは72.5GBで、Unslothの「Dynamic」手法による量子化により、他の量子化版と比べて高い精度を保っているとされる。
+
 ### MiniMax H3 Director Cut Studio - Premiere Pro風タイムラインで動画を企画・生成する統合スタジオ
 [GitHub - karuvanan/MiniMax-H3-Director-Cut-Studio](https://github.com/karuvanan/MiniMax-H3-Director-Cut-Studio)
 
