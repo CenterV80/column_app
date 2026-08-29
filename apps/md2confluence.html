@@ -103,10 +103,21 @@
     flex-direction:column;
     min-height:0;
   }
+  .mode-panel[hidden]{
+    display:none;
+  }
+  .url-step{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.1em;
+    color:#5f83a4;
+    padding:14px 16px 0;
+  }
+  .url-step:first-of-type{padding-top:14px;}
   .url-row{
     display:flex;
     gap:8px;
-    padding:14px 16px 0;
+    padding:6px 16px 0;
   }
   .url-row input[type="url"]{
     flex:1;
@@ -327,12 +338,14 @@
 なども変換されます。"></textarea>
     </div>
     <div class="mode-panel" id="htmlPanel" hidden>
+      <div class="url-step">STEP 1 — URLから取得を試す(対応サイトのみ)</div>
       <div class="url-row">
         <input type="url" id="urlInput" placeholder="https://example.com/page">
         <button id="fetchBtn">取得</button>
       </div>
-      <div class="url-status" id="urlStatus">CORS制限のため取得できないサイトも多いです。失敗したらページを右クリック→「ページのソースを表示」(Ctrl+U) で全選択・コピーし、下に貼り付けてください。</div>
-      <textarea id="htmlInputArea" placeholder="ここに取得したHTML(ページのソース)を貼り付けても変換できます"></textarea>
+      <div class="url-status" id="urlStatus">CORS制限のため取得できないサイトも多いです。失敗したら下の手順で貼り付けてください。</div>
+      <div class="url-step">STEP 2 — 取得できない場合はHTMLを直接貼り付け</div>
+      <textarea id="htmlInputArea" placeholder="ページを開いて右クリック→「ページのソースを表示」(Ctrl+U) →全選択・コピーし、ここに貼り付け"></textarea>
     </div>
   </div>
 
