@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>絵コンテ生成ツール 技術仕様書 | column_app</title>
+<link rel="stylesheet" href="../../hub.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hub">
+  <a class="back-link" href="../../categories/ltx/index.html">← AI動画カテゴリに戻る</a>
+  <header>
+    <h1>🎨 絵コンテ生成ツール 技術仕様書</h1>
+    <p>字コンテから絵コンテを生成し、動画生成AIに渡すプロンプトと参照画像のセットを出力するWebアプリケーションの技術仕様書です。</p>
+  </header>
+  <div id="content" class="doc loading">読み込み中…</div>
+  <p style="margin-top: 24px;">
+    <a class="back-link" href="../../categories/ltx/index.html">← AI動画カテゴリに戻る</a>
+  </p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
+<script>
+  fetch("spec.md")
+    .then((res) => res.text())
+    .then((markdown) => {
+      const content = document.getElementById("content");
+      content.classList.remove("loading");
+      content.innerHTML = marked.parse(markdown);
+    })
+    .catch(() => {
+      document.getElementById("content").textContent = "仕様書を読み込めませんでした。";
+    });
+</script>
+</body>
+</html>
