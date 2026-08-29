@@ -125,6 +125,30 @@
   margin-right: 6px;
 }
 
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.screens-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6d5bd0;
+  background: #efecfb;
+  border-radius: 999px;
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.screens-link:hover {
+  background: #e2ddf7;
+}
+
 .loading {
   color: #999;
   font-size: 14px;
