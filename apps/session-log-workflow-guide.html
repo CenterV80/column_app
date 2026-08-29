@@ -435,6 +435,37 @@ docs/session-log-archive.md に移し、元のファイルからは削除して�
             </div>
 
             <div class="section">
+                <h2 class="section-title">🔧 一部は.batで自動化できる</h2>
+
+                <div class="cmd">
+                    <h3>① セットアップ用bat（初回のみ）</h3>
+                    <div class="cmd-description">上のステップ1のフォルダとファイルを一括作成します。</div>
+                    <div class="code-block">@echo off
+if not exist docs mkdir docs
+if not exist .github mkdir .github
+if not exist docs\session-log.md type nul > docs\session-log.md
+if not exist docs\session-log-archive.md type nul > docs\session-log-archive.md
+if not exist docs\known-issues.md type nul > docs\known-issues.md
+if not exist .github\copilot-instructions.md type nul > .github\copilot-instructions.md
+echo セットアップ完了
+pause</div>
+                </div>
+
+                <div class="cmd">
+                    <h3>② セッション開始プロンプトをコピーするbat</h3>
+                    <div class="cmd-description">実行するだけでクリップボードにコピーされ、貼り付けるだけで済みます。</div>
+                    <div class="code-block">@echo off
+(
+echo docs/session-log.md の直近10件と docs/known-issues.md を読んでから作業を始めて。
+echo 今日やるのは○○です。
+) | clip
+echo クリップボードにコピーしました</div>
+                </div>
+
+                <div class="note">「書く」「要約する」など内容の判断が必要な部分はLLM側に任せ、batはフォルダ作成やコピペ作業など機械的な部分だけを担当する、という役割分担が現実的です。</div>
+            </div>
+
+            <div class="section">
                 <h2 class="section-title">💡 設計のコツ（うまくいかない時に見直す）</h2>
                 <div class="cmd">
                     <ul class="tips">
