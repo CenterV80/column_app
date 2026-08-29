@@ -5,7 +5,7 @@
 const APPS = [
   {
     name: "MD → Confluence 変換窓口",
-    description: "MarkdownをConfluence旧記法(Wiki Markup)に変換します。見出し・太字・リンク・表・コードブロックに対応、サーバー通信なしでその場で完結。",
+    description: "MarkdownやページのURL/HTMLを、新しいConfluenceエディタにそのまま貼り付けられるMarkdown形式に整えます。見出し・太字・リンク・表・コードブロックに対応、サーバー通信なしでその場で完結。",
     path: "apps/md2confluence.html",
     icon: "📐",
     category: "mini-apps",
