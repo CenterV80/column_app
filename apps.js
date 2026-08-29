@@ -109,7 +109,7 @@ const APPS = [
     category: "comfyui",
   },
   {
-    name: "絵コンテ生成ツール 技術仕様書",
+    name: "絵コンテ生成ツール仕様書草案",
     description: "字コンテから絵コンテを生成し、動画生成AIに渡すプロンプトと参照画像のセットを出力するWebアプリケーションの技術仕様書です。",
     path: "apps/storyboard-tool-spec/",
     icon: "🎨",

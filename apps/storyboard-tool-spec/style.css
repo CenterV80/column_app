@@ -2,6 +2,12 @@
   max-width: 640px;
 }
 
+.date {
+  font-size: 12px;
+  color: #999;
+  margin-top: -8px;
+}
+
 .downloads {
   display: flex;
   flex-direction: column;
