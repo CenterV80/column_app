@@ -589,6 +589,26 @@ function tableToMd(tableEl){
   return lines.join('\n');
 }
 
+function classTokens(el){
+  return ((el.getAttribute && el.getAttribute('class')) || '').toLowerCase().split(/[\s-]+/);
+}
+
+// <pre>ではなく<div class="code-block">のような疑似コードブロックで
+// 組まれているページ向けに、クラス名から判定する。
+function isCodeBlockEl(el){
+  const tokens = classTokens(el);
+  return ['code', 'codeblock', 'highlight', 'chroma'].some(t => tokens.includes(t));
+}
+
+// 手順番号など、装飾目的の短い数字/記号バッジを除外する。
+function isDecorativeBadge(el){
+  const tokens = classTokens(el);
+  const hasBadgeClass = ['num', 'number', 'badge', 'counter', 'index'].some(t => tokens.includes(t));
+  if (!hasBadgeClass) return false;
+  const text = el.textContent.trim();
+  return text.length > 0 && text.length <= 4;
+}
+
 function walkBlock(el){
   const blocks = [];
   Array.from(el.childNodes).forEach(node => {
@@ -600,7 +620,9 @@ function walkBlock(el){
     if (node.nodeType !== Node.ELEMENT_NODE) return;
     const tag = node.tagName.toLowerCase();
     const heading = tag.match(/^h([1-6])$/);
-    if (heading){
+    if (isDecorativeBadge(node)){
+      // 何も出力しない
+    } else if (heading){
       const t = inlineToMd(node).trim();
       if (t) blocks.push('#'.repeat(Number(heading[1])) + ' ' + t);
     } else if (tag === 'p'){
@@ -611,9 +633,9 @@ function walkBlock(el){
     } else if (tag === 'blockquote'){
       const inner = walkBlock(node).join('\n\n');
       if (inner) blocks.push(inner.split('\n').map(l => '> ' + l).join('\n'));
-    } else if (tag === 'pre'){
+    } else if (tag === 'pre' || isCodeBlockEl(node)){
       const codeEl = node.querySelector('code');
-      const cls = (codeEl || node).className || '';
+      const cls = (codeEl || node).getAttribute('class') || '';
       const langMatch = cls.match(/language-(\w+)/);
       const codeText = (codeEl || node).textContent.replace(/\n$/, '');
       blocks.push(codeToTableMd(codeText, langMatch ? langMatch[1] : ''));
@@ -630,9 +652,9 @@ function walkBlock(el){
       const src = node.getAttribute('src');
       const alt = node.getAttribute('alt') || '';
       if (src) blocks.push(`![${alt}](${src})`);
-    } else if (['div', 'section', 'article', 'main', 'figure', 'figcaption', 'details', 'summary', 'body'].includes(tag)){
+    } else if (['div', 'section', 'article', 'main', 'header', 'figure', 'figcaption', 'details', 'summary', 'body'].includes(tag)){
       blocks.push(...walkBlock(node));
-    } else if (!['script', 'style', 'noscript', 'nav', 'header', 'footer', 'aside', 'iframe', 'svg', 'form', 'button', 'template'].includes(tag)){
+    } else if (!['script', 'style', 'noscript', 'nav', 'footer', 'aside', 'iframe', 'svg', 'form', 'button', 'template'].includes(tag)){
       const t = inlineToMd(node).trim();
       if (t) blocks.push(t);
     }
@@ -645,13 +667,20 @@ function htmlToConfluence(htmlString){
   const root = doc.querySelector('article') || doc.querySelector('main') || doc.body;
   if (!root) return '';
   const clone = root.cloneNode(true);
-  clone.querySelectorAll('script, style, noscript, nav, header, footer, aside, iframe, svg, form, template, button, input, select, textarea, object, embed').forEach(n => n.remove());
+  clone.querySelectorAll('script, style, noscript, nav, footer, aside, iframe, svg, form, template, button, input, select, textarea, object, embed, .back-link').forEach(n => n.remove());
   const blocks = walkBlock(clone);
 
-  // <title>はbody外のメタ情報なので別途拾い、本文側に同じ見出しが
-  // まだ無ければページタイトルとして先頭にh1として補う。
+  // <title>はbody外のメタ情報なので別途拾い、本文側の先頭見出しと
+  // 実質同じ内容(絵文字違いやサイト名付与など)でなければページタイトルと
+  // して先頭にh1として補う。
   const titleText = (doc.querySelector('title') || {}).textContent?.trim();
-  if (titleText && blocks[0] !== `# ${titleText}`){
+  const normalizeForCompare = s => s.replace(/[^\p{L}\p{N}]/gu, '');
+  const firstHeadingMatch = blocks[0] && blocks[0].match(/^#\s+(.*)/);
+  const titleNorm = titleText ? normalizeForCompare(titleText) : '';
+  const firstHeadingNorm = firstHeadingMatch ? normalizeForCompare(firstHeadingMatch[1]) : '';
+  const isDuplicateTitle = titleNorm && firstHeadingNorm &&
+    (firstHeadingNorm.includes(titleNorm) || titleNorm.includes(firstHeadingNorm));
+  if (titleText && !isDuplicateTitle){
     blocks.unshift(`# ${titleText}`);
   }
 
