@@ -272,6 +272,24 @@
         .moment.m-compress { border-left-color: #6e5494; }
         .moment.m-compress .moment-tag { background: #ede8f5; color: #40337a; }
 
+        .download-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 8px 14px;
+            background: #40337a;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+            border-radius: 6px;
+        }
+
+        .download-link:hover {
+            background: #302762;
+        }
+
         footer {
             background: #f8f9fa;
             text-align: center;
@@ -449,6 +467,7 @@ if not exist docs\known-issues.md type nul > docs\known-issues.md
 if not exist .github\copilot-instructions.md type nul > .github\copilot-instructions.md
 echo セットアップ完了
 pause</div>
+                    <a class="download-link" href="session-log-workflow-setup.bat" download>📥 session-log-workflow-setup.bat をダウンロード</a>
                 </div>
 
                 <div class="cmd">
@@ -460,6 +479,7 @@ echo docs/session-log.md の直近10件と docs/known-issues.md を読んでか�
 echo 今日やるのは○○です。
 ) | clip
 echo クリップボードにコピーしました</div>
+                    <a class="download-link" href="session-log-workflow-copy-start-prompt.bat" download>📥 session-log-workflow-copy-start-prompt.bat をダウンロード</a>
                 </div>
 
                 <div class="note">「書く」「要約する」など内容の判断が必要な部分はLLM側に任せ、batはフォルダ作成やコピペ作業など機械的な部分だけを担当する、という役割分担が現実的です。</div>
