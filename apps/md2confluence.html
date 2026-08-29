@@ -317,7 +317,7 @@
 <header>
   <div class="eyebrow">column_app / utility</div>
   <h1>Markdown<span class="arrow">→</span>Confluence</h1>
-  <p class="sub">貼るだけで旧Confluenceの Wiki Markup に変換します。見出し・太字・リンク・表・コードブロックに対応。ページのURLやHTMLからも、見出し・リスト・表の構造を保ったまま変換できます。サーバー通信なし、この場で完結。</p>
+  <p class="sub">貼るだけで、新しいConfluenceエディタにそのまま貼り付けられるMarkdown形式に整えます。見出し・太字・リンク・表・コードブロックに対応。ページのURLやHTMLからも、見出し・リスト・表の構造を保ったまま変換できます。サーバー通信なし、この場で完結。</p>
 </header>
 
 <div class="stage">
@@ -355,7 +355,7 @@
 
   <div class="pane">
     <div class="pane-head">
-      <span>OUTPUT — Wiki Markup</span>
+      <span>OUTPUT — Markdown</span>
       <div class="toolbar">
         <button id="copyBtn">コピー</button>
       </div>
@@ -365,13 +365,13 @@
 </div>
 
 <div class="legend">
-  <span><b>h1.</b> 見出し</span>
-  <span><b>*text*</b> 太字</span>
+  <span><b>#</b> 見出し</span>
+  <span><b>**text**</b> 太字</span>
   <span><b>_text_</b> 斜体</span>
-  <span><b>{code}</b> コードブロック</span>
-  <span><b>{{code}}</b> インラインコード</span>
-  <span><b>[text|url]</b> リンク</span>
-  <span><b>||h||h||</b> 表</span>
+  <span><b>```</b> コードブロック</span>
+  <span><b>`code`</b> インラインコード</span>
+  <span><b>[text](url)</b> リンク</span>
+  <span><b>|h|h|</b> 表</span>
   <span><b>URL/HTML</b> h1〜h6・&lt;title&gt;・リスト・表の構造を保持</span>
 </div>
 
@@ -379,14 +379,9 @@
 
 <script>
 function convertInline(line){
-  // 画像 ![alt](url) -> !url!
-  line = line.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '!$2!');
-  // リンク [text](url) -> [text|url]  (画像は既に処理済みなので ! の直後は無視)
-  line = line.replace(/(?<!!)\[([^\]]+)\]\(([^)]+)\)/g, '[$1|$2]');
-  // インラインコード
-  line = line.replace(/`([^`]+)`/g, '{{$1}}');
-
-  // 太字はプレースホルダに退避してから斜体変換
+  // リンク・画像・インラインコード・取り消し線は新Confluenceも同じ
+  // Markdown記法を認識するためそのまま通す。太字/斜体の書き方だけ
+  // **text** / _text_ の一形に正規化する。
   const boldStash = [];
   line = line.replace(/\*\*([^*]+)\*\*/g, (m, p1) => {
     boldStash.push(p1);
@@ -397,16 +392,10 @@ function convertInline(line){
     return '\u0000BOLD' + (boldStash.length - 1) + '\u0000';
   });
 
-  // 取り消し線
-  line = line.replace(/~~([^~]+)~~/g, '-$1-');
-
-  // 斜体
   line = line.replace(/\*([^*]+)\*/g, '_$1_');
-  line = line.replace(/_([^_]+)_/g, '_$1_');
 
-  // 太字を復元
   boldStash.forEach((content, i) => {
-    line = line.replace('\u0000BOLD' + i + '\u0000', '*' + content + '*');
+    line = line.replace('\u0000BOLD' + i + '\u0000', '**' + content + '**');
   });
 
   return line;
@@ -417,7 +406,9 @@ function convert(md){
   const out = [];
   let inCode = false;
   let inTable = false;
-  let tableRow = 0;
+  let tableRowIndex = 0;
+  let tableCols = 0;
+  let tableSepDone = false;
 
   for (let raw of lines){
     const line = raw.replace(/\r$/, '');
@@ -426,11 +417,11 @@ function convert(md){
     const fence = line.match(/^```(\w*)/);
     if (fence && !inCode){
       inCode = true;
-      out.push(fence[1] ? `{code:language=${fence[1]}}` : '{code}');
+      out.push('```' + fence[1]);
       continue;
     } else if (line.trim() === '```' && inCode){
       inCode = false;
-      out.push('{code}');
+      out.push('```');
       continue;
     } else if (inCode){
       out.push(line);
@@ -439,7 +430,7 @@ function convert(md){
 
     // 水平線
     if (/^\s*([-*_])\1{2,}\s*$/.test(line) && line.trim() !== ''){
-      out.push('----');
+      out.push('---');
       inTable = false;
       continue;
     }
@@ -447,7 +438,7 @@ function convert(md){
     // 見出し
     const heading = line.match(/^(#{1,6})\s+(.*)/);
     if (heading){
-      out.push(`h${heading[1].length}. ${convertInline(heading[2])}`);
+      out.push(`${heading[1]} ${convertInline(heading[2])}`);
       inTable = false;
       continue;
     }
@@ -455,29 +446,36 @@ function convert(md){
     // 引用
     const quote = line.match(/^>\s?(.*)/);
     if (quote){
-      out.push('{quote}');
-      out.push(convertInline(quote[1]));
-      out.push('{quote}');
+      out.push('> ' + convertInline(quote[1]));
       continue;
     }
 
-    // テーブル
+    // テーブル(区切り行が無ければ自動で補う)
     if (/^\s*\|.*\|\s*$/.test(line)){
-      if (/^\s*\|[\s:\-|]+\|\s*$/.test(line)) continue; // 区切り行
-      const cells = line.trim().replace(/^\||\|$/g, '').split('|').map(c => convertInline(c.trim()));
-      if (!inTable){ inTable = true; tableRow = 0; }
-      tableRow++;
-      out.push(tableRow === 1 ? '||' + cells.join('||') + '||' : '|' + cells.join('|') + '|');
+      const isSep = /^\s*\|[\s:\-|]+\|\s*$/.test(line);
+      const cells = line.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+      if (!inTable){ inTable = true; tableRowIndex = 0; tableCols = cells.length; tableSepDone = false; }
+      tableRowIndex++;
+      if (isSep){
+        out.push('|' + Array(tableCols).fill('---').join('|') + '|');
+        tableSepDone = true;
+      } else {
+        out.push('| ' + cells.map(c => convertInline(c)).join(' | ') + ' |');
+        if (tableRowIndex === 2 && !tableSepDone){
+          out.splice(out.length - 1, 0, '|' + Array(tableCols).fill('---').join('|') + '|');
+          tableSepDone = true;
+        }
+      }
       continue;
     } else {
       inTable = false;
     }
 
     // 番号リスト
-    const ol = line.match(/^(\s*)\d+\.\s+(.*)/);
+    const ol = line.match(/^(\s*)(\d+)[.)]\s+(.*)/);
     if (ol){
       const indent = Math.floor(ol[1].length / 2);
-      out.push('#'.repeat(indent + 1) + ' ' + convertInline(ol[2]));
+      out.push(' '.repeat(indent * 2) + ol[2] + '. ' + convertInline(ol[3]));
       continue;
     }
 
@@ -485,7 +483,7 @@ function convert(md){
     const ul = line.match(/^(\s*)[-*+]\s+(.*)/);
     if (ul){
       const indent = Math.floor(ul[1].length / 2);
-      out.push('-'.repeat(indent + 1) + ' ' + convertInline(ul[2]));
+      out.push(' '.repeat(indent * 2) + '- ' + convertInline(ul[2]));
       continue;
     }
 
@@ -495,11 +493,12 @@ function convert(md){
   return out.join('\n');
 }
 
-// ---- HTML(ページ)→ Confluence 変換 ----
-// レイアウト(見出し・リスト・表・コードブロックなどの構造)を保ったまま変換する。
+// ---- HTML(ページ)→ Confluence(Markdown)変換 ----
+// レイアウト(見出し・リスト・表・コードブロックなどの構造)を保ったまま、
+// 新しいConfluenceエディタがそのまま認識できるMarkdownとして変換する。
 // 文字装飾やCSSそのものは対象外。
 
-function inlineToWiki(node){
+function inlineToMd(node){
   let out = '';
   node.childNodes.forEach(child => {
     if (child.nodeType === Node.TEXT_NODE){
@@ -510,62 +509,66 @@ function inlineToWiki(node){
     const tag = child.tagName.toLowerCase();
     switch (tag){
       case 'strong': case 'b':
-        out += '*' + inlineToWiki(child).trim() + '*'; break;
+        out += '**' + inlineToMd(child).trim() + '**'; break;
       case 'em': case 'i':
-        out += '_' + inlineToWiki(child).trim() + '_'; break;
+        out += '_' + inlineToMd(child).trim() + '_'; break;
       case 'del': case 's': case 'strike':
-        out += '-' + inlineToWiki(child).trim() + '-'; break;
+        out += '~~' + inlineToMd(child).trim() + '~~'; break;
       case 'code':
-        out += '{{' + child.textContent + '}}'; break;
+        out += '`' + child.textContent + '`'; break;
       case 'a': {
         const href = child.getAttribute('href') || '';
-        const text = inlineToWiki(child).trim() || href;
-        out += href ? `[${text}|${href}]` : text;
+        const text = inlineToMd(child).trim() || href;
+        out += href ? `[${text}](${href})` : text;
         break;
       }
       case 'img': {
         const src = child.getAttribute('src') || '';
-        out += src ? `!${src}!` : '';
+        const alt = child.getAttribute('alt') || '';
+        out += src ? `![${alt}](${src})` : '';
         break;
       }
       case 'br':
         out += '\n'; break;
       default:
-        out += inlineToWiki(child);
+        out += inlineToMd(child);
     }
   });
   return out;
 }
 
-function listToWiki(listEl, markerStack){
+function listToMd(listEl, indentLevel, ordered){
   const lines = [];
+  let n = 0;
   Array.from(listEl.children).forEach(li => {
     if (li.tagName.toLowerCase() !== 'li') return;
+    n++;
     const nested = Array.from(li.children).filter(c => ['ul', 'ol'].includes(c.tagName.toLowerCase()));
     const liClone = li.cloneNode(true);
     Array.from(liClone.children).forEach(c => {
       if (['ul', 'ol'].includes(c.tagName.toLowerCase())) liClone.removeChild(c);
     });
-    const text = inlineToWiki(liClone).trim();
-    if (text) lines.push(markerStack.join('') + ' ' + text);
-    nested.forEach(n => {
-      const childMarker = n.tagName.toLowerCase() === 'ul' ? '-' : '#';
-      lines.push(...listToWiki(n, [...markerStack, childMarker]));
+    const text = inlineToMd(liClone).trim();
+    const marker = ordered ? `${n}. ` : '- ';
+    if (text) lines.push(' '.repeat(indentLevel * 2) + marker + text);
+    nested.forEach(nestedList => {
+      lines.push(...listToMd(nestedList, indentLevel + 1, nestedList.tagName.toLowerCase() === 'ol'));
     });
   });
   return lines;
 }
 
-function tableToWiki(tableEl){
-  const lines = [];
-  Array.from(tableEl.querySelectorAll('tr')).forEach(tr => {
-    const cells = Array.from(tr.children);
-    if (!cells.length) return;
-    const isHeaderRow = cells.every(c => c.tagName.toLowerCase() === 'th');
-    const texts = cells.map(c => inlineToWiki(c).trim());
-    lines.push(isHeaderRow ? '||' + texts.join('||') + '||' : '|' + texts.join('|') + '|');
-  });
-  return lines;
+function tableToMd(tableEl){
+  const rows = Array.from(tableEl.querySelectorAll('tr')).map(tr =>
+    Array.from(tr.children).map(c => inlineToMd(c).trim())
+  );
+  if (!rows.length) return '';
+  const lines = [
+    '| ' + rows[0].join(' | ') + ' |',
+    '|' + rows[0].map(() => '---').join('|') + '|',
+  ];
+  rows.slice(1).forEach(r => lines.push('| ' + r.join(' | ') + ' |'));
+  return lines.join('\n');
 }
 
 function walkBlock(el){
@@ -580,38 +583,39 @@ function walkBlock(el){
     const tag = node.tagName.toLowerCase();
     const heading = tag.match(/^h([1-6])$/);
     if (heading){
-      const t = inlineToWiki(node).trim();
-      if (t) blocks.push(`h${heading[1]}. ${t}`);
+      const t = inlineToMd(node).trim();
+      if (t) blocks.push('#'.repeat(Number(heading[1])) + ' ' + t);
     } else if (tag === 'p'){
-      const t = inlineToWiki(node).trim();
+      const t = inlineToMd(node).trim();
       if (t) blocks.push(t);
     } else if (tag === 'hr'){
-      blocks.push('----');
+      blocks.push('---');
     } else if (tag === 'blockquote'){
-      const inner = walkBlock(node).join('\n');
-      if (inner) blocks.push('{quote}\n' + inner + '\n{quote}');
+      const inner = walkBlock(node).join('\n\n');
+      if (inner) blocks.push(inner.split('\n').map(l => '> ' + l).join('\n'));
     } else if (tag === 'pre'){
       const codeEl = node.querySelector('code');
       const cls = (codeEl || node).className || '';
       const langMatch = cls.match(/language-(\w+)/);
       const codeText = (codeEl || node).textContent.replace(/\n$/, '');
-      blocks.push((langMatch ? `{code:language=${langMatch[1]}}` : '{code}') + '\n' + codeText + '\n{code}');
+      blocks.push('```' + (langMatch ? langMatch[1] : '') + '\n' + codeText + '\n```');
     } else if (tag === 'ul'){
-      const t = listToWiki(node, ['-']).join('\n');
+      const t = listToMd(node, 0, false).join('\n');
       if (t) blocks.push(t);
     } else if (tag === 'ol'){
-      const t = listToWiki(node, ['#']).join('\n');
+      const t = listToMd(node, 0, true).join('\n');
       if (t) blocks.push(t);
     } else if (tag === 'table'){
-      const t = tableToWiki(node).join('\n');
+      const t = tableToMd(node);
       if (t) blocks.push(t);
     } else if (tag === 'img'){
       const src = node.getAttribute('src');
-      if (src) blocks.push(`!${src}!`);
+      const alt = node.getAttribute('alt') || '';
+      if (src) blocks.push(`![${alt}](${src})`);
     } else if (['div', 'section', 'article', 'main', 'figure', 'figcaption', 'details', 'summary', 'body'].includes(tag)){
       blocks.push(...walkBlock(node));
     } else if (!['script', 'style', 'noscript', 'nav', 'header', 'footer', 'aside', 'iframe', 'svg', 'form', 'button', 'template'].includes(tag)){
-      const t = inlineToWiki(node).trim();
+      const t = inlineToMd(node).trim();
       if (t) blocks.push(t);
     }
   });
@@ -629,8 +633,8 @@ function htmlToConfluence(htmlString){
   // <title>はbody外のメタ情報なので別途拾い、本文側に同じ見出しが
   // まだ無ければページタイトルとして先頭にh1として補う。
   const titleText = (doc.querySelector('title') || {}).textContent?.trim();
-  if (titleText && blocks[0] !== `h1. ${titleText}`){
-    blocks.unshift(`h1. ${titleText}`);
+  if (titleText && blocks[0] !== `# ${titleText}`){
+    blocks.unshift(`# ${titleText}`);
   }
 
   return blocks.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
