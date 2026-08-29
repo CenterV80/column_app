@@ -372,7 +372,7 @@
   <span><b>{{code}}</b> インラインコード</span>
   <span><b>[text|url]</b> リンク</span>
   <span><b>||h||h||</b> 表</span>
-  <span><b>URL/HTML</b> 見出し・リスト・表の構造を保持</span>
+  <span><b>URL/HTML</b> h1〜h6・&lt;title&gt;・リスト・表の構造を保持</span>
 </div>
 
 <footer>変換は入力のたびに自動実行されます。</footer>
@@ -624,7 +624,16 @@ function htmlToConfluence(htmlString){
   if (!root) return '';
   const clone = root.cloneNode(true);
   clone.querySelectorAll('script, style, noscript, nav, header, footer, aside, iframe, svg, form, template, button, input, select, textarea, object, embed').forEach(n => n.remove());
-  return walkBlock(clone).join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+  const blocks = walkBlock(clone);
+
+  // <title>はbody外のメタ情報なので別途拾い、本文側に同じ見出しが
+  // まだ無ければページタイトルとして先頭にh1として補う。
+  const titleText = (doc.querySelector('title') || {}).textContent?.trim();
+  if (titleText && blocks[0] !== `h1. ${titleText}`){
+    blocks.unshift(`h1. ${titleText}`);
+  }
+
+  return blocks.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 const input = document.getElementById('input');
