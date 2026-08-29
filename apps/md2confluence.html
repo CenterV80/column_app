@@ -158,6 +158,58 @@
   .url-status.ok{color:var(--ok);}
   #htmlInputArea{min-height:160px;}
 
+  .preview{
+    overflow:auto;
+    padding:18px 20px;
+    color:var(--paper);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:14px;
+    line-height:1.75;
+  }
+  .preview h1, .preview h2, .preview h3, .preview h4, .preview h5, .preview h6{
+    margin:1.2em 0 0.5em;
+    line-height:1.4;
+    color:var(--paper);
+  }
+  .preview h1:first-child, .preview h2:first-child, .preview h3:first-child{margin-top:0;}
+  .preview p{margin:0.8em 0;}
+  .preview a{color:var(--stamp);}
+  .preview strong{color:#fff;}
+  .preview ul, .preview ol{padding-left:1.4em; margin:0.6em 0;}
+  .preview li{margin:0.25em 0;}
+  .preview blockquote{
+    margin:0.8em 0;
+    padding:2px 14px;
+    border-left:3px solid var(--stamp);
+    color:#c7dcee;
+  }
+  .preview code{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.9em;
+    background:rgba(255,255,255,0.08);
+    padding:0.1em 0.35em;
+    border-radius:2px;
+  }
+  .preview pre{
+    background:rgba(0,0,0,0.25);
+    padding:12px 14px;
+    border-radius:3px;
+    overflow:auto;
+  }
+  .preview pre code{background:none; padding:0;}
+  .preview table{
+    border-collapse:collapse;
+    margin:0.8em 0;
+    font-size:0.95em;
+  }
+  .preview th, .preview td{
+    border:1px solid var(--blueprint-700);
+    padding:6px 10px;
+  }
+  .preview th{background:rgba(255,255,255,0.06);}
+  .preview hr{border:0; border-top:1px dashed var(--grid-line); margin:1.2em 0;}
+  .preview img{max-width:100%; border-radius:2px;}
+
   .stage{
     max-width:1160px;
     margin:36px auto 0;
@@ -354,13 +406,20 @@
   </div>
 
   <div class="pane">
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabRaw" data-view="raw">Markdown</button>
+      <button class="mode-tab" id="tabPreview" data-view="preview">プレビュー</button>
+    </div>
     <div class="pane-head">
       <span>OUTPUT — Markdown</span>
       <div class="toolbar">
         <button id="copyBtn">コピー</button>
       </div>
     </div>
-    <pre class="output" id="output"></pre>
+    <div class="mode-panel" id="rawPanel">
+      <pre class="output" id="output"></pre>
+    </div>
+    <div class="mode-panel preview" id="previewPanel" hidden></div>
   </div>
 </div>
 
@@ -377,6 +436,7 @@
 
 <footer>変換は入力のたびに自動実行されます。</footer>
 
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
 <script>
 // Confluence Cloudの貼り付け時オートフォーマットは表・見出し・太字などは
 // 自動変換するが、```コードブロックだけは反応せず地の文になってしまう。
@@ -701,8 +761,42 @@ const output = document.getElementById('output');
 const inCount = document.getElementById('inCount');
 const stampBtn = document.getElementById('stampBtn');
 const copyBtn = document.getElementById('copyBtn');
+const tabRaw = document.getElementById('tabRaw');
+const tabPreview = document.getElementById('tabPreview');
+const rawPanel = document.getElementById('rawPanel');
+const previewPanel = document.getElementById('previewPanel');
 
 let mode = 'md';
+let view = 'raw';
+
+// URL/HTMLモードは外部ページの内容を取り込めるため、プレビュー表示前に
+// 危険なタグ・属性を取り除く(marked自体はHTMLのサニタイズを行わないため)。
+function sanitizeHtml(html){
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.body.querySelectorAll('script, style, iframe, object, embed, link, meta, form, input, button, template').forEach(n => n.remove());
+  doc.body.querySelectorAll('*').forEach(el => {
+    Array.from(el.attributes).forEach(attr => {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.trim().toLowerCase();
+      if (name.startsWith('on') || value.startsWith('javascript:') || name === 'style'){
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return doc.body.innerHTML;
+}
+
+function renderPreview(){
+  if (!output.textContent){
+    previewPanel.innerHTML = '';
+    return;
+  }
+  if (typeof marked === 'undefined'){
+    previewPanel.textContent = 'プレビュー用ライブラリの読み込みに失敗しました。通信環境をご確認のうえページを再読み込みしてください。';
+    return;
+  }
+  previewPanel.innerHTML = sanitizeHtml(marked.parse(output.textContent));
+}
 
 function run(){
   if (mode === 'md'){
@@ -713,6 +807,7 @@ function run(){
     output.textContent = html.trim() ? htmlToConfluence(html) : '';
     inCount.textContent = html.length + ' chars';
   }
+  if (view === 'preview') renderPreview();
 }
 
 function setMode(next){
@@ -725,8 +820,19 @@ function setMode(next){
   run();
 }
 
+function setView(next){
+  view = next;
+  tabRaw.classList.toggle('active', view === 'raw');
+  tabPreview.classList.toggle('active', view === 'preview');
+  rawPanel.hidden = view !== 'raw';
+  previewPanel.hidden = view !== 'preview';
+  if (view === 'preview') renderPreview();
+}
+
 tabMd.addEventListener('click', () => setMode('md'));
 tabHtml.addEventListener('click', () => setMode('html'));
+tabRaw.addEventListener('click', () => setView('raw'));
+tabPreview.addEventListener('click', () => setView('preview'));
 
 input.addEventListener('input', run);
 htmlInputArea.addEventListener('input', run);
