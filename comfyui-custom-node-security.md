@@ -68,10 +68,52 @@ ComfyUIのカスタムノードには、通常のPythonライブラリと共通�
 
 **使い方**
 
-```
-# custom_nodes フォルダ全体をスキャン
-python scan_custom_nodes.py --custom-nodes-dir /path/to/ComfyUI/custom_nodes
+このスクリプトはブラウザ上で動くものではなく、手元のPCに保存してターミナル(コマンドプロンプト)から実行するPythonスクリプトです。ComfyUIを普段起動しているPCにPython(3.10以上推奨)が入っていれば、以下の手順で使えます。
 
+**① ダウンロードする**
+
+上のボタンから`scan_custom_nodes.py`を保存します。特に指定しなければ、ダウンロードフォルダに保存される場合が多いです。
+
+**② ターミナルを開いて、保存したフォルダに移動する**
+
+Windowsなら「コマンドプロンプト」または「PowerShell」、Macなら「ターミナル」を開き、`cd`コマンドで①で保存した場所に移動します。ダウンロードフォルダに保存した場合の例です。
+
+```
+# Windows(コマンドプロンプト)の例
+cd Downloads
+
+# Mac/Linuxの例
+cd ~/Downloads
+```
+
+**③ `custom_nodes`フォルダの場所を確認する**
+
+ComfyUIをインストールしたフォルダの中にある`custom_nodes`フォルダのパスを控えます。よくある例は次の通りです(インストール方法によって変わるので、実際は自分の環境のフォルダを確認してください)。
+
+- Windows版(ポータブル/デスクトップ版): `C:\ComfyUI\custom_nodes` や `C:\ComfyUI_windows_portable\ComfyUI\custom_nodes`
+- 手動インストール(Mac/Linux): `~/ComfyUI/custom_nodes`
+
+**④ スキャンを実行する**
+
+②で移動した場所から、次のコマンドを実行します。`--custom-nodes-dir`の後ろを、③で確認した自分の環境のパスに置き換えてください。
+
+```
+# Windowsの例
+python scan_custom_nodes.py --custom-nodes-dir C:\ComfyUI\custom_nodes
+
+# Mac/Linuxの例
+python3 scan_custom_nodes.py --custom-nodes-dir ~/ComfyUI/custom_nodes
+```
+
+`python`コマンドが見つからないというエラーが出る場合は、Mac/Linuxでは`python3`、Windowsでは`py`を試してください。
+
+**⑤ 結果を確認する**
+
+実行が終わると、②で移動したフォルダの中に`security_report.md`というファイルが作られます。メモ帳やVS Codeなど、テキストエディタで開けば読めます。ノードごとに「危険」「中〜高」「低〜中」「低」のリスクレベルと、検出内容の一覧が書かれています。
+
+**そのほかのオプション**
+
+```
 # ワークフローJSONで使われているノードのみに絞って参考情報を出力
 python scan_custom_nodes.py --custom-nodes-dir /path/to/ComfyUI/custom_nodes --workflow workflow.json
 
@@ -79,7 +121,7 @@ python scan_custom_nodes.py --custom-nodes-dir /path/to/ComfyUI/custom_nodes --w
 python scan_custom_nodes.py --custom-nodes-dir /path/to/ComfyUI/custom_nodes --skip-pip-audit --skip-blacklist
 ```
 
-デフォルトでは`security_report.md`にレポートを出力します。実行には標準ライブラリのみで動作しますが、依存関係の脆弱性チェックを行うには別途`pip install pip-audit`が必要です。
+実行にはPython標準ライブラリのみで動作しますが、依存関係の脆弱性チェック(`pip-audit`との連携)を行うには別途ターミナルで`pip install pip-audit`を実行しておく必要があります。インストールしていなくてもスキャン自体は動き、その部分だけ「pip-auditが見つかりません」という結果になります。
 
 **実行時の注意**: このスクリプトは「信頼できないコードを読む」ツールなので、調査対象のノード側から悪用されないよう次の作りにしています。
 
