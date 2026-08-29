@@ -9,10 +9,12 @@
     --bg:#f4f5f7;
     --panel:#ffffff;
     --border:#dfe1e6;
+    --border-strong:#c1c7d0;
     --text:#172b4d;
     --text-muted:#6b778c;
     --primary:#0052cc;
     --primary-dark:#0747a6;
+    --primary-soft:#e9f2ff;
     --ok:#00875a;
     --error:#bf2600;
     --mono:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
@@ -34,13 +36,9 @@
     color:var(--text-muted);
     text-decoration:none;
   }
-  .back-link:hover{
-    color:var(--primary);
-  }
-  header{
-    padding:40px 24px 24px;
-    text-align:center;
-  }
+  .back-link:hover{color:var(--primary);}
+
+  header{padding:36px 24px 20px; text-align:center;}
   .eyebrow{
     font-size:12px;
     letter-spacing:0.08em;
@@ -48,31 +46,68 @@
     text-transform:uppercase;
     margin-bottom:10px;
   }
-  h1{
-    font-size:clamp(24px, 4vw, 34px);
-    font-weight:700;
-    margin:0 0 10px;
-  }
-  h1 .arrow{
-    color:var(--primary);
-    padding:0 6px;
-    font-weight:700;
-  }
+  h1{font-size:clamp(24px, 4vw, 34px); font-weight:700; margin:0 0 10px;}
+  h1 .arrow{color:var(--primary); padding:0 6px;}
   .sub{
     font-size:14px;
     color:var(--text-muted);
-    max-width:560px;
+    max-width:620px;
     margin:0 auto;
     line-height:1.7;
   }
 
-  .mode-tabs{
+  .options{
+    max-width:1160px;
+    margin:20px auto 0;
+    padding:0 20px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    justify-content:center;
+    font-size:13px;
+    color:var(--text-muted);
+  }
+  .options label{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    cursor:pointer;
+  }
+  .options input{cursor:pointer; margin:0;}
+
+  .stage{
+    max-width:1160px;
+    margin:20px auto 0;
+    padding:0 20px;
+    display:grid;
+    grid-template-columns:1fr 56px 1fr;
+    align-items:stretch;
+  }
+  @media (max-width: 900px){
+    .stage{grid-template-columns:1fr; gap:16px;}
+  }
+
+  .pane{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:6px;
+    display:flex;
+    flex-direction:column;
+    /* 高さを決めておかないと中身の分だけペインが伸びてしまい、
+       パネル内スクロールが効かなくなる */
+    height:clamp(440px, 68vh, 880px);
+    min-height:0;
+    box-shadow:0 1px 2px rgba(23,43,77,0.08);
+    overflow:hidden;
+  }
+  .tabs{
     display:flex;
     gap:4px;
-    padding:0 16px;
+    padding:0 12px;
     border-bottom:1px solid var(--border);
+    background:var(--panel);
   }
-  .mode-tab{
+  .tab{
     font-family:var(--sans);
     font-size:13px;
     font-weight:500;
@@ -83,37 +118,117 @@
     padding:10px 12px;
     margin-bottom:-1px;
     cursor:pointer;
+    white-space:nowrap;
   }
-  .mode-tab.active{
-    color:var(--primary);
-    border-bottom-color:var(--primary);
-  }
-  .mode-panel{
-    flex:1;
+  .tab.active{color:var(--primary); border-bottom-color:var(--primary);}
+
+  .pane-head{
     display:flex;
-    flex-direction:column;
-    min-height:0;
-  }
-  .mode-panel[hidden]{
-    display:none;
-  }
-  .url-step{
-    font-size:11px;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 16px;
+    border-bottom:1px solid var(--border);
+    font-size:12px;
     font-weight:600;
-    letter-spacing:0.04em;
+    color:var(--text-muted);
+  }
+  .tag{
+    background:var(--bg);
+    padding:3px 8px;
+    border-radius:3px;
+    color:var(--text-muted);
+    font-weight:500;
+    white-space:nowrap;
+  }
+  .toolbar{display:flex; gap:8px;}
+  .toolbar button{
+    font-family:var(--sans);
+    font-size:12px;
+    font-weight:500;
+    background:var(--panel);
+    border:1px solid var(--border-strong);
+    color:var(--text);
+    padding:5px 10px;
+    border-radius:3px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .toolbar button:hover{border-color:var(--primary); color:var(--primary);}
+  .toolbar button.primary{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:#fff;
+  }
+  .toolbar button.primary:hover{background:var(--primary-dark); color:#fff;}
+  .toolbar button.done{border-color:var(--ok); color:var(--ok); background:var(--panel);}
+
+  .panel{flex:1; display:flex; flex-direction:column; min-height:0;}
+  .panel[hidden]{display:none;}
+  #pagePanel{overflow-y:auto;}
+
+  textarea, .out-text{
+    flex:1;
+    width:100%;
+    border:0;
+    resize:none;
+    background:transparent;
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:12.5px;
+    line-height:1.65;
+    padding:16px;
+    outline:none;
+    white-space:pre-wrap;
+    word-break:break-word;
+    overflow:auto;
+    margin:0;
+  }
+  textarea::placeholder{color:var(--text-muted);}
+
+  .step{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.03em;
     color:var(--text-muted);
     padding:14px 16px 0;
   }
-  .url-step:first-of-type{padding-top:14px;}
-  .url-row{
-    display:flex;
-    gap:8px;
-    padding:6px 16px 0;
+  .hint{
+    font-size:12px;
+    line-height:1.6;
+    padding:4px 16px 0;
+    color:var(--text-muted);
   }
-  .url-row input[type="url"]{
+  .hint.err{color:var(--error);}
+  .hint.ok{color:var(--ok);}
+
+  .paste-zone{
+    margin:6px 16px 0;
+    border:2px dashed var(--border-strong);
+    border-radius:5px;
+    background:var(--bg);
+    padding:14px;
+    min-height:76px;
+    max-height:130px;
+    overflow:auto;
+    font-size:13px;
+    color:var(--text);
+    outline:none;
+  }
+  .paste-zone:focus{border-color:var(--primary); background:var(--primary-soft);}
+  .paste-zone:empty::before{
+    content:attr(data-placeholder);
+    color:var(--text-muted);
+    font-size:12.5px;
+    line-height:1.6;
+    white-space:pre-wrap;
+  }
+
+  .url-row{display:flex; gap:8px; padding:6px 16px 0;}
+  .url-row input{
     flex:1;
     background:var(--panel);
-    border:1px solid var(--border);
+    border:1px solid var(--border-strong);
     border-radius:3px;
     color:var(--text);
     font-family:var(--sans);
@@ -121,8 +236,8 @@
     padding:8px 10px;
     outline:none;
   }
-  .url-row input[type="url"]:focus{border-color:var(--primary);}
-  .url-row input[type="url"]::placeholder{color:var(--text-muted);}
+  .url-row input:focus{border-color:var(--primary);}
+  .url-row input::placeholder{color:var(--text-muted);}
   .url-row button{
     font-family:var(--sans);
     font-size:13px;
@@ -135,137 +250,11 @@
     cursor:pointer;
     white-space:nowrap;
   }
-  .url-row button:hover{
-    background:var(--primary);
-    color:#fff;
-  }
-  .url-status{
-    font-size:12px;
-    line-height:1.6;
-    padding:8px 16px 0;
-    color:var(--text-muted);
-  }
-  .url-status.err{color:var(--error);}
-  .url-status.ok{color:var(--ok);}
-  #htmlInputArea{min-height:160px;}
+  .url-row button:hover{background:var(--primary); color:#fff;}
+  #htmlSource{min-height:120px;}
 
-  .preview{
-    overflow:auto;
-    padding:18px 20px;
-    color:var(--text);
-    font-family:var(--sans);
-    font-size:14px;
-    line-height:1.75;
-  }
-  .preview h1, .preview h2, .preview h3, .preview h4, .preview h5, .preview h6{
-    margin:1.2em 0 0.5em;
-    line-height:1.4;
-    color:var(--text);
-  }
-  .preview h1:first-child, .preview h2:first-child, .preview h3:first-child{margin-top:0;}
-  .preview p{margin:0.8em 0;}
-  .preview a{color:var(--primary);}
-  .preview strong{color:var(--text);}
-  .preview ul, .preview ol{padding-left:1.4em; margin:0.6em 0;}
-  .preview li{margin:0.25em 0;}
-  .preview blockquote{
-    margin:0.8em 0;
-    padding:2px 14px;
-    border-left:3px solid var(--primary);
-    color:var(--text-muted);
-  }
-  .preview code{
-    font-family:var(--mono);
-    font-size:0.9em;
-    background:var(--bg);
-    padding:0.1em 0.35em;
-    border-radius:2px;
-  }
-  .preview pre{
-    background:var(--bg);
-    padding:12px 14px;
-    border-radius:3px;
-    overflow:auto;
-  }
-  .preview pre code{background:none; padding:0;}
-  .preview table{
-    border-collapse:collapse;
-    margin:0.8em 0;
-    font-size:0.95em;
-  }
-  .preview th, .preview td{
-    border:1px solid var(--border);
-    padding:6px 10px;
-  }
-  .preview th{background:var(--bg);}
-  .preview hr{border:0; border-top:1px solid var(--border); margin:1.2em 0;}
-  .preview img{max-width:100%; border-radius:2px;}
-
-  .stage{
-    max-width:1160px;
-    margin:32px auto 0;
-    padding:0 20px;
-    display:grid;
-    grid-template-columns:1fr 56px 1fr;
-    gap:0;
-    align-items:stretch;
-  }
-  @media (max-width: 860px){
-    .stage{grid-template-columns:1fr; gap:16px;}
-  }
-
-  .pane{
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:6px;
-    display:flex;
-    flex-direction:column;
-    min-height:420px;
-    position:relative;
-    box-shadow:0 1px 2px rgba(23,43,77,0.08);
-  }
-  .pane-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:10px 16px;
-    border-bottom:1px solid var(--border);
-    font-size:12px;
-    font-weight:600;
-    color:var(--text-muted);
-  }
-  .pane-head .tag{
-    background:var(--bg);
-    padding:3px 8px;
-    border-radius:3px;
-    color:var(--text-muted);
-    font-weight:500;
-  }
-  textarea, .output{
-    flex:1;
-    width:100%;
-    border:0;
-    resize:none;
-    background:transparent;
-    color:var(--text);
-    font-family:var(--mono);
-    font-size:13px;
-    line-height:1.65;
-    padding:18px 16px;
-    outline:none;
-    white-space:pre-wrap;
-    word-break:break-word;
-  }
-  textarea::placeholder{color:var(--text-muted);}
-  .output{overflow:auto; margin:0;}
-
-  .connector{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-  }
-  .stamp-btn{
+  .connector{display:flex; align-items:center; justify-content:center;}
+  .convert-btn{
     width:56px;
     height:44px;
     border-radius:6px;
@@ -276,45 +265,69 @@
     font-size:13px;
     font-weight:600;
     cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
     line-height:1.2;
     transition:background 0.15s ease, transform 0.1s ease;
   }
-  .stamp-btn:hover{
-    background:var(--primary-dark);
-  }
-  .stamp-btn:active{transform:scale(0.96);}
+  .convert-btn:hover{background:var(--primary-dark);}
+  .convert-btn:active{transform:scale(0.96);}
 
-  .toolbar{
-    display:flex;
-    gap:8px;
-  }
-  .toolbar button{
+  .preview{
+    flex:1;
+    overflow:auto;
+    padding:18px 20px;
     font-family:var(--sans);
-    font-size:12px;
-    font-weight:500;
-    background:var(--panel);
-    border:1px solid var(--border);
-    color:var(--text-muted);
-    padding:5px 10px;
+    font-size:14px;
+    line-height:1.75;
+    color:var(--text);
+  }
+  .preview > :first-child{margin-top:0;}
+  .preview h1,.preview h2,.preview h3,.preview h4,.preview h5,.preview h6{
+    margin:1.3em 0 0.5em; line-height:1.4; font-weight:600;
+  }
+  .preview h1{font-size:1.7em; border-bottom:1px solid var(--border); padding-bottom:0.25em;}
+  .preview h2{font-size:1.35em;}
+  .preview h3{font-size:1.15em;}
+  .preview p{margin:0.75em 0;}
+  .preview a{color:var(--primary);}
+  .preview ul,.preview ol{padding-left:1.5em; margin:0.6em 0;}
+  .preview li{margin:0.2em 0;}
+  .preview blockquote{
+    margin:0.9em 0;
+    padding:10px 14px;
+    border-left:3px solid var(--primary);
+    background:var(--primary-soft);
+    border-radius:0 3px 3px 0;
+  }
+  .preview blockquote > :first-child{margin-top:0;}
+  .preview blockquote > :last-child{margin-bottom:0;}
+  .preview code{
+    font-family:var(--mono);
+    font-size:0.88em;
+    background:var(--bg);
+    padding:0.12em 0.35em;
     border-radius:3px;
-    cursor:pointer;
   }
-  .toolbar button:hover{
-    border-color:var(--primary);
-    color:var(--primary);
+  .preview pre{
+    background:#f7f8f9;
+    border:1px solid var(--border);
+    padding:12px 14px;
+    border-radius:4px;
+    overflow:auto;
+    margin:0.9em 0;
+    font-size:0.88em;
+    line-height:1.55;
   }
-  .toolbar button.copied{
-    border-color:var(--ok);
-    color:var(--ok);
-  }
+  .preview pre code{background:none; padding:0; font-size:1em;}
+  .preview table{border-collapse:collapse; margin:0.9em 0; font-size:0.95em;}
+  .preview th,.preview td{border:1px solid var(--border-strong); padding:6px 10px; text-align:left;}
+  .preview th{background:var(--bg); font-weight:600;}
+  .preview hr{border:0; border-top:1px solid var(--border); margin:1.3em 0;}
+  .preview img{max-width:100%; border-radius:3px;}
+  .preview figcaption{font-size:0.9em; color:var(--text-muted); margin-top:0.3em;}
 
   .legend{
     max-width:1160px;
-    margin:24px auto 0;
+    margin:22px auto 0;
     padding:0 20px;
     display:flex;
     flex-wrap:wrap;
@@ -329,17 +342,15 @@
     padding:5px 10px;
     border-radius:3px;
   }
-  .legend b{
-    color:var(--text);
-    font-weight:600;
-    font-family:var(--mono);
-  }
+  .legend b{color:var(--text); font-weight:600; font-family:var(--mono);}
 
   footer{
     text-align:center;
-    margin-top:36px;
+    margin-top:32px;
     font-size:12px;
     color:var(--text-muted);
+    line-height:1.7;
+    padding:0 20px;
   }
 </style>
 </head>
@@ -350,509 +361,1007 @@
 <header>
   <div class="eyebrow">column_app / utility</div>
   <h1>Markdown<span class="arrow">→</span>Confluence</h1>
-  <p class="sub">貼るだけで、新しいConfluenceエディタにそのまま貼り付けられるMarkdown形式に整えます。見出し・太字・リンク・表・コードブロックに対応。ページのURLやHTMLからも、見出し・リスト・表の構造を保ったまま変換できます。サーバー通信なし、この場で完結。</p>
+  <p class="sub">
+    見出し・リスト・表・コードブロックの構造を保ったまま、Confluenceに貼り付けられる形に変換します。
+    <b>「書式付きでコピー」</b>を使うと、コードブロックや表がそのままの形でConfluenceに入ります。
+    サーバー通信なし、この場で完結。
+  </p>
 </header>
+
+<div class="options">
+  <label><input type="checkbox" id="optTitle" checked> ページタイトルを見出しに含める</label>
+  <label><input type="checkbox" id="optHeadings" checked> 見出しレベルを繰り上げる</label>
+  <label><input type="checkbox" id="optMdCodeTable" checked> Markdown出力はコードを表で代用</label>
+</div>
 
 <div class="stage">
   <div class="pane">
-    <div class="mode-tabs">
-      <button class="mode-tab active" id="tabMd" data-mode="md">Markdown</button>
-      <button class="mode-tab" id="tabHtml" data-mode="html">URL / HTML</button>
+    <div class="tabs">
+      <button class="tab active" id="inTabMd">Markdown</button>
+      <button class="tab" id="inTabPage">ページ / HTML</button>
     </div>
     <div class="pane-head">
       <span id="inputLabel">INPUT — Markdown</span>
-      <span class="tag" id="inCount">0 chars</span>
+      <span class="tag" id="inCount">0 字</span>
     </div>
-    <div class="mode-panel" id="mdPanel">
-      <textarea id="input" placeholder="# ここに Markdown を貼り付け
+
+    <div class="panel" id="mdPanel">
+      <textarea id="mdInput" placeholder="# ここに Markdown を貼り付け
 
 **太字** や `コード`、
 - 箇条書き
 なども変換されます。"></textarea>
     </div>
-    <div class="mode-panel" id="htmlPanel" hidden>
-      <div class="url-step">STEP 1 — URLから取得を試す(対応サイトのみ)</div>
+
+    <div class="panel" id="pagePanel" hidden>
+      <div class="step">方法1 — ページをコピーして、ここに貼り付け（おすすめ）</div>
+      <div class="hint">変換したいページを開いて Ctrl+A → Ctrl+C し、下の枠内で Ctrl+V。見た目そのままの構造を取り込めます。</div>
+      <div class="paste-zone" id="pasteZone" contenteditable="true" spellcheck="false"
+           data-placeholder="ここをクリックして Ctrl+V で貼り付け"></div>
+
+      <div class="step">方法2 — URLから取得（CORSを許可しているサイトのみ）</div>
       <div class="url-row">
         <input type="url" id="urlInput" placeholder="https://example.com/page">
         <button id="fetchBtn">取得</button>
       </div>
-      <div class="url-status" id="urlStatus">CORS制限のため取得できないサイトも多いです。失敗したら下の手順で貼り付けてください。</div>
-      <div class="url-step">STEP 2 — 取得できない場合はHTMLを直接貼り付け</div>
-      <textarea id="htmlInputArea" placeholder="ページを開いて右クリック→「ページのソースを表示」(Ctrl+U) →全選択・コピーし、ここに貼り付け"></textarea>
+      <div class="hint" id="urlStatus">多くのサイトはCORS制限で取得できません。失敗したら方法1をお使いください。</div>
+
+      <div class="step">方法3 — HTMLソースを貼り付け</div>
+      <textarea id="htmlSource" placeholder="ページのソース（Ctrl+U）を貼り付け"></textarea>
     </div>
   </div>
 
   <div class="connector">
-    <button class="stamp-btn" id="stampBtn" title="変換する">変換<br>▶</button>
+    <button class="convert-btn" id="convertBtn" title="変換する">変換<br>▶</button>
   </div>
 
   <div class="pane">
-    <div class="mode-tabs">
-      <button class="mode-tab active" id="tabRaw" data-view="raw">Markdown</button>
-      <button class="mode-tab" id="tabPreview" data-view="preview">プレビュー</button>
+    <div class="tabs">
+      <button class="tab active" id="outTabPreview">プレビュー</button>
+      <button class="tab" id="outTabMd">Markdown</button>
+      <button class="tab" id="outTabHtml">HTML</button>
     </div>
     <div class="pane-head">
-      <span>OUTPUT — Markdown</span>
+      <span>OUTPUT</span>
       <div class="toolbar">
-        <button id="copyBtn">コピー</button>
+        <button id="copyRichBtn" class="primary" title="Confluenceにそのままの形で貼り付けられます">書式付きでコピー</button>
+        <button id="copyTextBtn" title="表示中のテキストをコピー">テキストをコピー</button>
       </div>
     </div>
-    <div class="mode-panel" id="rawPanel">
-      <pre class="output" id="output"></pre>
-    </div>
-    <div class="mode-panel preview" id="previewPanel" hidden></div>
+    <div class="panel preview" id="previewPanel"></div>
+    <pre class="panel out-text" id="mdOutPanel" hidden></pre>
+    <pre class="panel out-text" id="htmlOutPanel" hidden></pre>
   </div>
 </div>
 
 <div class="legend">
+  <span><b>書式付きでコピー</b> 本物のコードブロック・表として貼り付く</span>
   <span><b>#</b> 見出し</span>
   <span><b>**text**</b> 太字</span>
-  <span><b>_text_</b> 斜体</span>
-  <span><b>|code|</b> コードブロック(1つの表で再現)</span>
   <span><b>`code`</b> インラインコード</span>
   <span><b>[text](url)</b> リンク</span>
   <span><b>|h|h|</b> 表</span>
-  <span><b>URL/HTML</b> h1〜h6・&lt;title&gt;・リスト・表の構造を保持</span>
 </div>
 
-<footer>変換は入力のたびに自動実行されます。</footer>
+<footer>
+  変換は入力のたびに自動実行されます。<br>
+  Confluenceの新エディタは貼り付けたHTMLを解釈するため、「書式付きでコピー」の方が忠実に再現されます。
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
 <script>
-// Confluence Cloudの貼り付け時オートフォーマットは表・見出し・太字などは
-// 自動変換するが、```コードブロックだけは反応せず地の文になってしまう。
-// 表は確実に変換されるため、1つの表(1セル)としてコードを再現し、
-// 各行をインラインコード書式にして<br>で改行を保つ。
-function codeToTableMd(codeText, lang){
-  const escapeCell = s => s.replace(/\|/g, '\\|');
-  const header = lang || 'code';
-  // 1セル内は生の改行を使えないため、行ごとにインラインコード化して
-  // <br>で繋ぎ、枠(セル)一つの中に複数行として収める。
-  const cell = codeText.split('\n').map(l => {
-    const escaped = escapeCell(l) || ' ';
-    return `\`${escaped}\``;
-  }).join('<br>');
-  return [`| ${escapeCell(header)} |`, '|---|', `| ${cell} |`].join('\n');
+"use strict";
+
+/* =========================================================================
+ * 設計
+ *
+ * 入力(Markdown / ページHTML)を、いったん「Confluenceが解釈できる要素だけ」
+ * に絞った正規化DOMへ変換し、そこから3つの出力を作る:
+ *
+ *   入力 ──> 正規化DOM ─┬─> リッチHTML  (クリップボードのtext/html。主経路)
+ *                        ├─> Markdown    (テキストとして貼る場合の代替)
+ *                        └─> プレビュー  (正規化DOMをそのまま描画)
+ *
+ * 新しいConfluenceエディタは貼り付けられたHTMLを解釈してADFに変換するため、
+ * リッチHTML経由なら <pre> が本物のコードブロックに、<table> が本物の表に、
+ * ネストした <ul> がネストしたリストになる。Markdown経由では表現できない
+ * ものが多いので、リッチHTMLを主経路として扱う。
+ * ======================================================================= */
+
+/* ---------- 定数(クラス名からの意味推定に使う語) ---------- */
+
+// 丸ごと捨てる要素
+const DROP_TAGS = new Set([
+  'script','style','noscript','nav','footer','aside','iframe','svg','canvas',
+  'form','button','input','select','textarea','object','embed','template',
+  'link','meta','video','audio','dialog','map','area','base','param','source','track'
+]);
+
+// 透過して中身だけ見る(レイアウト用)ブロック要素
+const TRANSPARENT_BLOCK_TAGS = new Set([
+  'div','section','article','main','header','body','center',
+  'details','summary','fieldset','hgroup','picture'
+]);
+// 透過するインライン要素。ブロックとして再帰すると <span class="tag"> の
+// ような意味づけを取り逃がすので、必ずインラインとして扱う。
+const TRANSPARENT_INLINE_TAGS = new Set([
+  'span','a','font','small','time','data','abbr','mark','u','q','bdi','bdo','ruby','label'
+]);
+
+// クラス名にこれらの語を含み、かつ中身がテキストだけならコードブロック扱い
+const CODE_WORDS = new Set([
+  'code','codeblock','highlight','snippet','sourcecode','chroma','terminal','console','listing'
+]);
+// クラス名にこれらの語を含むブロックは注記(blockquote)扱い
+const CALLOUT_WORDS = new Set([
+  'note','warning','caution','info','tip','alert','callout','admonition',
+  'important','danger','notice','remark','memo'
+]);
+// クラス名にこれらの語を含み、かつ極端に短いテキストなら装飾バッジとして捨てる
+const BADGE_WORDS = new Set([
+  'num','number','badge','counter','index','marker','circle','bullet','ordinal'
+]);
+// クラス名にこれらの語を含むインライン要素は強調として扱う
+const LABEL_WORDS = new Set(['tag','label','chip','pill','eyebrow','kicker','moment']);
+// ナビゲーション的なリンクとして捨てる
+const NAVLINK_WORDS = new Set(['back','backlink','breadcrumb','skiplink','pagination','pager']);
+
+/* ---------- 小道具 ---------- */
+
+const OUT_DOC = document.implementation.createHTMLDocument('out');
+
+function el(tag){ return OUT_DOC.createElement(tag); }
+function txt(s){ return OUT_DOC.createTextNode(s); }
+
+function classParts(node){
+  if (!node || node.nodeType !== 1) return [];
+  const raw = node.getAttribute('class') || '';
+  return raw.toLowerCase().split(/[\s\-_]+/).filter(Boolean);
+}
+function hasWord(node, wordSet){
+  return classParts(node).some(p => wordSet.has(p));
 }
 
-function convertInline(line){
-  // リンク・画像・インラインコード・取り消し線は新Confluenceも同じ
-  // Markdown記法を認識するためそのまま通す。太字/斜体の書き方だけ
-  // **text** / _text_ の一形に正規化する。
-  const boldStash = [];
-  line = line.replace(/\*\*([^*]+)\*\*/g, (m, p1) => {
-    boldStash.push(p1);
-    return '\u0000BOLD' + (boldStash.length - 1) + '\u0000';
-  });
-  line = line.replace(/__([^_]+)__/g, (m, p1) => {
-    boldStash.push(p1);
-    return '\u0000BOLD' + (boldStash.length - 1) + '\u0000';
-  });
-
-  line = line.replace(/\*([^*]+)\*/g, '_$1_');
-
-  boldStash.forEach((content, i) => {
-    line = line.replace('\u0000BOLD' + i + '\u0000', '**' + content + '**');
-  });
-
-  return line;
+function resolveUrl(url, base){
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (/^(javascript|vbscript|file):/i.test(trimmed)) return '';
+  if (/^(https?:|mailto:|tel:|#|data:image\/)/i.test(trimmed) || !base) return trimmed;
+  try { return new URL(trimmed, base).href; } catch(e){ return trimmed; }
 }
 
-function convert(md){
-  const lines = md.split('\n');
-  const out = [];
-  let inCode = false;
-  let codeLang = '';
-  let codeBuffer = [];
-  let inTable = false;
-  let tableRowIndex = 0;
-  let tableCols = 0;
-  let tableSepDone = false;
+// 空白の正規化。<pre>内では呼ばない。
+function collapseWs(s){ return s.replace(/[\t\f\r ]*\n[\t\f\r ]*/g, ' ').replace(/[\t\f ]{2,}/g, ' '); }
 
-  for (let raw of lines){
-    const line = raw.replace(/\r$/, '');
+/* ---------- 本文領域の推定 ---------- */
 
-    // コードブロック(表として再現する)
-    const fence = line.match(/^```(\w*)/);
-    if (fence && !inCode){
-      inCode = true;
-      codeLang = fence[1];
-      codeBuffer = [];
-      continue;
-    } else if (line.trim() === '```' && inCode){
-      inCode = false;
-      out.push(codeToTableMd(codeBuffer.join('\n'), codeLang));
-      continue;
-    } else if (inCode){
-      codeBuffer.push(line);
-      continue;
-    }
+// ページ全体のHTMLには、ヘッダ・サイドバー・フッタなど本文でない部分が
+// 混ざる。本文らしさをスコアリングして、一番それらしい要素を本文とする。
+function pickMainContent(doc){
+  const explicit = doc.querySelector('article, main, [role="main"], #content, .article-body, .post-content, .entry-content');
+  if (explicit && explicit.textContent.trim().length > 200) return explicit;
 
-    // 水平線
-    if (/^\s*([-*_])\1{2,}\s*$/.test(line) && line.trim() !== ''){
-      out.push('---');
-      inTable = false;
-      continue;
-    }
+  const candidates = Array.from(doc.body ? doc.body.querySelectorAll('div, section, article, main, td') : []);
+  candidates.push(doc.body);
 
-    // 見出し
-    const heading = line.match(/^(#{1,6})\s+(.*)/);
-    if (heading){
-      out.push(`${heading[1]} ${convertInline(heading[2])}`);
-      inTable = false;
-      continue;
-    }
+  let best = doc.body, bestScore = -Infinity;
+  for (const cand of candidates){
+    if (!cand) continue;
+    const text = cand.textContent || '';
+    if (text.trim().length < 160) continue;
 
-    // 引用
-    const quote = line.match(/^>\s?(.*)/);
-    if (quote){
-      out.push('> ' + convertInline(quote[1]));
-      continue;
-    }
+    // 本文らしい要素の量で加点
+    const meaty = cand.querySelectorAll('p, li, pre, h1, h2, h3, h4, table').length;
+    // リンクだらけの領域(ナビ)は減点
+    const linkChars = Array.from(cand.querySelectorAll('a')).reduce((n, a) => n + a.textContent.length, 0);
+    const linkRatio = linkChars / Math.max(text.length, 1);
+    // 深い入れ子ほど、より内側の本文コンテナを優先
+    let depth = 0;
+    for (let p = cand; p && p !== doc.body; p = p.parentElement) depth++;
 
-    // テーブル(区切り行が無ければ自動で補う)
-    if (/^\s*\|.*\|\s*$/.test(line)){
-      const isSep = /^\s*\|[\s:\-|]+\|\s*$/.test(line);
-      const cells = line.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
-      if (!inTable){ inTable = true; tableRowIndex = 0; tableCols = cells.length; tableSepDone = false; }
-      tableRowIndex++;
-      if (isSep){
-        out.push('|' + Array(tableCols).fill('---').join('|') + '|');
-        tableSepDone = true;
-      } else {
-        out.push('| ' + cells.map(c => convertInline(c)).join(' | ') + ' |');
-        if (tableRowIndex === 2 && !tableSepDone){
-          out.splice(out.length - 1, 0, '|' + Array(tableCols).fill('---').join('|') + '|');
-          tableSepDone = true;
-        }
-      }
-      continue;
-    } else {
-      inTable = false;
-    }
-
-    // 番号リスト
-    const ol = line.match(/^(\s*)(\d+)[.)]\s+(.*)/);
-    if (ol){
-      const indent = Math.floor(ol[1].length / 2);
-      out.push(' '.repeat(indent * 2) + ol[2] + '. ' + convertInline(ol[3]));
-      continue;
-    }
-
-    // 箇条書き
-    const ul = line.match(/^(\s*)[-*+]\s+(.*)/);
-    if (ul){
-      const indent = Math.floor(ul[1].length / 2);
-      out.push(' '.repeat(indent * 2) + '- ' + convertInline(ul[2]));
-      continue;
-    }
-
-    out.push(convertInline(line));
+    const score = text.trim().length * (1 - Math.min(linkRatio, 0.9)) + meaty * 120 + depth * 40;
+    if (score > bestScore){ bestScore = score; best = cand; }
   }
-
-  return out.join('\n');
+  return best || doc.body;
 }
 
-// ---- HTML(ページ)→ Confluence(Markdown)変換 ----
-// レイアウト(見出し・リスト・表・コードブロックなどの構造)を保ったまま、
-// 新しいConfluenceエディタがそのまま認識できるMarkdownとして変換する。
-// 文字装飾やCSSそのものは対象外。
+/* ---------- 判定ヘルパ ---------- */
 
-function inlineToMd(node){
-  let out = '';
-  node.childNodes.forEach(child => {
-    if (child.nodeType === Node.TEXT_NODE){
-      out += child.textContent.replace(/\s+/g, ' ');
+// <pre>ではなく <div class="code-block"> のような擬似コードブロックを見つける。
+// 中身がテキスト(とインライン要素)だけであることを条件にして誤爆を防ぐ。
+function looksLikeCodeBlock(node){
+  if (node.nodeType !== 1) return false;
+  if (!hasWord(node, CODE_WORDS)) return false;
+  if (node.tagName.toLowerCase() === 'code') return false;
+  const blocky = node.querySelector('p, div, ul, ol, table, h1, h2, h3, h4, h5, h6, blockquote, pre');
+  if (blocky) return false;
+  return node.textContent.trim().length > 0;
+}
+
+function looksLikeCallout(node){
+  if (node.nodeType !== 1) return false;
+  const tag = node.tagName.toLowerCase();
+  if (!['div','section','aside','p'].includes(tag)) return false;
+  if (!hasWord(node, CALLOUT_WORDS)) return false;
+  return node.textContent.trim().length > 0;
+}
+
+function looksLikeBadge(node){
+  if (node.nodeType !== 1) return false;
+  if (!hasWord(node, BADGE_WORDS)) return false;
+  const t = node.textContent.trim();
+  return t.length > 0 && t.length <= 4;
+}
+
+function isNavLink(node){
+  if (node.nodeType !== 1 || node.tagName.toLowerCase() !== 'a') return false;
+  if (hasWord(node, NAVLINK_WORDS)) return true;
+  // 「← ○○に戻る」「‹ 一覧」のような、矢印で始まる短い戻り導線
+  const t = node.textContent.trim();
+  return t.length <= 30 && /^[←⟵‹«<]/.test(t);
+}
+
+function codeLangOf(node){
+  const cls = (node.getAttribute('class') || '') + ' ' + ((node.parentElement && node.parentElement.getAttribute('class')) || '');
+  const m = cls.match(/(?:language|lang|brush|highlight)[-:]([a-z0-9+#]+)/i);
+  return m ? m[1].toLowerCase() : '';
+}
+
+/* =========================================================================
+ * 正規化: 元DOM -> Confluenceが解釈できる要素だけのDOM
+ * ======================================================================= */
+
+function buildInline(src, out, ctx){
+  src.childNodes.forEach(node => {
+    if (node.nodeType === 3){
+      const t = collapseWs(node.textContent);
+      if (t) out.appendChild(txt(t));
       return;
     }
-    if (child.nodeType !== Node.ELEMENT_NODE) return;
-    const tag = child.tagName.toLowerCase();
+    if (node.nodeType !== 1) return;
+
+    const tag = node.tagName.toLowerCase();
+    if (DROP_TAGS.has(tag) || looksLikeBadge(node)) return;
+
     switch (tag){
-      case 'strong': case 'b':
-        out += '**' + inlineToMd(child).trim() + '**'; break;
-      case 'em': case 'i':
-        out += '_' + inlineToMd(child).trim() + '_'; break;
-      case 'del': case 's': case 'strike':
-        out += '~~' + inlineToMd(child).trim() + '~~'; break;
-      case 'code':
-        out += '`' + child.textContent + '`'; break;
-      case 'a': {
-        const href = child.getAttribute('href') || '';
-        const text = inlineToMd(child).trim() || href;
-        out += href ? `[${text}](${href})` : text;
-        break;
+      case 'br':
+        out.appendChild(el('br'));
+        return;
+      case 'strong': case 'b': {
+        const e = el('strong'); buildInline(node, e, ctx);
+        if (e.textContent.trim()) out.appendChild(e);
+        return;
+      }
+      case 'em': case 'i': case 'cite': {
+        const e = el('em'); buildInline(node, e, ctx);
+        if (e.textContent.trim()) out.appendChild(e);
+        return;
+      }
+      case 'del': case 's': case 'strike': {
+        const e = el('del'); buildInline(node, e, ctx);
+        if (e.textContent.trim()) out.appendChild(e);
+        return;
+      }
+      case 'sup': case 'sub': {
+        const e = el(tag); buildInline(node, e, ctx);
+        if (e.textContent.trim()) out.appendChild(e);
+        return;
+      }
+      case 'code': case 'kbd': case 'samp': case 'var': case 'tt': {
+        const e = el('code');
+        e.appendChild(txt(node.textContent));
+        if (e.textContent) out.appendChild(e);
+        return;
       }
       case 'img': {
-        const src = child.getAttribute('src') || '';
-        const alt = child.getAttribute('alt') || '';
-        out += src ? `![${alt}](${src})` : '';
-        break;
+        const src2 = resolveUrl(node.getAttribute('src'), ctx.baseUrl);
+        if (!src2) return;
+        const e = el('img');
+        e.setAttribute('src', src2);
+        const alt = node.getAttribute('alt');
+        if (alt) e.setAttribute('alt', alt);
+        out.appendChild(e);
+        return;
       }
-      case 'br':
-        out += '\n'; break;
-      default:
-        out += inlineToMd(child);
+      case 'a': {
+        if (isNavLink(node)) return;
+        const href = resolveUrl(node.getAttribute('href'), ctx.baseUrl);
+        if (!href){ buildInline(node, out, ctx); return; }
+        const e = el('a');
+        e.setAttribute('href', href);
+        buildInline(node, e, ctx);
+        if (e.textContent.trim() || e.querySelector('img')) out.appendChild(e);
+        else out.appendChild(txt(href));
+        return;
+      }
+      default: {
+        // クラス名がラベル的なら強調にする
+        if (hasWord(node, LABEL_WORDS)){
+          const e = el('strong'); buildInline(node, e, ctx);
+          if (e.textContent.trim()) out.appendChild(e);
+          return;
+        }
+        buildInline(node, out, ctx);
+      }
+    }
+  });
+}
+
+function inlineWrap(src, tag, ctx){
+  const e = el(tag);
+  buildInline(src, e, ctx);
+  return e.textContent.trim() || e.querySelector('img') ? e : null;
+}
+
+function makeCodeBlock(text, lang){
+  const pre = el('pre');
+  const code = el('code');
+  if (lang) code.setAttribute('class', 'language-' + lang);
+  code.appendChild(txt(text.replace(/\s+$/, '')));
+  pre.appendChild(code);
+  return pre;
+}
+
+function buildList(src, ctx, ordered){
+  const list = el(ordered ? 'ol' : 'ul');
+  Array.from(src.children).forEach(li => {
+    if (li.tagName.toLowerCase() !== 'li') return;
+    const item = el('li');
+
+    // 直下のネストしたリストは分離してから、残りをこの li の中身にする
+    const nested = [];
+    const shallow = li.cloneNode(true);
+    Array.from(shallow.children).forEach(c => {
+      const t = c.tagName.toLowerCase();
+      if (t === 'ul' || t === 'ol'){ nested.push(c); shallow.removeChild(c); }
+    });
+
+    const blocks = buildBlocks(shallow, ctx);
+    if (blocks.length === 1 && blocks[0].tagName.toLowerCase() === 'p'){
+      // 単純な項目は <p> を剥がして li 直下にテキストを置く
+      while (blocks[0].firstChild) item.appendChild(blocks[0].firstChild);
+    } else {
+      blocks.forEach(b => item.appendChild(b));
+    }
+    nested.forEach(n => item.appendChild(buildList(n, ctx, n.tagName.toLowerCase() === 'ol')));
+
+    if (item.textContent.trim() || item.querySelector('img,ul,ol')) list.appendChild(item);
+  });
+  return list.children.length ? list : null;
+}
+
+function buildTable(src, ctx){
+  const rows = Array.from(src.querySelectorAll('tr')).filter(tr => {
+    // ネストしたテーブルの行は親テーブル側で拾わない
+    return tr.closest('table') === src;
+  });
+  if (!rows.length) return null;
+
+  const table = el('table');
+  const thead = el('thead');
+  const tbody = el('tbody');
+
+  rows.forEach((tr, i) => {
+    const cells = Array.from(tr.children).filter(c => /^(td|th)$/i.test(c.tagName));
+    if (!cells.length) return;
+    const isHeader = cells.every(c => c.tagName.toLowerCase() === 'th');
+    const row = el('tr');
+    cells.forEach(c => {
+      const cell = el(isHeader ? 'th' : 'td');
+      const blocks = buildBlocks(c, ctx);
+      if (blocks.length === 1 && blocks[0].tagName.toLowerCase() === 'p'){
+        while (blocks[0].firstChild) cell.appendChild(blocks[0].firstChild);
+      } else if (blocks.length){
+        blocks.forEach(b => cell.appendChild(b));
+      }
+      ['colspan','rowspan'].forEach(a => {
+        const v = c.getAttribute(a);
+        if (v && /^\d+$/.test(v) && Number(v) > 1) cell.setAttribute(a, v);
+      });
+      row.appendChild(cell);
+    });
+    (isHeader && i === 0 ? thead : tbody).appendChild(row);
+  });
+
+  if (thead.children.length) table.appendChild(thead);
+  if (tbody.children.length) table.appendChild(tbody);
+  return table.querySelector('tr') ? table : null;
+}
+
+// 定義リストは Confluence に対応物がないので「太字の語 + 説明」に落とす
+function buildDefList(src, ctx){
+  const out = [];
+  Array.from(src.children).forEach(child => {
+    const tag = child.tagName.toLowerCase();
+    if (tag === 'dt'){
+      const p = el('p');
+      const strong = el('strong');
+      buildInline(child, strong, ctx);
+      if (strong.textContent.trim()){ p.appendChild(strong); out.push(p); }
+    } else if (tag === 'dd'){
+      buildBlocks(child, ctx).forEach(b => out.push(b));
     }
   });
   return out;
 }
 
-function listToMd(listEl, indentLevel, ordered){
-  const lines = [];
-  let n = 0;
-  Array.from(listEl.children).forEach(li => {
-    if (li.tagName.toLowerCase() !== 'li') return;
-    n++;
-    const nested = Array.from(li.children).filter(c => ['ul', 'ol'].includes(c.tagName.toLowerCase()));
-    const liClone = li.cloneNode(true);
-    Array.from(liClone.children).forEach(c => {
-      if (['ul', 'ol'].includes(c.tagName.toLowerCase())) liClone.removeChild(c);
-    });
-    const text = inlineToMd(liClone).trim();
-    const marker = ordered ? `${n}. ` : '- ';
-    if (text) lines.push(' '.repeat(indentLevel * 2) + marker + text);
-    nested.forEach(nestedList => {
-      lines.push(...listToMd(nestedList, indentLevel + 1, nestedList.tagName.toLowerCase() === 'ol'));
-    });
-  });
-  return lines;
-}
-
-function tableToMd(tableEl){
-  const rows = Array.from(tableEl.querySelectorAll('tr')).map(tr =>
-    Array.from(tr.children).map(c => inlineToMd(c).trim())
-  );
-  if (!rows.length) return '';
-  const lines = [
-    '| ' + rows[0].join(' | ') + ' |',
-    '|' + rows[0].map(() => '---').join('|') + '|',
-  ];
-  rows.slice(1).forEach(r => lines.push('| ' + r.join(' | ') + ' |'));
-  return lines.join('\n');
-}
-
-function classTokens(el){
-  return ((el.getAttribute && el.getAttribute('class')) || '').toLowerCase().split(/[\s-]+/);
-}
-
-// <pre>ではなく<div class="code-block">のような疑似コードブロックで
-// 組まれているページ向けに、クラス名から判定する。
-function isCodeBlockEl(el){
-  const tokens = classTokens(el);
-  return ['code', 'codeblock', 'highlight', 'chroma'].some(t => tokens.includes(t));
-}
-
-// 手順番号など、装飾目的の短い数字/記号バッジを除外する。
-function isDecorativeBadge(el){
-  const tokens = classTokens(el);
-  const hasBadgeClass = ['num', 'number', 'badge', 'counter', 'index'].some(t => tokens.includes(t));
-  if (!hasBadgeClass) return false;
-  const text = el.textContent.trim();
-  return text.length > 0 && text.length <= 4;
-}
-
-function walkBlock(el){
+function buildBlocks(src, ctx){
   const blocks = [];
-  Array.from(el.childNodes).forEach(node => {
-    if (node.nodeType === Node.TEXT_NODE){
-      const t = node.textContent.trim();
-      if (t) blocks.push(t);
+  // 連続するインライン内容をまとめて <p> にするためのバッファ
+  let buffer = null;
+  const flush = () => {
+    if (buffer && (buffer.textContent.trim() || buffer.querySelector('img'))) blocks.push(buffer);
+    buffer = null;
+  };
+  const intoBuffer = node => {
+    if (!buffer) buffer = el('p');
+    buildInline({ childNodes: [node] }, buffer, ctx);
+  };
+
+  Array.from(src.childNodes).forEach(node => {
+    if (node.nodeType === 3){
+      const t = collapseWs(node.textContent);
+      if (t.trim()) intoBuffer(node);
       return;
     }
-    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    if (node.nodeType !== 1) return;
+
     const tag = node.tagName.toLowerCase();
-    const heading = tag.match(/^h([1-6])$/);
-    if (isDecorativeBadge(node)){
-      // 何も出力しない
-    } else if (heading){
-      const t = inlineToMd(node).trim();
-      if (t) blocks.push('#'.repeat(Number(heading[1])) + ' ' + t);
-    } else if (tag === 'p'){
-      const t = inlineToMd(node).trim();
-      if (t) blocks.push(t);
-    } else if (tag === 'hr'){
-      blocks.push('---');
-    } else if (tag === 'blockquote'){
-      const inner = walkBlock(node).join('\n\n');
-      if (inner) blocks.push(inner.split('\n').map(l => '> ' + l).join('\n'));
-    } else if (tag === 'pre' || isCodeBlockEl(node)){
+    if (DROP_TAGS.has(tag)) return;
+    if (looksLikeBadge(node)) return;
+    if (isNavLink(node)) return;
+
+    // --- コードブロック(本物 / 擬似) ---
+    if (tag === 'pre'){
+      flush();
       const codeEl = node.querySelector('code');
-      const cls = (codeEl || node).getAttribute('class') || '';
-      const langMatch = cls.match(/language-(\w+)/);
-      const codeText = (codeEl || node).textContent.replace(/\n$/, '');
-      blocks.push(codeToTableMd(codeText, langMatch ? langMatch[1] : ''));
-    } else if (tag === 'ul'){
-      const t = listToMd(node, 0, false).join('\n');
-      if (t) blocks.push(t);
-    } else if (tag === 'ol'){
-      const t = listToMd(node, 0, true).join('\n');
-      if (t) blocks.push(t);
-    } else if (tag === 'table'){
-      const t = tableToMd(node);
-      if (t) blocks.push(t);
-    } else if (tag === 'img'){
-      const src = node.getAttribute('src');
-      const alt = node.getAttribute('alt') || '';
-      if (src) blocks.push(`![${alt}](${src})`);
-    } else if (['div', 'section', 'article', 'main', 'header', 'figure', 'figcaption', 'details', 'summary', 'body'].includes(tag)){
-      blocks.push(...walkBlock(node));
-    } else if (!['script', 'style', 'noscript', 'nav', 'footer', 'aside', 'iframe', 'svg', 'form', 'button', 'template'].includes(tag)){
-      const t = inlineToMd(node).trim();
-      if (t) blocks.push(t);
+      blocks.push(makeCodeBlock((codeEl || node).textContent, codeLangOf(codeEl || node)));
+      return;
+    }
+    if (looksLikeCodeBlock(node)){
+      flush();
+      blocks.push(makeCodeBlock(node.textContent, codeLangOf(node)));
+      return;
+    }
+
+    // --- 注記ボックス -> blockquote ---
+    if (looksLikeCallout(node)){
+      flush();
+      const quote = el('blockquote');
+      buildBlocks(node, ctx).forEach(b => quote.appendChild(b));
+      if (quote.textContent.trim()) blocks.push(quote);
+      return;
+    }
+
+    const heading = tag.match(/^h([1-6])$/);
+    if (heading){
+      flush();
+      const h = inlineWrap(node, 'h' + heading[1], ctx);
+      if (h) blocks.push(h);
+      return;
+    }
+
+    switch (tag){
+      case 'p': {
+        flush();
+        const p = inlineWrap(node, 'p', ctx);
+        if (p) blocks.push(p);
+        return;
+      }
+      case 'hr':
+        flush(); blocks.push(el('hr')); return;
+      case 'blockquote': {
+        flush();
+        const q = el('blockquote');
+        buildBlocks(node, ctx).forEach(b => q.appendChild(b));
+        if (q.textContent.trim()) blocks.push(q);
+        return;
+      }
+      case 'ul': case 'ol': {
+        flush();
+        const list = buildList(node, ctx, tag === 'ol');
+        if (list) blocks.push(list);
+        return;
+      }
+      case 'table': {
+        flush();
+        const t = buildTable(node, ctx);
+        if (t) blocks.push(t);
+        return;
+      }
+      case 'dl': {
+        flush();
+        buildDefList(node, ctx).forEach(b => blocks.push(b));
+        return;
+      }
+      case 'figure': {
+        flush();
+        buildBlocks(node, ctx).forEach(b => blocks.push(b));
+        return;
+      }
+      case 'figcaption': {
+        flush();
+        const cap = inlineWrap(node, 'p', ctx);
+        if (cap){
+          const em = el('em');
+          while (cap.firstChild) em.appendChild(cap.firstChild);
+          cap.appendChild(em);
+          blocks.push(cap);
+        }
+        return;
+      }
+      case 'img': {
+        flush();
+        const p = el('p');
+        buildInline({ childNodes: [node] }, p, ctx);
+        if (p.querySelector('img')) blocks.push(p);
+        return;
+      }
+      case 'br':
+        return;
+      default: {
+        if (TRANSPARENT_INLINE_TAGS.has(tag)){ intoBuffer(node); return; }
+        if (TRANSPARENT_BLOCK_TAGS.has(tag)){
+          const inner = buildBlocks(node, ctx);
+          if (inner.length){ flush(); inner.forEach(b => blocks.push(b)); }
+          else intoBuffer(node);
+          return;
+        }
+        intoBuffer(node);
+      }
     }
   });
+
+  flush();
   return blocks;
 }
 
-function htmlToConfluence(htmlString){
-  const doc = new DOMParser().parseFromString(htmlString, 'text/html');
-  const root = doc.querySelector('article') || doc.querySelector('main') || doc.body;
-  if (!root) return '';
-  const clone = root.cloneNode(true);
-  clone.querySelectorAll('script, style, noscript, nav, footer, aside, iframe, svg, form, template, button, input, select, textarea, object, embed, .back-link').forEach(n => n.remove());
-  const blocks = walkBlock(clone);
+/* ---------- 見出しレベルの正規化 ---------- */
 
-  // <title>はbody外のメタ情報なので別途拾い、本文側の先頭見出しと
-  // 実質同じ内容(絵文字違いやサイト名付与など)でなければページタイトルと
-  // して先頭にh1として補う。
-  const titleText = (doc.querySelector('title') || {}).textContent?.trim();
-  const normalizeForCompare = s => s.replace(/[^\p{L}\p{N}]/gu, '');
-  const firstHeadingMatch = blocks[0] && blocks[0].match(/^#\s+(.*)/);
-  const titleNorm = titleText ? normalizeForCompare(titleText) : '';
-  const firstHeadingNorm = firstHeadingMatch ? normalizeForCompare(firstHeadingMatch[1]) : '';
-  const isDuplicateTitle = titleNorm && firstHeadingNorm &&
-    (firstHeadingNorm.includes(titleNorm) || titleNorm.includes(firstHeadingNorm));
-  if (titleText && !isDuplicateTitle){
-    blocks.unshift(`# ${titleText}`);
-  }
+// 実際のページは h1 をサイトロゴに使い、記事の主見出しが h2 から始まることが
+// 多い。最も浅い見出しが目標レベルに来るように全体をずらす。
+function shiftHeadings(blocks, target){
+  let min = 7;
+  const scan = nodes => nodes.forEach(n => {
+    const m = n.tagName && n.tagName.toLowerCase().match(/^h([1-6])$/);
+    if (m) min = Math.min(min, Number(m[1]));
+  });
+  scan(blocks);
+  if (min === 7 || min === target) return blocks;
 
-  return blocks.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+  const delta = target - min;
+  return blocks.map(n => {
+    const m = n.tagName && n.tagName.toLowerCase().match(/^h([1-6])$/);
+    if (!m) return n;
+    const level = Math.min(6, Math.max(1, Number(m[1]) + delta));
+    const h = el('h' + level);
+    while (n.firstChild) h.appendChild(n.firstChild);
+    return h;
+  });
 }
 
-const input = document.getElementById('input');
-const htmlInputArea = document.getElementById('htmlInputArea');
-const urlInput = document.getElementById('urlInput');
-const urlStatus = document.getElementById('urlStatus');
-const fetchBtn = document.getElementById('fetchBtn');
-const tabMd = document.getElementById('tabMd');
-const tabHtml = document.getElementById('tabHtml');
-const mdPanel = document.getElementById('mdPanel');
-const htmlPanel = document.getElementById('htmlPanel');
-const inputLabel = document.getElementById('inputLabel');
-const output = document.getElementById('output');
-const inCount = document.getElementById('inCount');
-const stampBtn = document.getElementById('stampBtn');
-const copyBtn = document.getElementById('copyBtn');
-const tabRaw = document.getElementById('tabRaw');
-const tabPreview = document.getElementById('tabPreview');
-const rawPanel = document.getElementById('rawPanel');
-const previewPanel = document.getElementById('previewPanel');
+/* ---------- 入力 -> 正規化DOM ---------- */
 
-let mode = 'md';
-let view = 'raw';
+function normalizeFromHtml(htmlString, opts){
+  const doc = new DOMParser().parseFromString(htmlString, 'text/html');
 
-// URL/HTMLモードは外部ページの内容を取り込めるため、プレビュー表示前に
-// 危険なタグ・属性を取り除く(marked自体はHTMLのサニタイズを行わないため)。
-function sanitizeHtml(html){
+  // <base> やユーザー指定URLを相対パス解決の基準にする
+  const baseTag = doc.querySelector('base[href]');
+  const baseUrl = (baseTag && baseTag.getAttribute('href')) || opts.baseUrl || '';
+  const ctx = { baseUrl };
+
+  doc.querySelectorAll(Array.from(DROP_TAGS).join(',')).forEach(n => n.remove());
+
+  const root = opts.wholeDocument === false ? doc.body : pickMainContent(doc);
+  let blocks = buildBlocks(root || doc.body, ctx);
+
+  const titleText = (doc.querySelector('title') || {}).textContent;
+  const title = titleText ? titleText.trim() : '';
+
+  return finalize(blocks, title, opts);
+}
+
+function normalizeFromMarkdown(md, opts){
+  // Markdownもいったん marked でHTMLにし、同じ正規化経路に通す。
+  // これで「入力が何であれ出力の作り方は1本」になる。
+  const html = (typeof marked !== 'undefined') ? marked.parse(md) : '';
   const doc = new DOMParser().parseFromString(html, 'text/html');
-  doc.body.querySelectorAll('script, style, iframe, object, embed, link, meta, form, input, button, template').forEach(n => n.remove());
-  doc.body.querySelectorAll('*').forEach(el => {
-    Array.from(el.attributes).forEach(attr => {
-      const name = attr.name.toLowerCase();
-      const value = attr.value.trim().toLowerCase();
-      if (name.startsWith('on') || value.startsWith('javascript:') || name === 'style'){
-        el.removeAttribute(attr.name);
-      }
+  const blocks = buildBlocks(doc.body, { baseUrl: '' });
+  return finalize(blocks, '', Object.assign({}, opts, { includeTitle: false }));
+}
+
+function finalize(blocks, title, opts){
+  const frag = OUT_DOC.createDocumentFragment();
+
+  // タイトルと本文先頭見出しが実質同じなら重複させない
+  const norm = s => s.replace(/[^\p{L}\p{N}]/gu, '');
+  const firstH = blocks.find(b => /^h[1-6]$/i.test(b.tagName || ''));
+  const firstText = firstH ? norm(firstH.textContent) : '';
+  const titleNorm = title ? norm(title) : '';
+  const duplicated = titleNorm && firstText &&
+    (firstText.includes(titleNorm) || titleNorm.includes(firstText));
+
+  const useTitle = opts.includeTitle && title && !duplicated;
+
+  if (opts.normalizeHeadings) blocks = shiftHeadings(blocks, useTitle ? 2 : 1);
+
+  if (useTitle){
+    const h1 = el('h1');
+    h1.appendChild(txt(title));
+    frag.appendChild(h1);
+  }
+  blocks.forEach(b => frag.appendChild(b));
+  return frag;
+}
+
+/* =========================================================================
+ * 正規化DOM -> 各出力
+ * ======================================================================= */
+
+function toRichHtml(frag){
+  const wrap = el('div');
+  wrap.appendChild(frag.cloneNode(true));
+  return wrap.innerHTML;
+}
+
+/* ---- Markdown ---- */
+
+function mdEscape(s){ return s.replace(/([\\`*_[\]])/g, '\\$1'); }
+
+function mdInline(node){
+  let out = '';
+  node.childNodes.forEach(child => {
+    if (child.nodeType === 3){ out += mdEscape(child.textContent); return; }
+    if (child.nodeType !== 1) return;
+    const tag = child.tagName.toLowerCase();
+    switch (tag){
+      case 'strong': out += '**' + mdInline(child).trim() + '**'; break;
+      case 'em':     out += '_' + mdInline(child).trim() + '_'; break;
+      case 'del':    out += '~~' + mdInline(child).trim() + '~~'; break;
+      case 'code':   out += inlineCode(child.textContent); break;
+      case 'br':     out += '\n'; break;
+      case 'sup':    out += '^' + mdInline(child).trim(); break;
+      case 'sub':    out += '~' + mdInline(child).trim(); break;
+      case 'a':      out += '[' + (mdInline(child).trim() || child.getAttribute('href')) + '](' + child.getAttribute('href') + ')'; break;
+      case 'img':    out += '![' + (child.getAttribute('alt') || '') + '](' + child.getAttribute('src') + ')'; break;
+      default:       out += mdInline(child);
+    }
+  });
+  return out;
+}
+
+// 中身に含まれるバッククォート連続より1つ長い区切りを使う(CommonMark準拠)。
+// 中身がバッククォートで始まる/終わる場合は空白でパディングする。
+function inlineCode(s){
+  let longest = 0;
+  (s.match(/`+/g) || []).forEach(run => { longest = Math.max(longest, run.length); });
+  const fence = '`'.repeat(longest + 1);
+  const pad = (s.startsWith('`') || s.endsWith('`')) ? ' ' : '';
+  return fence + pad + s + pad + fence;
+}
+
+// Confluenceの貼り付け時オートフォーマットは ``` を認識しないため、
+// Markdown経路ではコードを1つの表(セル1つ)として代用する。
+function mdCodeAsTable(text, lang){
+  const esc = s => s.replace(/\|/g, '\\|');
+  const cell = text.split('\n').map(l => inlineCode(esc(l) || ' ')).join('<br>');
+  return ['| ' + esc(lang || 'code') + ' |', '|---|', '| ' + cell + ' |'].join('\n');
+}
+
+function mdTable(table){
+  const rows = Array.from(table.querySelectorAll('tr'));
+  if (!rows.length) return '';
+  const cellsOf = tr => Array.from(tr.children).map(c => mdInline(c).replace(/\n/g, ' ').replace(/\|/g, '\\|').trim());
+  const head = cellsOf(rows[0]);
+  const lines = ['| ' + head.join(' | ') + ' |', '|' + head.map(() => '---').join('|') + '|'];
+  rows.slice(1).forEach(tr => lines.push('| ' + cellsOf(tr).join(' | ') + ' |'));
+  return lines.join('\n');
+}
+
+function mdList(list, depth, ordered){
+  const lines = [];
+  let n = 0;
+  Array.from(list.children).forEach(li => {
+    if (li.tagName.toLowerCase() !== 'li') return;
+    n++;
+    const marker = ordered ? (n + '. ') : '- ';
+    const indent = '  '.repeat(depth);
+
+    const own = el('div');
+    const subLists = [];
+    Array.from(li.childNodes).forEach(c => {
+      if (c.nodeType === 1 && /^(ul|ol)$/i.test(c.tagName)) subLists.push(c);
+      else own.appendChild(c.cloneNode(true));
+    });
+
+    const text = mdBlocks(own, depth).trim();
+    if (text){
+      const parts = text.split('\n');
+      lines.push(indent + marker + parts[0]);
+      parts.slice(1).forEach(p => lines.push(indent + '  ' + p));
+    }
+    subLists.forEach(sub => {
+      const s = mdList(sub, depth + 1, sub.tagName.toLowerCase() === 'ol');
+      if (s) lines.push(s);
     });
   });
-  return doc.body.innerHTML;
+  return lines.join('\n');
 }
 
-function renderPreview(){
-  if (!output.textContent){
-    previewPanel.innerHTML = '';
-    return;
-  }
-  if (typeof marked === 'undefined'){
-    previewPanel.textContent = 'プレビュー用ライブラリの読み込みに失敗しました。通信環境をご確認のうえページを再読み込みしてください。';
-    return;
-  }
-  previewPanel.innerHTML = sanitizeHtml(marked.parse(output.textContent));
+const MD_BLOCK_TAGS = new Set(['h1','h2','h3','h4','h5','h6','p','hr','pre','blockquote','ul','ol','table']);
+
+function mdBlocks(container, depth){
+  const out = [];
+
+  // <li> 直下の <strong> やテキストのように、ブロックに包まれていない
+  // インライン要素が並ぶことがある。まとめて1つの段落として扱わないと
+  // 別ブロックに分かれ、装飾も落ちてしまう。
+  let inlineBuf = null;
+  const flushInline = () => {
+    if (!inlineBuf) return;
+    const t = mdInline(inlineBuf).trim();
+    if (t) out.push(t);
+    inlineBuf = null;
+  };
+  const bufferInline = node => {
+    if (!inlineBuf) inlineBuf = el('div');
+    inlineBuf.appendChild(node.cloneNode(true));
+  };
+
+  Array.from(container.childNodes).forEach(node => {
+    if (node.nodeType === 3){
+      if (node.textContent.trim()) bufferInline(node);
+      return;
+    }
+    if (node.nodeType !== 1) return;
+    const tag = node.tagName.toLowerCase();
+    if (!MD_BLOCK_TAGS.has(tag)){ bufferInline(node); return; }
+    flushInline();
+
+    const h = tag.match(/^h([1-6])$/);
+    if (h){ out.push('#'.repeat(Number(h[1])) + ' ' + mdInline(node).trim()); return; }
+    switch (tag){
+      case 'p':   { const t = mdInline(node).trim(); if (t) out.push(t); return; }
+      case 'hr':  out.push('---'); return;
+      case 'pre': {
+        const code = node.querySelector('code') || node;
+        const lang = (code.getAttribute('class') || '').replace(/^language-/, '');
+        out.push(OPTIONS.mdCodeTable
+          ? mdCodeAsTable(code.textContent, lang)
+          : '```' + lang + '\n' + code.textContent + '\n```');
+        return;
+      }
+      case 'blockquote': {
+        const inner = mdBlocks(node, depth).trim();
+        if (inner) out.push(inner.split('\n').map(l => '> ' + l).join('\n'));
+        return;
+      }
+      case 'ul': case 'ol': {
+        const t = mdList(node, depth, tag === 'ol');
+        if (t) out.push(t);
+        return;
+      }
+      case 'table': { const t = mdTable(node); if (t) out.push(t); return; }
+    }
+  });
+  flushInline();
+  return out.join('\n\n');
+}
+
+function toMarkdown(frag){
+  const wrap = el('div');
+  wrap.appendChild(frag.cloneNode(true));
+  return mdBlocks(wrap, 0).replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/* =========================================================================
+ * UI
+ * ======================================================================= */
+
+const OPTIONS = { includeTitle: true, normalizeHeadings: true, mdCodeTable: true };
+
+const $ = id => document.getElementById(id);
+
+const mdInput     = $('mdInput');
+const pasteZone   = $('pasteZone');
+const urlInput    = $('urlInput');
+const urlStatus   = $('urlStatus');
+const htmlSource  = $('htmlSource');
+const fetchBtn    = $('fetchBtn');
+const convertBtn  = $('convertBtn');
+const inputLabel  = $('inputLabel');
+const inCount     = $('inCount');
+
+const inTabMd     = $('inTabMd');
+const inTabPage   = $('inTabPage');
+const mdPanel     = $('mdPanel');
+const pagePanel   = $('pagePanel');
+
+const outTabPreview = $('outTabPreview');
+const outTabMd      = $('outTabMd');
+const outTabHtml    = $('outTabHtml');
+const previewPanel  = $('previewPanel');
+const mdOutPanel    = $('mdOutPanel');
+const htmlOutPanel  = $('htmlOutPanel');
+
+const copyRichBtn = $('copyRichBtn');
+const copyTextBtn = $('copyTextBtn');
+
+let inputMode = 'md';   // 'md' | 'page'
+let outputView = 'preview';
+let pastedHtml = '';    // 貼り付けで取り込んだ text/html
+let lastFragment = null;
+
+function currentPageHtml(){
+  // 「貼り付け」で取り込んだHTMLを優先し、無ければソース欄
+  return pastedHtml || htmlSource.value;
 }
 
 function run(){
-  if (mode === 'md'){
-    output.textContent = convert(input.value);
-    inCount.textContent = input.value.length + ' chars';
+  let frag;
+  if (inputMode === 'md'){
+    inCount.textContent = mdInput.value.length + ' 字';
+    frag = mdInput.value.trim()
+      ? normalizeFromMarkdown(mdInput.value, OPTIONS)
+      : OUT_DOC.createDocumentFragment();
   } else {
-    const html = htmlInputArea.value;
-    output.textContent = html.trim() ? htmlToConfluence(html) : '';
-    inCount.textContent = html.length + ' chars';
+    const html = currentPageHtml();
+    inCount.textContent = html.length + ' 字';
+    frag = html.trim()
+      ? normalizeFromHtml(html, Object.assign({ baseUrl: urlInput.value.trim() }, OPTIONS))
+      : OUT_DOC.createDocumentFragment();
   }
-  if (view === 'preview') renderPreview();
+
+  lastFragment = frag;
+  mdOutPanel.textContent = toMarkdown(frag);
+  htmlOutPanel.textContent = toRichHtml(frag);
+
+  previewPanel.textContent = '';
+  previewPanel.appendChild(document.importNode(frag, true));
 }
 
-function setMode(next){
-  mode = next;
-  tabMd.classList.toggle('active', mode === 'md');
-  tabHtml.classList.toggle('active', mode === 'html');
-  mdPanel.hidden = mode !== 'md';
-  htmlPanel.hidden = mode !== 'html';
-  inputLabel.textContent = mode === 'md' ? 'INPUT — Markdown' : 'INPUT — URL / HTML';
+function setInputMode(next){
+  inputMode = next;
+  inTabMd.classList.toggle('active', next === 'md');
+  inTabPage.classList.toggle('active', next === 'page');
+  mdPanel.hidden = next !== 'md';
+  pagePanel.hidden = next !== 'page';
+  inputLabel.textContent = next === 'md' ? 'INPUT — Markdown' : 'INPUT — ページ / HTML';
   run();
 }
 
-function setView(next){
-  view = next;
-  tabRaw.classList.toggle('active', view === 'raw');
-  tabPreview.classList.toggle('active', view === 'preview');
-  rawPanel.hidden = view !== 'raw';
-  previewPanel.hidden = view !== 'preview';
-  if (view === 'preview') renderPreview();
+function setOutputView(next){
+  outputView = next;
+  outTabPreview.classList.toggle('active', next === 'preview');
+  outTabMd.classList.toggle('active', next === 'md');
+  outTabHtml.classList.toggle('active', next === 'html');
+  previewPanel.hidden = next !== 'preview';
+  mdOutPanel.hidden = next !== 'md';
+  htmlOutPanel.hidden = next !== 'html';
 }
 
-tabMd.addEventListener('click', () => setMode('md'));
-tabHtml.addEventListener('click', () => setMode('html'));
-tabRaw.addEventListener('click', () => setView('raw'));
-tabPreview.addEventListener('click', () => setView('preview'));
+inTabMd.addEventListener('click', () => setInputMode('md'));
+inTabPage.addEventListener('click', () => setInputMode('page'));
+outTabPreview.addEventListener('click', () => setOutputView('preview'));
+outTabMd.addEventListener('click', () => setOutputView('md'));
+outTabHtml.addEventListener('click', () => setOutputView('html'));
 
-input.addEventListener('input', run);
-htmlInputArea.addEventListener('input', run);
+mdInput.addEventListener('input', run);
+htmlSource.addEventListener('input', () => { pastedHtml = ''; run(); });
+convertBtn.addEventListener('click', run);
+
+[['optTitle','includeTitle'], ['optHeadings','normalizeHeadings'], ['optMdCodeTable','mdCodeTable']]
+  .forEach(([id, key]) => {
+    $(id).addEventListener('change', e => { OPTIONS[key] = e.target.checked; run(); });
+  });
+
+// ページから直接コピーした内容は text/html を持っているので、それを使う。
+// ソースを表示させるより手軽で、SPAでも描画後のDOMが取れる。
+pasteZone.addEventListener('paste', e => {
+  const html = e.clipboardData && e.clipboardData.getData('text/html');
+  const plain = e.clipboardData && e.clipboardData.getData('text/plain');
+  if (html || plain){
+    e.preventDefault();
+    pastedHtml = html || '';
+    if (!html && plain){
+      // プレーンテキストしか無い場合はMarkdownとして扱う
+      htmlSource.value = '';
+      pastedHtml = '';
+      mdInput.value = plain;
+      setInputMode('md');
+      return;
+    }
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    pasteZone.textContent = '取り込みました（' + doc.body.textContent.trim().slice(0, 60).replace(/\s+/g, ' ') + '…）';
+    run();
+  }
+});
+pasteZone.addEventListener('focus', () => {
+  if (pasteZone.textContent.startsWith('取り込みました')) pasteZone.textContent = '';
+});
 
 fetchBtn.addEventListener('click', async () => {
   const url = urlInput.value.trim();
   if (!url) return;
   urlStatus.textContent = '取得中…';
-  urlStatus.className = 'url-status';
+  urlStatus.className = 'hint';
   try{
     const res = await fetch(url, { mode: 'cors' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    htmlInputArea.value = text;
-    urlStatus.textContent = '取得しました。ページの構造を変換しました。';
-    urlStatus.className = 'url-status ok';
+    htmlSource.value = text;
+    pastedHtml = '';
+    urlStatus.textContent = '取得しました。';
+    urlStatus.className = 'hint ok';
     run();
   }catch(e){
-    urlStatus.textContent = 'このページは直接取得できませんでした(多くのサイトはCORS制限で外部からの取得を許可していません)。ページを開いて右クリック→「ページのソースを表示」(Ctrl+U) で全選択・コピーし、下のHTML欄に貼り付けてください。';
-    urlStatus.className = 'url-status err';
+    urlStatus.textContent = 'このページは直接取得できませんでした（多くのサイトはCORS制限で外部からの取得を許可していません）。上の「方法1」でページをコピーして貼り付けてください。';
+    urlStatus.className = 'hint err';
   }
 });
 
-stampBtn.addEventListener('click', run);
+/* ---- コピー ---- */
 
-copyBtn.addEventListener('click', async () => {
+function flashButton(btn, label){
+  const original = btn.textContent;
+  btn.textContent = label;
+  btn.classList.add('done');
+  setTimeout(() => { btn.textContent = original; btn.classList.remove('done'); }, 1600);
+}
+
+// text/html を書ければ、Confluenceは貼り付け時にそれを解釈して
+// 見出し・コードブロック・表として取り込む。
+async function copyRich(){
+  const html = htmlOutPanel.textContent;
+  const text = mdOutPanel.textContent;
+  if (!html){ return; }
+
   try{
-    await navigator.clipboard.writeText(output.textContent);
-    copyBtn.textContent = 'コピー済';
-    copyBtn.classList.add('copied');
-    setTimeout(() => {
-      copyBtn.textContent = 'コピー';
-      copyBtn.classList.remove('copied');
-    }, 1500);
+    if (navigator.clipboard && window.ClipboardItem){
+      await navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([text], { type: 'text/plain' })
+      })]);
+      flashButton(copyRichBtn, 'コピーしました');
+      return;
+    }
+    throw new Error('ClipboardItem unavailable');
   }catch(e){
-    copyBtn.textContent = '失敗';
+    // 古いブラウザ向け: 一時的な選択範囲を作って execCommand でコピー
+    try{
+      const holder = document.createElement('div');
+      holder.setAttribute('contenteditable', 'true');
+      holder.style.cssText = 'position:fixed;left:-9999px;top:0;white-space:normal;';
+      holder.innerHTML = html;
+      document.body.appendChild(holder);
+      const range = document.createRange();
+      range.selectNodeContents(holder);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      const ok = document.execCommand('copy');
+      sel.removeAllRanges();
+      document.body.removeChild(holder);
+      flashButton(copyRichBtn, ok ? 'コピーしました' : 'コピーできません');
+    }catch(e2){
+      flashButton(copyRichBtn, 'コピーできません');
+    }
   }
-});
+}
+
+async function copyText(){
+  const text = outputView === 'html' ? htmlOutPanel.textContent : mdOutPanel.textContent;
+  if (!text) return;
+  try{
+    await navigator.clipboard.writeText(text);
+    flashButton(copyTextBtn, 'コピーしました');
+  }catch(e){
+    flashButton(copyTextBtn, 'コピーできません');
+  }
+}
+
+copyRichBtn.addEventListener('click', copyRich);
+copyTextBtn.addEventListener('click', copyText);
 
 run();
 </script>
