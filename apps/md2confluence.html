@@ -368,7 +368,7 @@
   <span><b>#</b> 見出し</span>
   <span><b>**text**</b> 太字</span>
   <span><b>_text_</b> 斜体</span>
-  <span><b>```</b> コードブロック</span>
+  <span><b>|code|</b> コードブロック(1列の表で再現)</span>
   <span><b>`code`</b> インラインコード</span>
   <span><b>[text](url)</b> リンク</span>
   <span><b>|h|h|</b> 表</span>
@@ -378,6 +378,21 @@
 <footer>変換は入力のたびに自動実行されます。</footer>
 
 <script>
+// Confluence Cloudの貼り付け時オートフォーマットは表・見出し・太字などは
+// 自動変換するが、```コードブロックだけは反応せず地の文になってしまう。
+// 表は確実に変換されるため、1カラムの表(1行=1セル)としてコードを
+// 再現し、各行をインラインコード書式で等幅表示させる。
+function codeToTableMd(codeText, lang){
+  const escapeCell = s => s.replace(/\|/g, '\\|');
+  const header = lang || 'code';
+  const lines = [`| ${escapeCell(header)} |`, '|---|'];
+  codeText.split('\n').forEach(l => {
+    const escaped = escapeCell(l) || ' ';
+    lines.push(`| \`${escaped}\` |`);
+  });
+  return lines.join('\n');
+}
+
 function convertInline(line){
   // リンク・画像・インラインコード・取り消し線は新Confluenceも同じ
   // Markdown記法を認識するためそのまま通す。太字/斜体の書き方だけ
@@ -405,6 +420,8 @@ function convert(md){
   const lines = md.split('\n');
   const out = [];
   let inCode = false;
+  let codeLang = '';
+  let codeBuffer = [];
   let inTable = false;
   let tableRowIndex = 0;
   let tableCols = 0;
@@ -413,18 +430,19 @@ function convert(md){
   for (let raw of lines){
     const line = raw.replace(/\r$/, '');
 
-    // コードブロック
+    // コードブロック(表として再現する)
     const fence = line.match(/^```(\w*)/);
     if (fence && !inCode){
       inCode = true;
-      out.push('```' + fence[1]);
+      codeLang = fence[1];
+      codeBuffer = [];
       continue;
     } else if (line.trim() === '```' && inCode){
       inCode = false;
-      out.push('```');
+      out.push(codeToTableMd(codeBuffer.join('\n'), codeLang));
       continue;
     } else if (inCode){
-      out.push(line);
+      codeBuffer.push(line);
       continue;
     }
 
@@ -598,7 +616,7 @@ function walkBlock(el){
       const cls = (codeEl || node).className || '';
       const langMatch = cls.match(/language-(\w+)/);
       const codeText = (codeEl || node).textContent.replace(/\n$/, '');
-      blocks.push('```' + (langMatch ? langMatch[1] : '') + '\n' + codeText + '\n```');
+      blocks.push(codeToTableMd(codeText, langMatch ? langMatch[1] : ''));
     } else if (tag === 'ul'){
       const t = listToMd(node, 0, false).join('\n');
       if (t) blocks.push(t);
