@@ -1,155 +1,28 @@
 #hub {
-  max-width: 860px;
+  max-width: 640px;
 }
 
-.doc {
-  background: #fff;
-  border: 1px solid #ececec;
-  border-radius: 16px;
-  padding: 36px 40px;
-  line-height: 1.8;
-}
-
-.doc h1,
-.doc h2,
-.doc h3 {
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
-.doc > h1:first-child {
-  display: none;
-}
-
-.doc h2 {
-  font-size: 20px;
-  margin: 40px 0 16px;
-  padding-top: 24px;
-  border-top: 1px solid #ececec;
-}
-
-.doc h2:first-of-type {
-  border-top: none;
-  padding-top: 0;
-}
-
-.doc h3 {
-  font-size: 16px;
-  margin: 24px 0 10px;
-  color: #333;
-}
-
-.doc p {
-  color: #333;
-  font-size: 15px;
-  margin: 0 0 14px;
-}
-
-.doc code {
-  background: #f1f0fa;
-  color: #5a4bb0;
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 13px;
-}
-
-.doc pre {
-  background: #1e1e28;
-  color: #e6e6f0;
-  border-radius: 10px;
-  padding: 16px 18px;
-  overflow-x: auto;
-  font-size: 13px;
-  line-height: 1.6;
-  margin: 0 0 18px;
-}
-
-.doc pre code {
-  background: none;
-  color: inherit;
-  padding: 0;
-}
-
-.doc table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0 0 18px;
-  font-size: 13.5px;
-}
-
-.doc th,
-.doc td {
-  border: 1px solid #e2e2e2;
-  padding: 8px 12px;
-  text-align: left;
-  vertical-align: top;
-}
-
-.doc th {
-  background: #f7f7f8;
-  font-weight: 700;
-}
-
-.doc ul,
-.doc ol {
-  margin: 0 0 14px;
-  padding-left: 22px;
-  font-size: 15px;
-  color: #333;
-}
-
-.doc li {
-  margin-bottom: 4px;
-}
-
-.doc blockquote {
-  margin: 0 0 18px;
-  padding: 10px 16px;
-  border-left: 3px solid #6d5bd0;
-  background: #f7f6fd;
-  color: #555;
-  font-size: 14px;
-}
-
-.doc blockquote p {
-  margin: 0;
-}
-
-.doc hr {
-  border: none;
-  border-top: 1px solid #ececec;
-  margin: 24px 0;
-}
-
-.doc input[type="checkbox"] {
-  margin-right: 6px;
-}
-
-.toolbar {
+.downloads {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
 }
 
-.screens-link {
+.download-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #6d5bd0;
+  gap: 8px;
+  padding: 14px 18px;
   background: #efecfb;
-  border-radius: 999px;
-  padding: 8px 16px;
+  color: #6d5bd0;
   text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 12px;
   transition: background 0.15s;
 }
 
-.screens-link:hover {
+.download-link:hover {
   background: #e2ddf7;
-}
-
-.loading {
-  color: #999;
-  font-size: 14px;
 }
