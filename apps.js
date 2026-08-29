@@ -4,6 +4,13 @@
 // categories.js so the item shows up on the right category page.
 const APPS = [
   {
+    name: "MD → Confluence 変換窓口",
+    description: "MarkdownをConfluence旧記法(Wiki Markup)に変換します。見出し・太字・リンク・表・コードブロックに対応、サーバー通信なしでその場で完結。",
+    path: "apps/md2confluence.html",
+    icon: "📐",
+    category: "mini-apps",
+  },
+  {
     name: "生成AIのしくみ入門",
     description: "文章生成AI・画像/動画生成AIが答えを作る仕組みを、専門知識なしでも図解でわかるように解説します。",
     path: "apps/generative-ai-basics-guide/",
