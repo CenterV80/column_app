@@ -38,11 +38,25 @@ ComfyUIのカスタムノードには、通常のPythonライブラリと共通�
 4. **サンドボックスでの試用**: 本番環境に入れる前に、Docker等で隔離した環境で一度試すと安心です。
 5. **依存関係の脆弱性チェック**: 各ノードの`requirements.txt`をまとめて`pip-audit`にかけます。
 
-ただし、ブラックリスト照合は「すでに知られている悪意あるノード」の検出が中心で、未知のリスク(悪意はないが危険な処理を含む、脆弱な依存関係を持つ、など)まではカバーしきれません。ここを補うのが自作のスキャナーです。
+ただし、ブラックリスト照合は「すでに知られている悪意あるノード」の検出が中心で、未知のリスク(悪意はないが危険な処理を含む、脆弱な依存関係を持つ、など)まではカバーしきれません。
 
-## 自作スキャナーでできること
+## 既存の専用スキャナーツール
 
-`custom_nodes`フォルダ全体、あるいはワークフローJSONで実際に使われているノードだけを対象に、次のチェックを自動化できます。
+このブラックリスト照合の限界を補う目的で作られた、独立したオープンソースのスキャナーもすでに存在します。特に本格的なのが [christian-byrne/custom-nodes-security-scan](https://github.com/christian-byrne/custom-nodes-security-scan) です。
+
+- **Bandit**(Pythonの静的解析ツール)の73種類のテストをフル活用
+- 危険なimportのブラックリスト30種類
+- **YARAルール3,294個**によるマルウェアシグネチャ照合
+- 2022年以降に確認された既知の悪性IPアドレス(80万件超)との突合
+- スキャン結果を[GitHub Pages](https://christian-byrne.github.io/custom-nodes-security-scan/)で公開済み
+
+Bandit・YARA・IPブラックリストを組み合わせた、かなり網羅的な作りです。本格的に運用したい場合は、まずこちらを検討する価値があります(Linux環境が前提で、`firejail`や`yara`などの追加インストールが必要)。
+
+一方で、「依存関係を増やさずに、AST解析の考え方だけを手元でさっと動かしてみたい」という用途には、後述する自作の最小構成スキャナーも選択肢になります。
+
+## 自作の最小構成スキャナーでできること
+
+`custom_nodes`フォルダ全体、あるいはワークフローJSONで実際に使われているノードだけを対象に、Python標準ライブラリ中心の実装で次のチェックを自動化できます。上記の本格的なツールに比べると検出パターンはずっと少なく、あくまで「AST解析による危険呼び出し検出」の考え方を体験するための教育的なサンプルという位置づけです。
 
 - **危険な関数呼び出しの静的検出**: AST(構文木)解析により、`exec`/`eval`/`os.system`/`subprocess`系/`pickle.load`/`torch.load`などの呼び出しをコメントの誤検知なく検出。`from os import system`や`import os as o`のような別名も、import文を辿って`os.system`として解決する(単純な文字列検索やドット区切りの名前だけを見る実装では、この書き方が丸ごと見逃される)
 - **ネットワーク通信の検出**: `requests`、`urllib`、`socket`などの import を洗い出し、外部通信の可能性がある箇所を可視化
@@ -58,9 +72,9 @@ ComfyUIのカスタムノードには、通常のPythonライブラリと共通�
 
 最終的には、自動チェックで足切りをしたうえで、疑わしい箇所だけ人間が読む、という二段構えが現実的なバランスだと言えそうです。
 
-## スキャナー本体をダウンロード
+## 最小構成スキャナー本体をダウンロード
 
-上記のチェックを自動化するPythonスクリプトを配布します。AST解析による危険呼び出し検出、ネットワークモジュールの検出、`pip-audit`連携、ComfyUI-Managerブラックリストとの突合をまとめて実行し、リスクレベル付きのMarkdownレポートを出力します。
+上記のチェックを自動化するPythonスクリプトを配布します。AST解析による危険呼び出し検出、ネットワークモジュールの検出、`pip-audit`連携、ComfyUI-Managerブラックリストとの突合をまとめて実行し、リスクレベル付きのMarkdownレポートを出力します。標準ライブラリのみで動くため、追加インストールなしですぐ試せるのが利点です。繰り返しになりますが、本格的に使うなら前述の[christian-byrne/custom-nodes-security-scan](https://github.com/christian-byrne/custom-nodes-security-scan)のほうが検出範囲は広いです。
 
 <p style="text-align:center; margin: 24px 0;">
   <a href="scan_custom_nodes.py" download="scan_custom_nodes.py" style="display:inline-block; background:#6d5bd0; color:#fff; font-weight:700; text-decoration:none; padding:12px 28px; border-radius:999px; font-size:14.5px;">⬇ scan_custom_nodes.py をダウンロード</a>
