@@ -12,28 +12,12 @@
   <a class="back-link" href="../../categories/ltx/index.html">← AI動画カテゴリに戻る</a>
   <header>
     <h1>🎨 絵コンテ生成ツール 技術仕様書</h1>
-    <p>字コンテから絵コンテを生成し、動画生成AIに渡すプロンプトと参照画像のセットを出力するWebアプリケーションの技術仕様書です。</p>
+    <p>字コンテから絵コンテを生成し、動画生成AIに渡すプロンプトと参照画像のセットを出力するWebアプリケーションの資料です。</p>
   </header>
-  <div class="toolbar">
-    <a class="screens-link" href="screens.html">📐 画面レイアウトを見る</a>
+  <div class="downloads">
+    <a class="download-link" href="spec.md" download>📄 技術仕様書（spec.md）をダウンロード</a>
+    <a class="download-link" href="screens.html" download>🖼️ 画面レイアウト（screens.html）をダウンロード</a>
   </div>
-  <div id="content" class="doc loading">読み込み中…</div>
-  <p style="margin-top: 24px;">
-    <a class="back-link" href="../../categories/ltx/index.html">← AI動画カテゴリに戻る</a>
-  </p>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
-<script>
-  fetch("spec.md")
-    .then((res) => res.text())
-    .then((markdown) => {
-      const content = document.getElementById("content");
-      content.classList.remove("loading");
-      content.innerHTML = marked.parse(markdown);
-    })
-    .catch(() => {
-      document.getElementById("content").textContent = "仕様書を読み込めませんでした。";
-    });
-</script>
 </body>
 </html>
