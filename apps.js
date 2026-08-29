@@ -206,4 +206,11 @@ const APPS = [
     icon: "📦",
     category: "javascript",
   },
+  {
+    name: "ComfyUIカスタムノードのセキュリティ、どうチェックする?",
+    description: "カスタムノードが抱えるリスクと、依存パッケージ・危険な関数呼び出しをチェックする実践的なワークフローをまとめました。自作スキャナーのダウンロード付き。",
+    path: "comfyui-custom-node-security.html",
+    icon: "🛡️",
+    category: "comfyui",
+  },
 ];
