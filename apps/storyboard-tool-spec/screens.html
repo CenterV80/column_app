@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>絵コンテツール 画面レイアウト</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --sub: #8a8a8a;
+    --rule: #dcdcdc;
+    --hair: #ededed;
+    --fill: #f7f7f7;
+    --red: #d92b2b;
+    --sans: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 28px 16px 72px;
+    background: #fff;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.7;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+
+  .back-link {
+    display: inline-block;
+    color: var(--sub);
+    text-decoration: none;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .back-link:hover { color: var(--ink); }
+
+  .doc-title { font-size: 19px; font-weight: 700; margin: 0 0 4px; }
+  .doc-sub { color: var(--sub); font-size: 13px; margin: 0 0 40px; }
+
+  .flow {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--sub);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 10px 0;
+    margin-bottom: 40px;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+
+  section { margin-bottom: 52px; }
+  .num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--red);
+    letter-spacing: .08em;
+  }
+  h2 { font-size: 16px; font-weight: 700; margin: 2px 0 6px; }
+  .note { color: var(--sub); font-size: 13px; margin: 0 0 16px; }
+
+  /* --- 画面枠 --- */
+  .screen {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--hair);
+    font-size: 12px;
+  }
+  .bar .name { font-weight: 700; }
+  .bar .meta { color: var(--sub); font-size: 11px; }
+  .body { padding: 14px 12px; }
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 12px;
+    border-top: 1px solid var(--hair);
+  }
+  .btn {
+    border: 1px solid var(--ink);
+    border-radius: 3px;
+    padding: 5px 14px;
+    font-size: 12px;
+  }
+  .btn.ghost { border-color: var(--rule); color: var(--sub); }
+
+  /* --- 1. 書く --- */
+  .block {
+    border: 1px solid var(--hair);
+    border-radius: 3px;
+    padding: 9px 11px;
+    margin-bottom: 7px;
+    font-size: 13px;
+  }
+  .block.active { border-color: var(--ink); }
+  .chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--fill);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 0 5px;
+  }
+  .paste {
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 12px 13px;
+    min-height: 210px;
+    font-size: 13px;
+    line-height: 2;
+    white-space: pre-wrap;
+  }
+  .hint { font-size: 11px; color: var(--sub); margin: 8px 0 0; }
+  .popup {
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 7px 9px;
+    margin: -3px 0 7px 14px;
+    max-width: 240px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+  .popup .ttl { font-size: 11px; color: var(--sub); margin-bottom: 5px; }
+  .popup-row { display: flex; align-items: center; gap: 7px; font-size: 12px; padding: 2px 0; }
+  .thumb { width: 22px; height: 22px; background: var(--fill); border: 1px solid var(--rule); border-radius: 2px; flex: none; }
+
+  /* --- 2. 区切る --- */
+  .lines { border-left: 2px solid var(--hair); padding-left: 12px; }
+  .line { font-size: 13px; padding: 6px 0; }
+  .cut-group { border-left-color: var(--ink); }
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 4px -14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .04em;
+  }
+  .divider .rule { flex: 1; height: 0; border-top: 1px dashed var(--rule); }
+  .divider .lbl { color: var(--sub); }
+  .divider.frame .rule { border-top: 1px solid var(--ink); }
+  .divider.frame .lbl { color: var(--ink); }
+  .divider.cut .rule { border-top: 2px solid var(--red); }
+  .divider.cut .lbl { color: var(--red); }
+
+  .states {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--sub);
+  }
+  .states span { border: 1px solid var(--rule); border-radius: 3px; padding: 2px 8px; }
+
+  /* --- 3. コンテ --- */
+  .bar2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .bar2 .label { font-size: 11px; color: var(--sub); margin-left: 4px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 10px;
+    padding: 12px;
+  }
+  .frame { padding-right: 6px; }
+  .frame.cut-end { border-right: 2px solid var(--red); }
+  .pic {
+    aspect-ratio: 16 / 9;
+    background: var(--fill);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+  }
+  .cap {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--sub);
+    padding-top: 5px;
+    letter-spacing: .03em;
+  }
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--red);
+    border: 1px solid var(--red);
+    border-radius: 2px;
+    padding: 0 4px;
+    margin-left: 4px;
+  }
+
+  .callout {
+    border-left: 2px solid var(--ink);
+    padding: 2px 0 2px 12px;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+  .callout p { margin: 0 0 6px; }
+  .callout p:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back-link" href="index.html">← 技術仕様書に戻る</a>
+
+  <p class="doc-title">絵コンテツール 画面レイアウト</p>
+  <p class="doc-sub">シーン単位で作業する。書く・区切る・見るの3画面を行き来する。</p>
+
+  <div class="flow">書く画面 &nbsp;→&nbsp; 区切る画面 &nbsp;→&nbsp; コンテ画面 &nbsp;&nbsp;/&nbsp;&nbsp; 書く画面 →─────────→ コンテ画面（字だけ直したとき）</div>
+
+  <!-- 1 -->
+  <section>
+    <p class="num">01</p>
+    <h2>書く画面</h2>
+    <p class="note">字コンテを貼り付ける／書くフィールドと、ボタンだけ。生成されたプロンプト行は見せない。</p>
+
+    <div class="screen">
+      <div class="bar">
+        <span class="name">屋上・夕</span>
+        <span class="meta">保存済み</span>
+      </div>
+      <div class="body">
+        <div class="paste">扉が内側から押し開かれる。chara1 が屋上に踏み出す。西日が強い。
+
+フェンスの前に chara2 が立っている。振り向かない。
+
+chara1 が数歩近づいて、足を止める。</div>
+        <p class="hint">長文はそのまま貼り付ける。改行で区切られた1行が1ブロックになる。</p>
+      </div>
+      <div class="footer"><span class="btn">行を生成</span></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section>
+    <p class="num">02</p>
+    <h2>区切る画面</h2>
+    <p class="note">生成されたプロンプト行が縦に並ぶ。行間をタップして区切りを入れる。区切った瞬間、下の行が新しいコマとして分かれる。</p>
+
+    <div class="screen">
+      <div class="bar">
+        <span class="name">区切る</span>
+        <span class="meta">12行 ・ 4コマ ・ 2カット</span>
+      </div>
+      <div class="body">
+        <div class="lines cut-group">
+          <div class="line">扉が内側から押し開かれる</div>
+          <div class="line">ユキが屋上に踏み出す</div>
+        </div>
+
+        <div class="divider frame"><span class="lbl">コマ</span><span class="rule"></span></div>
+
+        <div class="lines cut-group">
+          <div class="line">西日に目を細める</div>
+          <div class="line">フェンスの前に立つ人影に気づく</div>
+        </div>
+
+        <div class="divider cut"><span class="lbl">カット</span><span class="rule"></span></div>
+
+        <div class="lines">
+          <div class="line">先輩は振り向かない</div>
+        </div>
+
+        <div class="divider"><span class="lbl">タップで区切る</span><span class="rule"></span></div>
+
+        <div class="lines">
+          <div class="line">ユキが数歩近づく</div>
+          <div class="line">足を止める</div>
+        </div>
+
+        <div class="states">
+          <span>なし</span><span>→ コマ</span><span>→ カット</span><span>→ なし</span>
+        </div>
+      </div>
+      <div class="footer"><span class="btn">コマを生成</span></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <p class="num">03</p>
+    <h2>コンテ画面</h2>
+    <p class="note">白基調。絵コンテに面積を振る。カットの切れ目は最後のコマの右辺に赤い縦線。グループ化の帯は置かない。</p>
+
+    <div class="screen">
+      <div class="bar">
+        <span class="name">屋上・夕</span>
+        <span class="meta">保存済み ・ スナップショット ・ 書き出し</span>
+      </div>
+      <div class="bar2">
+        <span class="btn ghost">字コンテを開く</span>
+        <span class="thumb"></span><span class="thumb"></span>
+        <span class="label">キャラクターシート</span>
+      </div>
+      <div class="grid">
+        <div class="frame"><div class="pic"></div><div class="cap">01 ・ 2s</div></div>
+        <div class="frame cut-end"><div class="pic"></div><div class="cap">02 ・ 1s ・ TU</div></div>
+        <div class="frame"><div class="pic"></div><div class="cap">03 ・ 3s</div></div>
+        <div class="frame"><div class="pic"></div><div class="cap">04</div></div>
+        <div class="frame"><div class="pic"></div><div class="cap">05 ・ 左PAN</div></div>
+        <div class="frame cut-end"><div class="pic"></div><div class="cap">06 <span class="badge">要更新</span></div></div>
+        <div class="frame"><div class="pic"></div><div class="cap">07 ・ 4s</div></div>
+        <div class="frame"><div class="pic"></div><div class="cap">08</div></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p>尺が空欄のコマは何も表示しない。「未指定」とも書かない。</p>
+      <p>未生成のコマも同じ高さの枠で並べる。生成中にグリッドがガタつかない。</p>
+      <p>赤線を足す・消す操作が、そのままカット区切りの編集になる。</p>
+    </div>
+  </section>
+
+  <p><a class="back-link" href="index.html">← 技術仕様書に戻る</a></p>
+
+</div>
+</body>
+</html>
