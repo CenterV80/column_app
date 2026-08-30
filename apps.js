@@ -46,6 +46,13 @@ const APPS = [
     category: "python",
   },
   {
+    name: "AI画像・動画生成を支えるPythonライブラリまとめ",
+    description: "PyTorch・Transformers・Diffusers・CUDA・xFormersなど、ComfyUIやLTX・FLUX系のソースコードに登場するライブラリを役割ごとに整理しました。",
+    path: "ai-python-libraries.html",
+    icon: "🐍",
+    category: "python",
+  },
+  {
     name: "関数電卓",
     description: "Desmos風のグラフ電卓。複数の数式を色分けして描画し、パン・ズームで自由に表示範囲を変えられます。",
     path: "apps/graph-calculator/",
