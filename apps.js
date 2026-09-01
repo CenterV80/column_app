@@ -200,6 +200,13 @@ const APPS = [
     category: "minimax-h3",
   },
   {
+    name: "ローカルMiniMax H3 R2V ComfyUI構成まとめ",
+    description: "RTX5080(16GB)・参照画像多用のR2V用途向けに、DiT/VAE/テキストエンコーダー/Turbo LoRAの選定理由を決定ログ付きでまとめました。",
+    path: "minimax-h3-r2v-comfyui-setup.html",
+    icon: "🖼️",
+    category: "minimax-h3",
+  },
+  {
     name: "npm audit の使い方",
     description: "npm auditで既知の脆弱性を検出し、npm audit fixで修正する基本コマンドと注意点をまとめました。",
     path: "npm-audit-guide.html",
