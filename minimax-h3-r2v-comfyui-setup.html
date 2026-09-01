@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ローカルMiniMax H3 R2V ComfyUI構成まとめ</title>
+<link rel="stylesheet" href="hub.css">
+<style>
+  #hub {
+    max-width: 780px;
+  }
+
+  .article {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 16px;
+    padding: 36px 40px;
+  }
+
+  .article h1 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 24px;
+  }
+
+  .article h2 {
+    font-size: 19px;
+    font-weight: 700;
+    color: #6d5bd0;
+    border-bottom: 2px solid #efecfb;
+    padding-bottom: 8px;
+    margin: 36px 0 16px;
+  }
+
+  .article h2:first-of-type {
+    margin-top: 0;
+  }
+
+  .article h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 24px 0 10px;
+  }
+
+  .article p {
+    font-size: 14.5px;
+    line-height: 1.9;
+    color: #333;
+    margin: 0 0 14px;
+  }
+
+  .article ul, .article ol {
+    font-size: 14.5px;
+    line-height: 1.9;
+    color: #333;
+    margin: 0 0 14px;
+    padding-left: 24px;
+  }
+
+  .article li {
+    margin-bottom: 4px;
+  }
+
+  .article li > p {
+    margin: 0;
+  }
+
+  .article code {
+    background: #f3f1fb;
+    color: #5b4bc4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+  }
+
+  .article pre {
+    background: #2d2d2d;
+    color: #f8f8f2;
+    padding: 16px 18px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 0 0 16px;
+    line-height: 1.6;
+  }
+
+  .article pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: 0.85em;
+  }
+
+  .article table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 16px;
+    font-size: 14px;
+  }
+
+  .article th, .article td {
+    border: 1px solid #e2e2e2;
+    padding: 10px 14px;
+    text-align: left;
+  }
+
+  .article th {
+    background: #f7f6fc;
+    color: #6d5bd0;
+    font-weight: 700;
+  }
+
+  .article strong {
+    color: #222;
+  }
+
+  .article hr {
+    border: none;
+    border-top: 1px solid #ececec;
+    margin: 28px 0;
+  }
+
+  .loading {
+    color: #999;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div id="hub">
+  <a class="back-link" href="categories/minimax-h3/index.html">← MiniMax H3に戻る</a>
+  <div id="content" class="loading">読み込み中…</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
+<script>
+  fetch("minimax-h3-r2v-comfyui-setup.md")
+    .then((res) => res.text())
+    .then((markdown) => {
+      const content = document.getElementById("content");
+      content.classList.remove("loading");
+      content.innerHTML = '<div class="article">' + marked.parse(markdown) + "</div>";
+    })
+    .catch(() => {
+      document.getElementById("content").textContent = "記事を読み込めませんでした。";
+    });
+</script>
+</body>
+</html>
