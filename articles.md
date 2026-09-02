@@ -1,5 +1,10 @@
 ## 2026年9月
 
+### ComfyUI-H3VAE_TRT - MiniMax-H3のVAEをTensorRT化して最大1.7倍高速化
+[GitHub - lihaoyun6/ComfyUI-H3VAE_TRT](https://github.com/lihaoyun6/ComfyUI-H3VAE_TRT)
+
+MiniMax-H3のVAE（変分オートエンコーダ）を、NVIDIAのTensorRT形式に変換してComfyUI上で実行できるようにする拡張機能。TensorRT版のVAEを使うことで、通常実行と比べて最大1.7倍の速度向上が見込めるという。提供されるノードは2つで、ONNX形式のVAEをTensorRTエンジンへコンパイルする「MiniMax-H3 TRT VAE Compiler」と、コンパイル済みのエンジンを読み込んで使う「MiniMax-H3 TRT VAE Loader」に分かれている。使い方は、まずHugging Faceから`.onnx`形式のVAEファイルを入手して`ComfyUI/models/vae`に配置し、GitHubからリポジトリをクローンして依存関係をインストールしたうえで、Compilerノードで一度エンジン化してからLoaderノードで読み込んで使用する、という流れ。VRAMが限られる環境では、`w4a16_awq`デコーダの利用が推奨されている。
+
 ### X-MinimaxH3 - 単一GPU向けに最適化されたMiniMax-H3ローカル実行サービス
 [GitHub - PullMyBoots/X-MinimaxH3](https://github.com/PullMyBoots/X-MinimaxH3)
 
