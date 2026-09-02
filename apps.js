@@ -227,4 +227,11 @@ const APPS = [
     icon: "🛡️",
     category: "comfyui",
   },
+  {
+    name: "Substance Designer × AI自動化 調査まとめ",
+    description: "ピクセルプロセッサー内部の関数グラフをAIに自動生成させる検証。MCPサーバーの限界を踏まえ、Substance Automation Toolkit(pysbs)を使う方針に至った調査経緯をまとめました。",
+    path: "substance-designer-ai-automation.html",
+    icon: "🎨",
+    category: "substance-designer",
+  },
 ];
