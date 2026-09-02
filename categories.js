@@ -86,4 +86,11 @@ const CATEGORIES = [
     path: "categories/javascript/",
     icon: "🟨",
   },
+  {
+    id: "substance-designer",
+    name: "Substance Designer",
+    description: "Substance DesignerのAI自動化まわりの調査・検証をまとめています。",
+    path: "categories/substance-designer/",
+    icon: "🎨",
+  },
 ];
