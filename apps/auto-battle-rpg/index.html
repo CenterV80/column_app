@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>オートバトルRPG プロトタイプ</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    color-scheme: dark;
+    --bg: #14121f;
+    --panel: #1e1b30;
+    --panel-alt: #262244;
+    --border: #3a3560;
+    --text: #ece9ff;
+    --muted: #a79fd6;
+    --accent: #7c6cff;
+    --enemy: #ff6b6b;
+    --player: #5ee6c8;
+    --warn: #ffd166;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .back-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+  }
+  .back-link:hover { color: var(--text); }
+
+  header h1 {
+    font-size: 20px;
+    margin-top: 4px;
+  }
+  header .sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: normal;
+  }
+  header .lead {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  section h2 {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  #battlefield {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .unit {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .unit-name {
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .unit.enemy .unit-name { color: var(--enemy); }
+  .unit.player .unit-name { color: var(--player); }
+
+  .hp-bar {
+    height: 10px;
+    border-radius: 6px;
+    background: #100e1c;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .hp-fill {
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s ease;
+  }
+  .unit.enemy .hp-fill { background: var(--enemy); }
+  .unit.player .hp-fill { background: var(--player); }
+
+  .unit-stats {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  #deck-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 34px;
+  }
+
+  .deck-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--panel-alt);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+  .deck-chip .idx {
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .deck-chip button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 0 3px;
+    cursor: pointer;
+  }
+  .deck-chip button:hover { color: var(--text); }
+
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  #palette {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .card-btn {
+    text-align: left;
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .card-btn:active { transform: scale(0.97); }
+  .card-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .card-btn .card-label {
+    font-size: 13px;
+    font-weight: bold;
+  }
+  .card-btn.type-condition .card-label { color: var(--warn); }
+  .card-btn.type-calc .card-label { color: var(--accent); }
+  .card-btn.type-action .card-label { color: var(--player); }
+
+  .card-btn .card-desc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .deck-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+  }
+
+  button.secondary {
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button.secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  #battle-controls {
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+    gap: 8px;
+  }
+
+  #start-battle {
+    flex: 1;
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  #start-battle:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  #skip-battle {
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  #skip-battle:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  #result-banner {
+    display: none;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: -2px;
+  }
+  #result-banner.win { display: block; background: rgba(94, 230, 200, 0.15); color: var(--player); }
+  #result-banner.lose { display: block; background: rgba(255, 107, 107, 0.15); color: var(--enemy); }
+  #result-banner.timeout { display: block; background: rgba(255, 209, 102, 0.15); color: var(--warn); }
+
+  #log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 260px;
+    overflow-y: auto;
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  #log-list .log-round {
+    color: var(--muted);
+    margin-top: 6px;
+    font-weight: bold;
+  }
+  #log-list .log-round:first-child { margin-top: 0; }
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back-link" href="../../categories/mini-apps/index.html">← ミニアプリ一覧</a>
+  <header>
+    <h1>⚔️ オートバトルRPG <span class="sub">v0.1 最小プロトタイプ</span></h1>
+    <p class="lead">
+      戦闘前にカードを並べて戦術を組むと、あとは完全に自動で戦います。乱数は一切使わないので、同じデッキなら何度戦っても結果は同じ。負けたら並び替えて再挑戦しましょう。
+    </p>
+  </header>
+
+  <section id="battlefield">
+    <div class="unit enemy">
+      <div class="unit-name">👹 敵</div>
+      <div class="hp-bar"><div class="hp-fill" id="enemyHpFill"></div></div>
+      <div class="unit-stats">HP <span id="enemyHpText">10</span> / 10　ATK 3</div>
+    </div>
+    <div class="unit player">
+      <div class="unit-name">🧑 自分</div>
+      <div class="hp-bar"><div class="hp-fill" id="playerHpFill"></div></div>
+      <div class="unit-stats">HP <span id="playerHpText">10</span> / 10　ATK <span id="playerAtkText">2</span></div>
+    </div>
+  </section>
+
+  <section id="deck-builder">
+    <h2>戦術デッキ（この順番で毎ターン実行される）</h2>
+    <div id="deck-list"></div>
+    <p class="hint" id="deck-hint">下のカードをタップしてデッキに追加してください。カードは何度でも使えます。</p>
+
+    <div id="palette"></div>
+
+    <div class="deck-actions">
+      <button class="secondary" id="clear-deck">デッキをクリア</button>
+    </div>
+  </section>
+
+  <section id="battle-controls">
+    <button id="start-battle">戦闘開始</button>
+    <button id="skip-battle" class="secondary" disabled>スキップ</button>
+  </section>
+
+  <section id="battle-log">
+    <h2>戦闘ログ</h2>
+    <div id="result-banner"></div>
+    <div id="log-list"></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const MAX_HP_PLAYER = 10;
+  const MAX_HP_ENEMY = 10;
+  const BASE_ATK_PLAYER = 2;
+  const ATK_ENEMY = 3;
+  const HEAL_AMOUNT = 3;
+  const MAX_ROUNDS = 30;
+
+  const CARDS = [
+    { id: "attack", label: "攻撃", type: "action", desc: "現在の攻撃力ぶん、敵にダメージを与える" },
+    { id: "heal", label: "回復", type: "action", desc: `自分のHPを${HEAL_AMOUNT}回復する（最大値まで）` },
+    { id: "desperate", label: "捨て身", type: "action", desc: "自分のHPを2減らし、攻撃力を2上げる" },
+    { id: "hpIsOne", label: "HP=1", type: "condition", desc: "自分のHPが1のときだけ、以降のカードを実行する" },
+    { id: "plus2", label: "+2", type: "calc", desc: "攻撃力に2を加える" },
+    { id: "times2", label: "×2", type: "calc", desc: "攻撃力を2倍にする" },
+    { id: "power", label: "累乗", type: "calc", desc: "攻撃力を2乗する（強力だが乱用注意）" },
+  ];
+  const CARD_MAP = Object.fromEntries(CARDS.map((c) => [c.id, c]));
+
+  let deck = [];
+  let running = false;
+  let revealTimer = null;
+
+  const el = (id) => document.getElementById(id);
+
+  function renderPalette() {
+    const palette = el("palette");
+    palette.innerHTML = "";
+    CARDS.forEach((card) => {
+      const btn = document.createElement("button");
+      btn.className = `card-btn type-${card.type}`;
+      btn.disabled = running;
+      btn.innerHTML = `<div class="card-label">${card.label}</div><div class="card-desc">${card.desc}</div>`;
+      btn.addEventListener("click", () => {
+        if (running) return;
+        deck.push(card.id);
+        renderDeck();
+      });
+      palette.appendChild(btn);
+    });
+  }
+
+  function renderDeck() {
+    const list = el("deck-list");
+    list.innerHTML = "";
+    deck.forEach((cardId, i) => {
+      const card = CARD_MAP[cardId];
+      const chip = document.createElement("div");
+      chip.className = "deck-chip";
+      chip.innerHTML = `<span class="idx">${i + 1}</span><span>${card.label}</span>`;
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "×";
+      removeBtn.disabled = running;
+      removeBtn.addEventListener("click", () => {
+        if (running) return;
+        deck.splice(i, 1);
+        renderDeck();
+      });
+      chip.appendChild(removeBtn);
+      list.appendChild(chip);
+    });
+    el("deck-hint").style.display = deck.length ? "none" : "block";
+    el("start-battle").disabled = running || deck.length === 0;
+  }
+
+  function setControlsDisabled(disabled) {
+    running = disabled;
+    el("start-battle").disabled = disabled || deck.length === 0;
+    el("clear-deck").disabled = disabled;
+    renderPalette();
+    renderDeck();
+  }
+
+  function updateStatus(playerHp, playerAtk, enemyHp) {
+    el("playerHpText").textContent = Math.max(0, playerHp);
+    el("playerAtkText").textContent = playerAtk;
+    el("enemyHpText").textContent = Math.max(0, enemyHp);
+    el("playerHpFill").style.width = `${(Math.max(0, playerHp) / MAX_HP_PLAYER) * 100}%`;
+    el("enemyHpFill").style.width = `${(Math.max(0, enemyHp) / MAX_HP_ENEMY) * 100}%`;
+  }
+
+  // Pure, deterministic battle simulation. Same deck always produces the
+  // same step list, since there is no randomness anywhere in this game.
+  function simulateBattle(deckIds) {
+    let player = { hp: MAX_HP_PLAYER, atk: BASE_ATK_PLAYER };
+    let enemy = { hp: MAX_HP_ENEMY };
+    const steps = [];
+    let result = "timeout";
+
+    const snapshot = (message) =>
+      steps.push({ message, playerHp: player.hp, playerAtk: player.atk, enemyHp: enemy.hp });
+
+    outer:
+    for (let round = 1; round <= MAX_ROUNDS; round++) {
+      steps.push({ round });
+
+      for (const cardId of deckIds) {
+        const card = CARD_MAP[cardId];
+
+        if (card.id === "hpIsOne") {
+          if (player.hp !== 1) {
+            snapshot(`条件『HP=1』は不成立（現在HP ${player.hp}）→ このラウンドの残りは不発`);
+            break;
+          }
+          snapshot("条件『HP=1』が成立！ 以降のカードを実行");
+          continue;
+        }
+
+        if (card.id === "plus2") {
+          const before = player.atk;
+          player.atk += 2;
+          snapshot(`『+2』発動 → 攻撃力 ${before} → ${player.atk}`);
+          continue;
+        }
+
+        if (card.id === "times2") {
+          const before = player.atk;
+          player.atk *= 2;
+          snapshot(`『×2』発動 → 攻撃力 ${before} → ${player.atk}`);
+          continue;
+        }
+
+        if (card.id === "power") {
+          const before = player.atk;
+          player.atk = player.atk ** 2;
+          snapshot(`『累乗』発動 → 攻撃力 ${before}² = ${player.atk}`);
+          continue;
+        }
+
+        if (card.id === "attack") {
+          const before = enemy.hp;
+          enemy.hp -= player.atk;
+          snapshot(`『攻撃』！ 敵に${player.atk}ダメージ（敵HP ${before} → ${Math.max(0, enemy.hp)}）`);
+          if (enemy.hp <= 0) { result = "win"; break outer; }
+          continue;
+        }
+
+        if (card.id === "heal") {
+          const before = player.hp;
+          player.hp = Math.min(MAX_HP_PLAYER, player.hp + HEAL_AMOUNT);
+          const healed = player.hp - before;
+          snapshot(healed > 0
+            ? `『回復』！ HPが${healed}回復（HP ${before} → ${player.hp}）`
+            : "『回復』… HPはすでに満タン");
+          continue;
+        }
+
+        if (card.id === "desperate") {
+          const beforeHp = player.hp, beforeAtk = player.atk;
+          player.hp -= 2;
+          player.atk += 2;
+          snapshot(`『捨て身』！ HP ${beforeHp} → ${player.hp} / 攻撃力 ${beforeAtk} → ${player.atk}`);
+          if (player.hp <= 0) { result = "lose"; break outer; }
+          continue;
+        }
+      }
+
+      if (enemy.hp <= 0) { result = "win"; break; }
+      if (player.hp <= 0) { result = "lose"; break; }
+
+      const before = player.hp;
+      player.hp -= ATK_ENEMY;
+      snapshot(`敵の攻撃！ ${ATK_ENEMY}ダメージ（自分HP ${before} → ${Math.max(0, player.hp)}）`);
+
+      if (player.hp <= 0) { result = "lose"; break; }
+      if (enemy.hp <= 0) { result = "win"; break; }
+    }
+
+    return { steps, result, finalPlayer: player, finalEnemy: enemy };
+  }
+
+  function resultMessage(result) {
+    if (result === "win") return { text: "🎉 敵を倒した！ 勝利！", cls: "win" };
+    if (result === "lose") return { text: "💀 自分のHPが尽きた… 敗北", cls: "lose" };
+    return { text: `⏳ ${MAX_ROUNDS}ラウンド経っても決着がつかなかった（タイムアウト）`, cls: "timeout" };
+  }
+
+  function runBattle() {
+    if (running || deck.length === 0) return;
+    setControlsDisabled(true);
+    el("skip-battle").disabled = false;
+
+    updateStatus(MAX_HP_PLAYER, BASE_ATK_PLAYER, MAX_HP_ENEMY);
+    const logList = el("log-list");
+    logList.innerHTML = "";
+    const banner = el("result-banner");
+    banner.className = "";
+    banner.textContent = "";
+
+    const { steps, result } = simulateBattle(deck);
+    let i = 0;
+
+    function revealOne() {
+      if (i >= steps.length) {
+        clearInterval(revealTimer);
+        revealTimer = null;
+        const { text, cls } = resultMessage(result);
+        banner.textContent = text;
+        banner.className = cls;
+        el("skip-battle").disabled = true;
+        setControlsDisabled(false);
+        return;
+      }
+      const step = steps[i++];
+      if (step.round !== undefined) {
+        const div = document.createElement("div");
+        div.className = "log-round";
+        div.textContent = `▼ ラウンド ${step.round}`;
+        logList.appendChild(div);
+      } else {
+        const div = document.createElement("div");
+        div.textContent = step.message;
+        logList.appendChild(div);
+        updateStatus(step.playerHp, step.playerAtk, step.enemyHp);
+      }
+      logList.scrollTop = logList.scrollHeight;
+    }
+
+    revealTimer = setInterval(revealOne, 260);
+  }
+
+  function skipBattle() {
+    if (!revealTimer) return;
+    clearInterval(revealTimer);
+    revealTimer = null;
+    // Fast-forward: re-run the same simulation and dump every step at once.
+    const { steps, result } = simulateBattle(deck);
+    const logList = el("log-list");
+    logList.innerHTML = "";
+    let last = { playerHp: MAX_HP_PLAYER, playerAtk: BASE_ATK_PLAYER, enemyHp: MAX_HP_ENEMY };
+    steps.forEach((step) => {
+      if (step.round !== undefined) {
+        const div = document.createElement("div");
+        div.className = "log-round";
+        div.textContent = `▼ ラウンド ${step.round}`;
+        logList.appendChild(div);
+      } else {
+        const div = document.createElement("div");
+        div.textContent = step.message;
+        logList.appendChild(div);
+        last = step;
+      }
+    });
+    logList.scrollTop = logList.scrollHeight;
+    updateStatus(last.playerHp, last.playerAtk, last.enemyHp);
+    const banner = el("result-banner");
+    const { text, cls } = resultMessage(result);
+    banner.textContent = text;
+    banner.className = cls;
+    el("skip-battle").disabled = true;
+    setControlsDisabled(false);
+  }
+
+  el("start-battle").addEventListener("click", runBattle);
+  el("skip-battle").addEventListener("click", skipBattle);
+  el("clear-deck").addEventListener("click", () => {
+    if (running) return;
+    deck = [];
+    renderDeck();
+    el("start-battle").disabled = true;
+  });
+
+  renderPalette();
+  renderDeck();
+  el("start-battle").disabled = true;
+})();
+</script>
+</body>
+</html>
