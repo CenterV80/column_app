@@ -234,4 +234,11 @@ const APPS = [
     icon: "🎨",
     category: "substance-designer",
   },
+  {
+    name: "オートバトルRPG プロトタイプ",
+    description: "戦闘前にカードで戦術を組むと、あとは乱数なしの完全自動戦闘。同じデッキなら何度でも同じ結果になる、最小構成のオートバトルRPGプロトタイプです。",
+    path: "apps/auto-battle-rpg/",
+    icon: "⚔️",
+    category: "mini-apps",
+  },
 ];
