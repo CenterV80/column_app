@@ -207,6 +207,13 @@ const APPS = [
     category: "minimax-h3",
   },
   {
+    name: "絵コンテ→動画の追従性を上げたい: MiniMax H3のControlNet活用を検討したログ",
+    description: "絵コンテのラフな構図をR2V生成に反映させる方法を検討し、Alibaba PAI製のMiniMax-H3-Fun-Controlnet-Unionという前例にたどり着くまでのログです。",
+    path: "minimax-h3-storyboard-control.html",
+    icon: "🎬",
+    category: "minimax-h3",
+  },
+  {
     name: "npm audit の使い方",
     description: "npm auditで既知の脆弱性を検出し、npm audit fixで修正する基本コマンドと注意点をまとめました。",
     path: "npm-audit-guide.html",
