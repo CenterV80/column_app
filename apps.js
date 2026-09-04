@@ -137,6 +137,13 @@ const APPS = [
     category: "comfyui",
   },
   {
+    name: "ComfyUI 起動引数 一覧",
+    description: "main.pyに指定できる起動引数を、ネットワーク・VRAM/メモリ・精度・Attention・キャッシュ・カスタムノードなどカテゴリ別にまとめました。",
+    path: "apps/comfyui-startup-flags/",
+    icon: "🏁",
+    category: "comfyui",
+  },
+  {
     name: "ComfyUI ワークフロー クリーナー",
     description: "残したい出力ノードを1つ選ぶだけで、そこに繋がっていない未接続・未使用のノードを丸ごと削除し、きれいなワークフローJSONを作れます。",
     path: "apps/comfyui-workflow-cleaner/",
