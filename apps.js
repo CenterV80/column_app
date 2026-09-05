@@ -260,7 +260,7 @@ const APPS = [
     description: "重み・バイアス・パラメータ数を、配列や行列のイメージで解説します。りんご/みかん判定AIの具体例で、入力から判定までの計算を一つひとつ図解します。",
     path: "neural-network-parameters.html",
     icon: "🔢",
-    category: "ltx",
+    category: "ai-basics",
   },
   {
     name: "オートバトルRPG",
