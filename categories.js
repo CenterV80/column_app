@@ -87,6 +87,13 @@ const CATEGORIES = [
     icon: "🟨",
   },
   {
+    id: "ai-basics",
+    name: "AI基礎",
+    description: "ニューラルネットワークなど、AIの基本的なしくみを初心者向けにまとめています。",
+    path: "categories/ai-basics/",
+    icon: "🧠",
+  },
+  {
     id: "substance-designer",
     name: "Substance Designer",
     description: "Substance DesignerのAI自動化まわりの調査・検証をまとめています。",

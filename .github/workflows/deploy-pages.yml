@@ -6,6 +6,7 @@ on:
       - main
       - claude/desmos-calculator-app-fla0de
       - claude/ltx2-3-video-ai-guide-9phckk
+      - claude/neural-network-parameters-eg8zs2
   workflow_dispatch:
 
 permissions:

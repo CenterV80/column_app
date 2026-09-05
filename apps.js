@@ -256,6 +256,13 @@ const APPS = [
     category: "substance-designer",
   },
   {
+    name: "ニューラルネットワークのパラメータ数の考え方",
+    description: "重み・バイアス・パラメータ数を、配列や行列のイメージで解説します。りんご/みかん判定AIの具体例で、入力から判定までの計算を一つひとつ図解します。",
+    path: "neural-network-parameters.html",
+    icon: "🔢",
+    category: "ai-basics",
+  },
+  {
     name: "オートバトルRPG",
     description: "カードを並べて「条件→強化→行動」の作戦を組むと、あとは乱数なしの完全自動戦闘。敵の行動パターンを読み、HPを資源として使って強敵を攻略する、ゲームボーイ風のパズルRPGです。",
     path: "apps/auto-battle-rpg/",
