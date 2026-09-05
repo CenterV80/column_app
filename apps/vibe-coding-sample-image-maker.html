@@ -193,6 +193,14 @@ body{
   border-radius:17px 17px 17px 3px;
 }
 .bubble b{font-weight:700;}
+.bubble a{
+  font-weight:600;
+  text-decoration:underline;
+  text-underline-offset:2px;
+  text-decoration-thickness:1.5px;
+}
+.msg.user .bubble a{color:var(--user-text);}
+.msg.claude .bubble a{color:var(--accent);}
 
 .system-pill{
   align-self:center;
@@ -306,11 +314,11 @@ body{
 
       <div class="phase-divider"><span class="num">01</span><span class="label">そもそもComfyUI、いる?</span></div>
       <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">簡単な画像生成のシステムなら<b>ComfyUIすらいらない</b>んじゃない?モデル決め打ちなら。</div></div>
-      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">その通り。txt2img/img2imgだけでLoRA構成も固定でいいなら、<b>diffusers直叩き+軽量API</b>で十分です。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">その通り。txt2img/img2imgだけで<a href="../generative-ai-glossary.html#term-lora">LoRA</a>構成も固定でいいなら、<b>diffusers直叩き+軽量API</b>で十分です。</div></div>
 
       <div class="phase-divider"><span class="num">02</span><span class="label">作るものを決める</span></div>
       <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">キャラシートから<b>ポーズ違い画像を3x2レイアウト</b>で出すだけのツール作りたい。モデルはFluxとか何でもいい。</div></div>
-      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">Flux Kontext(キャラ一貫性重視)か SDXL+ControlNet OpenPose の二択ですね。6ポーズ推論してPILで3x2合成、で進めます。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">Flux Kontext(キャラ一貫性重視)か SDXL+<a href="../generative-ai-glossary.html#term-controlnet">ControlNet</a> <a href="../generative-ai-glossary.html#term-openpose">OpenPose</a> の二択ですね。6ポーズ推論してPILで3x2合成、で進めます。</div></div>
 
       <div class="phase-divider"><span class="num">03</span><span class="label">棒人間エディタ、爆誕</span></div>
       <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">ポーズ指定はテキストだけ?骨格で厳密指定する?</div></div>
@@ -333,18 +341,18 @@ body{
       <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">GPU環境は会社のRTX5080です。あともう一台、RTX4070Tiも。</div></div>
       <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">5080(16GB)と4070Ti(12GB)、それぞれで動く構成を整理しますね。本番稼働はどっちのマシン?</div></div>
       <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">使うのは5080ですが、古いマシンでも動くような構成にしたいです。</div></div>
-      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">では4070Ti基準で選定しましょう。Flux Kontextは量子化必須、SDXL+ControlNetなら量子化なしで収まりやすいです。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">では4070Ti基準で選定しましょう。Flux Kontextは<a href="../generative-ai-glossary.html#term-quantization">量子化</a>必須、SDXL+ControlNetなら量子化なしで収まりやすいです。</div></div>
       <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">すいません、まず必要なモデルとその容量を確認したいです。</div></div>
       <div class="system-pill"><svg class="icon icon-sm"><use href="#ic-search"/></svg>Web検索実施</div>
-      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">Flux Kontext:フル約24GB / fp8約12GB / GGUF Q8約12.8GB / GGUF Q4約7GB。対して SDXL+ControlNet OpenPoseは合計<b>約9.3GB</b>。後者が4070Tiに無理なく収まりますね。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">Flux Kontext:フル約24GB / <a href="../generative-ai-glossary.html#term-quantization">fp8</a>約12GB / <a href="../generative-ai-glossary.html#term-quantization">GGUF</a> Q8約12.8GB / GGUF Q4約7GB。対して SDXL+ControlNet OpenPoseは合計<b>約9.3GB</b>。後者が4070Tiに無理なく収まりますね。</div></div>
       <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">テキストエンコーダーはどうなりますか?</div></div>
-      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">SDXLは<b>CLIP ViT-L</b>と<b>OpenCLIP ViT-bigG</b>、2つのテキストエンコーダーを使用します。どちらもSDXL baseのcheckpointファイルに内包されているので、別途ダウンロード・容量計算は不要です(先ほどの合計<b>約9.3GB</b>にすでに含まれています)。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">SDXLは<b>CLIP ViT-L</b>と<b>OpenCLIP ViT-bigG</b>、2つの<a href="../generative-ai-glossary.html#term-text-encoder">テキストエンコーダー</a>を使用します。どちらもSDXL baseの<a href="../generative-ai-glossary.html#term-checkpoint">checkpoint</a>ファイルに内包されているので、別途ダウンロード・容量計算は不要です(先ほどの合計<b>約9.3GB</b>にすでに含まれています)。</div></div>
 
       <div class="phase-divider"><span class="num">06</span><span class="label">量子化沼にハマる</span></div>
       <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">fp8量子化とGGUF Q8の違いは?</div></div>
       <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">fp8はTensorコアでネイティブ高速演算、GGUF Q8は整数量子化で専用ローダーが必要、という違いです(比較表つきで整理)。</div></div>
       <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">pruned版はないの?</div></div>
-      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">pruned文化はSD1.5世代のもの。SDXL/Flux世代は元々軽量な配布なので、あまり存在しません。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble"><a href="../generative-ai-glossary.html#term-pruned">pruned</a>文化はSD1.5世代のもの。SDXL/Flux世代は元々軽量な配布なので、あまり存在しません。</div></div>
       <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">pruned は古いやり方なのですか?</div></div>
       <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">「古い」というより、削る対象自体がもう配布物に含まれなくなった感じです。軽量化の主流はpruning→quantizationに移りました。</div></div>
       <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">話を戻してSDXL+ControlNetでお願いします。</div></div>
