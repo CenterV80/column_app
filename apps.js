@@ -193,6 +193,13 @@ const APPS = [
     category: "ai-coding",
   },
   {
+    name: "バイブコーディング会話ログ:sample-image-maker 開発絵巻",
+    description: "「ComfyUIすらいらなくない?」の一言から仕様書完成まで、実際のAIとの会話をチャット形式のダイジェストで再現。バイブコーディングで仕様が固まっていく流れの学習教材です。",
+    path: "apps/vibe-coding-sample-image-maker.html",
+    icon: "💬",
+    category: "ai-coding",
+  },
+  {
     name: "Markdown記法ガイド",
     description: "見出し・リスト・リンクからテーブル・脚注まで、Markdownの書き方を簡単なものから順にまとめました。",
     path: "markdown-guide.html",
