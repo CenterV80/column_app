@@ -149,14 +149,18 @@ class MainWindow(QMainWindow):
         size_row.addWidget(self.height_spin)
         layout.addLayout(size_row)
 
-        cn_row = QHBoxLayout()
-        cn_row.addWidget(QLabel("ControlNet強度"))
-        self.controlnet_scale_spin = QDoubleSpinBox(panel)
-        self.controlnet_scale_spin.setRange(0.0, 2.0)
-        self.controlnet_scale_spin.setSingleStep(0.05)
-        self.controlnet_scale_spin.setValue(1.0)
-        cn_row.addWidget(self.controlnet_scale_spin)
-        layout.addLayout(cn_row)
+        strength_row = QHBoxLayout()
+        strength_row.addWidget(QLabel("変化の強さ(denoising strength)"))
+        self.denoising_strength_spin = QDoubleSpinBox(panel)
+        self.denoising_strength_spin.setRange(0.0, 1.0)
+        self.denoising_strength_spin.setSingleStep(0.05)
+        self.denoising_strength_spin.setValue(0.65)
+        self.denoising_strength_spin.setToolTip(
+            "低いほど棒人間の構図に忠実(絵として崩れやすい)、"
+            "高いほど自然な絵になるがポーズの再現度が下がります。"
+        )
+        strength_row.addWidget(self.denoising_strength_spin)
+        layout.addLayout(strength_row)
 
         seed_row = QHBoxLayout()
         seed_row.addWidget(QLabel("Seed(-1でランダム)"))
@@ -388,7 +392,7 @@ class MainWindow(QMainWindow):
             poses=poses,
             prompt=self.prompt_edit.toPlainText(),
             negative_prompt=self.negative_prompt_edit.toPlainText(),
-            controlnet_scale=self.controlnet_scale_spin.value(),
+            denoising_strength=self.denoising_strength_spin.value(),
             seed=self.seed_spin.value(),
             width=width,
             height=height,
