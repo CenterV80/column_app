@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ニューラルネットワークのパラメータ数の考え方</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.7;
+        color: #2b2b33;
+        background: linear-gradient(135deg, #1f3a93 0%, #16a085 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 940px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+
+    header {
+        background: linear-gradient(135deg, #1f3a93 0%, #16a085 100%);
+        color: white;
+        padding: 40px 30px;
+        text-align: center;
+    }
+
+    header h1 {
+        font-size: 1.9em;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    header p {
+        font-size: 1.05em;
+        opacity: 0.95;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin: 20px 0 0 30px;
+        color: #1f3a93;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+    .content {
+        padding: 20px 30px 40px;
+    }
+
+    .part-title {
+        font-size: 1.15em;
+        color: white;
+        background: linear-gradient(135deg, #1f3a93 0%, #16a085 100%);
+        padding: 10px 18px;
+        border-radius: 8px;
+        margin: 44px 0 22px;
+        font-weight: 700;
+    }
+
+    .part-title:first-child {
+        margin-top: 0;
+    }
+
+    .section {
+        margin-bottom: 34px;
+    }
+
+    .section-title {
+        font-size: 1.3em;
+        color: #1f3a93;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 3px solid #16a085;
+        font-weight: 700;
+    }
+
+    .sub-title {
+        font-size: 1.05em;
+        color: #16a085;
+        font-weight: 700;
+        margin: 18px 0 10px;
+    }
+
+    p.lead {
+        color: #555;
+        margin-bottom: 12px;
+    }
+
+    /* ---- array visualisation ---- */
+    .array-wrap {
+        background: #f4f7fb;
+        border-radius: 10px;
+        padding: 22px 16px;
+        overflow-x: auto;
+    }
+
+    .array-row {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+    }
+
+    .array-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        min-width: 76px;
+    }
+
+    .array-label {
+        font-size: 0.8em;
+        color: #666;
+        font-weight: 600;
+    }
+
+    .array-box {
+        width: 76px;
+        height: 56px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.05em;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .array-box.red { background: #e74c3c; }
+    .array-box.blue { background: #2980b9; }
+    .array-box.gold { background: #d4a017; }
+    .array-box.grey { background: #7f8c8d; }
+    .array-box.green { background: #16a085; }
+    .array-box.navy { background: #1f3a93; }
+    .array-box.orange { background: #e67e22; }
+
+    .array-index {
+        font-size: 0.72em;
+        color: #999;
+    }
+
+    .op-symbol {
+        font-size: 1.6em;
+        color: #999;
+        font-weight: 700;
+        align-self: center;
+        padding-bottom: 24px;
+    }
+
+    /* ---- matrix ---- */
+    .matrix-wrap {
+        overflow-x: auto;
+    }
+
+    .matrix {
+        display: inline-grid;
+        border-collapse: collapse;
+        margin: 0 auto;
+        gap: 4px;
+    }
+
+    .matrix-cell {
+        min-width: 70px;
+        padding: 12px 10px;
+        text-align: center;
+        border-radius: 6px;
+        font-weight: 600;
+    }
+
+    .matrix-cell.head {
+        background: transparent;
+        color: #555;
+        font-size: 0.85em;
+    }
+
+    .matrix-cell.rowhead {
+        background: transparent;
+        color: #555;
+        font-size: 0.85em;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        text-align: right;
+    }
+
+    .matrix-cell.val {
+        background: #eef3fb;
+        color: #1f3a93;
+        border: 2px solid #cbd8ee;
+    }
+
+    .matrix-cell.val.out1 { border-color: #e74c3c; }
+    .matrix-cell.val.out2 { border-color: #e67e22; }
+
+    /* ---- calculation lines ---- */
+    .calc-box {
+        background: #2d2d2d;
+        color: #eee;
+        border-radius: 8px;
+        padding: 16px 20px;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.9em;
+        overflow-x: auto;
+        white-space: pre;
+        line-height: 1.6;
+    }
+
+    .calc-box .hl { color: #6ee7b7; font-weight: 700; }
+    .calc-box .hl2 { color: #fbbf24; font-weight: 700; }
+
+    /* ---- formula highlight ---- */
+    .formula-box {
+        text-align: center;
+        background: linear-gradient(135deg, #1f3a93 0%, #16a085 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 22px;
+        font-size: 1.4em;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin: 16px 0;
+    }
+
+    .formula-box small {
+        display: block;
+        font-size: 0.5em;
+        font-weight: 400;
+        opacity: 0.9;
+        margin-top: 8px;
+    }
+
+    /* ---- tables ---- */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    th, td {
+        padding: 11px 13px;
+        border: 1px solid #e0e0e0;
+        text-align: left;
+        vertical-align: top;
+        font-size: 0.95em;
+    }
+
+    th {
+        background: #1f3a93;
+        color: white;
+    }
+
+    tr:nth-child(even) {
+        background: #f4f7fb;
+    }
+
+    td strong {
+        color: #1f3a93;
+    }
+
+    .points {
+        padding: 18px 20px;
+        background: #f0faf7;
+        border-left: 4px solid #16a085;
+        border-radius: 4px;
+    }
+
+    .points ul {
+        margin-left: 20px;
+    }
+
+    .points li {
+        margin-bottom: 10px;
+        color: #444;
+    }
+
+    .points li strong {
+        color: #16a085;
+    }
+
+    /* ---- flow diagram (layers / pipeline) ---- */
+    .flow-wrap {
+        background: #12203f;
+        border-radius: 8px;
+        padding: 26px 20px;
+        overflow-x: auto;
+    }
+
+    .flow-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .flow-box {
+        background: #16a085;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.92em;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .flow-box.accent { background: #1f3a93; }
+    .flow-box.red { background: #e74c3c; }
+    .flow-box.orange { background: #e67e22; }
+    .flow-box small { display: block; font-weight: 400; opacity: 0.85; font-size: 0.82em; margin-top: 3px; }
+
+    .flow-arrow {
+        color: #9fb3d8;
+        font-size: 1.3em;
+    }
+
+    .flow-note {
+        text-align: center;
+        color: #9fb3d8;
+        font-size: 0.85em;
+        margin-top: 10px;
+    }
+
+    /* ---- step cards for apple/mikan walkthrough ---- */
+    .step {
+        border: 1px solid #e0e6ef;
+        border-radius: 10px;
+        padding: 18px 20px;
+        margin-bottom: 16px;
+    }
+
+    .step-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .step-num {
+        background: #1f3a93;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .step-title {
+        font-weight: 700;
+        color: #1f3a93;
+    }
+
+    footer {
+        background: #f8f9fa;
+        text-align: center;
+        padding: 20px;
+        color: #999;
+        font-size: 0.9em;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    @media (max-width: 768px) {
+        header h1 {
+            font-size: 1.3em;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .formula-box {
+            font-size: 1.1em;
+        }
+
+        table, thead, tbody, th, td, tr {
+            display: block;
+        }
+
+        th {
+            display: none;
+        }
+
+        td {
+            border: none;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 6px 0;
+        }
+
+        td:before {
+            content: attr(data-label) "： ";
+            font-weight: 600;
+            color: #1f3a93;
+        }
+
+        .flow-arrow {
+            transform: rotate(90deg);
+        }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="categories/ai-basics/index.html">← AI基礎に戻る</a>
+    <header>
+        <h1>🔢 ニューラルネットワークのパラメータ数の考え方</h1>
+        <p>「重み」「バイアス」「パラメータ数」を、配列のイメージでやさしく理解する</p>
+    </header>
+
+    <div class="content">
+
+        <div class="part-title">Part 1. パラメータ数の基礎まとめ（配列の例つき）</div>
+
+        <div class="section">
+            <h2 class="section-title">1. 入力次元 = 配列の長さ</h2>
+            <p class="lead">りんごの判定タスクを例にします。写真から「赤さ・丸さ・ツヤ」の3つの特徴を数値にして、1本の配列にまとめます。</p>
+            <div class="array-wrap">
+                <div class="array-row">
+                    <div class="array-cell">
+                        <span class="array-label">赤さ</span>
+                        <div class="array-box red">0.9</div>
+                        <span class="array-index">[0]</span>
+                    </div>
+                    <div class="array-cell">
+                        <span class="array-label">丸さ</span>
+                        <div class="array-box blue">0.85</div>
+                        <span class="array-index">[1]</span>
+                    </div>
+                    <div class="array-cell">
+                        <span class="array-label">ツヤ</span>
+                        <div class="array-box gold">0.7</div>
+                        <span class="array-index">[2]</span>
+                    </div>
+                </div>
+            </div>
+            <p class="lead" style="margin-top:12px;">この配列の要素数がそのまま <strong>入力次元数</strong> になります。今回は3つなので、<strong>入力次元数 = 3</strong> です。</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">2. 重み = 入力と同じ長さの配列（1出力につき1本）</h2>
+            <p class="lead">「りんご確率」という1つの出力を作るために、入力と同じ長さ（3個）の<strong>重み配列</strong>を用意します。</p>
+            <div class="array-wrap">
+                <div class="array-row">
+                    <div class="array-cell">
+                        <span class="array-label">入力[0]</span>
+                        <div class="array-box red">0.9</div>
+                    </div>
+                    <span class="op-symbol">×</span>
+                    <div class="array-cell">
+                        <span class="array-label">重み[0]</span>
+                        <div class="array-box navy">0.7</div>
+                    </div>
+                    <span class="op-symbol">=</span>
+                    <div class="array-cell">
+                        <span class="array-label">&nbsp;</span>
+                        <div class="array-box grey">0.63</div>
+                    </div>
+                </div>
+                <div class="array-row">
+                    <div class="array-cell">
+                        <span class="array-label">入力[1]</span>
+                        <div class="array-box blue">0.85</div>
+                    </div>
+                    <span class="op-symbol">×</span>
+                    <div class="array-cell">
+                        <span class="array-label">重み[1]</span>
+                        <div class="array-box navy">0.5</div>
+                    </div>
+                    <span class="op-symbol">=</span>
+                    <div class="array-cell">
+                        <span class="array-label">&nbsp;</span>
+                        <div class="array-box grey">0.425</div>
+                    </div>
+                </div>
+                <div class="array-row">
+                    <div class="array-cell">
+                        <span class="array-label">入力[2]</span>
+                        <div class="array-box gold">0.7</div>
+                    </div>
+                    <span class="op-symbol">×</span>
+                    <div class="array-cell">
+                        <span class="array-label">重み[2]</span>
+                        <div class="array-box navy">0.3</div>
+                    </div>
+                    <span class="op-symbol">=</span>
+                    <div class="array-cell">
+                        <span class="array-label">&nbsp;</span>
+                        <div class="array-box grey">0.21</div>
+                    </div>
+                </div>
+            </div>
+            <div class="calc-box" style="margin-top:14px;">0.63 + 0.425 + 0.21 = <span class="hl">1.265</span>  ← りんご確率用の合計</div>
+            <p class="lead" style="margin-top:12px;">「同じ番地（インデックス）同士を掛けて、全部足す」のが重みとの計算の基本です。</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">3. 出力次元が増えると、重み配列も増える（→表・行列になる）</h2>
+            <p class="lead">出力が「りんご確率」「みかん確率」の2つになると、重み配列も2本必要になります。これを並べた表が<strong>重み行列</strong>です。</p>
+            <div class="matrix-wrap">
+                <div class="matrix" style="grid-template-columns: 90px repeat(3, 76px);">
+                    <div class="matrix-cell head"></div>
+                    <div class="matrix-cell head">赤さ</div>
+                    <div class="matrix-cell head">丸さ</div>
+                    <div class="matrix-cell head">ツヤ</div>
+
+                    <div class="matrix-cell rowhead">出力1<br>（りんご）</div>
+                    <div class="matrix-cell val out1">0.7</div>
+                    <div class="matrix-cell val out1">0.5</div>
+                    <div class="matrix-cell val out1">0.3</div>
+
+                    <div class="matrix-cell rowhead">出力2<br>（みかん）</div>
+                    <div class="matrix-cell val out2">0.1</div>
+                    <div class="matrix-cell val out2">-0.4</div>
+                    <div class="matrix-cell val out2">0.6</div>
+                </div>
+            </div>
+            <p class="lead" style="margin-top:14px;">マス目の数 = 入力次元(3) × 出力次元(2) = <strong>6個の重み</strong></p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">4. バイアス = 出力次元と同じ長さの配列</h2>
+            <div class="array-wrap">
+                <div class="array-row">
+                    <div class="array-cell">
+                        <span class="array-label">出力1用</span>
+                        <div class="array-box red">0.2</div>
+                    </div>
+                    <div class="array-cell">
+                        <span class="array-label">出力2用</span>
+                        <div class="array-box orange">-0.1</div>
+                    </div>
+                </div>
+            </div>
+            <p class="lead" style="margin-top:12px;"><strong>バイアスの数 = 出力次元数（2個）</strong>。入力の数とは無関係です。</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">5. 全部つなげると</h2>
+            <div class="calc-box">出力1 = (入力配列 · 重み配列1) + バイアス[0]
+     = 1.265 + 0.2 = <span class="hl">1.465</span>
+
+出力2 = (入力配列 · 重み配列2) + バイアス[1]
+     = (0.9×0.1 + 0.85×-0.4 + 0.7×0.6) + (-0.1)
+     = (0.09 - 0.34 + 0.42) - 0.1
+     = <span class="hl2">0.07</span></div>
+            <p class="lead" style="margin-top:12px;">出力配列 = <strong>[1.465, 0.07]</strong>（この後、活性化関数を通して最終確率になります）</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">6. パラメータ数の全体式</h2>
+            <table>
+                <tr>
+                    <th>要素</th>
+                    <th>配列の形</th>
+                    <th>個数</th>
+                </tr>
+                <tr>
+                    <td data-label="要素">入力次元</td>
+                    <td data-label="配列の形">長さ n の配列</td>
+                    <td data-label="個数">n個（例：3）</td>
+                </tr>
+                <tr>
+                    <td data-label="要素">出力次元</td>
+                    <td data-label="配列の形">長さ m の配列</td>
+                    <td data-label="個数">m個（例：2）</td>
+                </tr>
+                <tr>
+                    <td data-label="要素">重み</td>
+                    <td data-label="配列の形">n × m の行列</td>
+                    <td data-label="個数">n×m個（例：6）</td>
+                </tr>
+                <tr>
+                    <td data-label="要素">バイアス</td>
+                    <td data-label="配列の形">長さ m の配列</td>
+                    <td data-label="個数">m個（例：2）</td>
+                </tr>
+                <tr>
+                    <td data-label="要素"><strong>パラメータ数</strong></td>
+                    <td data-label="配列の形">—</td>
+                    <td data-label="個数"><strong>n×m + m</strong></td>
+                </tr>
+            </table>
+            <div class="formula-box">
+                パラメータ数 = n × m + m
+                <small>例：n=3, m=2 → 3×2+2 = 8個</small>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">7. 多層の場合、前の層の出力配列が次の層の入力配列になる</h2>
+            <div class="flow-wrap">
+                <div class="flow-row">
+                    <span class="flow-box accent">入力層<small>[0.9, 0.85, 0.7]<br>(n=3)</small></span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-box">中間層<small>[1.465, 0.07, ...]</small></span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-box accent">出力層<small>[0.95, 0.05]<br>(最終確率)</small></span>
+                </div>
+                <p class="flow-note">中間層の出力配列が、そのまま次の層の入力配列になる</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">8. 用語と配列イメージの対応表</h2>
+            <table>
+                <tr>
+                    <th>用語</th>
+                    <th>配列としてのイメージ</th>
+                </tr>
+                <tr>
+                    <td data-label="用語">入力次元</td>
+                    <td data-label="イメージ"><code>[赤さ, 丸さ, ツヤ]</code> のような1本の配列</td>
+                </tr>
+                <tr>
+                    <td data-label="用語">出力次元</td>
+                    <td data-label="イメージ"><code>[りんご確率, みかん確率]</code> のような1本の配列</td>
+                </tr>
+                <tr>
+                    <td data-label="用語">重み（1個）</td>
+                    <td data-label="イメージ">配列の中の1つの数値（例：0.7）</td>
+                </tr>
+                <tr>
+                    <td data-label="用語">重み配列（1本）</td>
+                    <td data-label="イメージ">1つの出力に対応する、入力と同じ長さの配列</td>
+                </tr>
+                <tr>
+                    <td data-label="用語">重み行列（全体）</td>
+                    <td data-label="イメージ">重み配列が出力の数だけ並んだ表</td>
+                </tr>
+                <tr>
+                    <td data-label="用語">バイアス配列</td>
+                    <td data-label="イメージ">出力の数と同じ長さの配列</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="part-title">Part 2. りんごの判定AI：入力から結果までの全体フロー</div>
+
+        <div class="section">
+            <p class="lead"><strong>ゴール：</strong>「写真に写っているのは、りんごか、みかんか？」を判定するAIを、Part 1で出てきた配列・行列の計算だけで組み立てます。</p>
+        </div>
+
+        <div class="section">
+            <div class="step">
+                <div class="step-head">
+                    <span class="step-num">1</span>
+                    <span class="step-title">特徴を数値化して入力配列を作る</span>
+                </div>
+                <p class="lead">写真を見て、赤さ・丸さ・ツヤの3つの特徴を抽出します。</p>
+                <div class="array-wrap">
+                    <div class="array-row">
+                        <div class="array-cell">
+                            <span class="array-label">赤さ</span>
+                            <div class="array-box red">0.9</div>
+                        </div>
+                        <div class="array-cell">
+                            <span class="array-label">丸さ</span>
+                            <div class="array-box blue">0.85</div>
+                        </div>
+                        <div class="array-cell">
+                            <span class="array-label">ツヤ</span>
+                            <div class="array-box gold">0.7</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="lead" style="margin-top:10px;">入力配列 = [0.9, 0.85, 0.7]　（<strong>入力次元数 = 3</strong>）</p>
+            </div>
+
+            <div class="step">
+                <div class="step-head">
+                    <span class="step-num">2</span>
+                    <span class="step-title">重み行列をかける（各出力ごとに重み配列がある）</span>
+                </div>
+                <div class="matrix-wrap">
+                    <div class="matrix" style="grid-template-columns: 90px repeat(3, 76px);">
+                        <div class="matrix-cell head"></div>
+                        <div class="matrix-cell head">赤さ</div>
+                        <div class="matrix-cell head">丸さ</div>
+                        <div class="matrix-cell head">ツヤ</div>
+
+                        <div class="matrix-cell rowhead">出力1<br>（りんご）</div>
+                        <div class="matrix-cell val out1">0.7</div>
+                        <div class="matrix-cell val out1">0.5</div>
+                        <div class="matrix-cell val out1">0.3</div>
+
+                        <div class="matrix-cell rowhead">出力2<br>（みかん）</div>
+                        <div class="matrix-cell val out2">0.1</div>
+                        <div class="matrix-cell val out2">-0.4</div>
+                        <div class="matrix-cell val out2">0.6</div>
+                    </div>
+                </div>
+                <p class="lead" style="margin:12px 0 8px;">入力配列と、それぞれの重み配列を「同じ番地同士掛けて、全部足す」：</p>
+                <div class="calc-box">出力1の計算：
+0.9×0.7 + 0.85×0.5 + 0.7×0.3
+= 0.63 + 0.425 + 0.21 = <span class="hl">1.265</span>
+
+出力2の計算：
+0.9×0.1 + 0.85×(-0.4) + 0.7×0.6
+= 0.09 - 0.34 + 0.42 = <span class="hl2">0.17</span></div>
+            </div>
+
+            <div class="step">
+                <div class="step-head">
+                    <span class="step-num">3</span>
+                    <span class="step-title">バイアスを足す</span>
+                </div>
+                <div class="calc-box">バイアス配列 = [0.2, -0.1]
+
+出力1 = 1.265 + 0.2    = <span class="hl">1.465</span>
+出力2 = 0.17  + (-0.1) = <span class="hl2">0.07</span></div>
+            </div>
+
+            <div class="step">
+                <div class="step-head">
+                    <span class="step-num">4</span>
+                    <span class="step-title">活性化関数を通す</span>
+                </div>
+                <p class="lead">まだ生の数値なので、確率らしく0〜1の範囲に整えます（シグモイド関数など）。</p>
+                <div class="calc-box">出力1（りんご） = シグモイド(1.465) ≒ <span class="hl">0.81</span>
+出力2（みかん） = シグモイド(0.07)  ≒ <span class="hl2">0.52</span></div>
+            </div>
+
+            <div class="step">
+                <div class="step-head">
+                    <span class="step-num">5</span>
+                    <span class="step-title">結果を比較して判定</span>
+                </div>
+                <div class="calc-box">りんご確率 0.81 > みかん確率 0.52
+    ↓
+「これはりんごです」と判定</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">全体図</h2>
+            <div class="flow-wrap">
+                <div class="flow-row">
+                    <span class="flow-box">📷 写真</span>
+                </div>
+                <div class="flow-row"><span class="flow-arrow">↓ 特徴抽出</span></div>
+                <div class="flow-row">
+                    <span class="flow-box accent">入力配列<small>[0.9, 0.85, 0.7]<br>赤さ・丸さ・ツヤ</small></span>
+                </div>
+                <div class="flow-row"><span class="flow-arrow">↓ × 重み行列（6個）+ バイアス（2個）</span></div>
+                <div class="flow-row">
+                    <span class="flow-box">生スコア<small>[1.465, 0.07]</small></span>
+                </div>
+                <div class="flow-row"><span class="flow-arrow">↓ 活性化関数</span></div>
+                <div class="flow-row">
+                    <span class="flow-box red">確率配列<small>[0.81, 0.52]<br>りんご確率・みかん確率</small></span>
+                </div>
+                <div class="flow-row"><span class="flow-arrow">↓ 一番高いものを選ぶ</span></div>
+                <div class="flow-row">
+                    <span class="flow-box orange">判定結果 = 「りんご」</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">パラメータ数の確認</h2>
+            <div class="calc-box">入力次元 n = 3（赤さ、丸さ、ツヤ）
+出力次元 m = 2（りんご、みかん）
+
+重みの数     = n × m = 3 × 2 = 6
+バイアスの数 = m         = 2
+
+パラメータ数 = 6 + 2 = <span class="hl">8個</span></div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">この8個のパラメータの正体</h2>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>値</th>
+                    <th>役割</th>
+                </tr>
+                <tr>
+                    <td data-label="パラメータ">重み（りんご用×赤さ）</td>
+                    <td data-label="値">0.7</td>
+                    <td data-label="役割">赤いほどりんごらしいと判断する強さ</td>
+                </tr>
+                <tr>
+                    <td data-label="パラメータ">重み（りんご用×丸さ）</td>
+                    <td data-label="値">0.5</td>
+                    <td data-label="役割">丸いほどりんごらしいと判断する強さ</td>
+                </tr>
+                <tr>
+                    <td data-label="パラメータ">重み（りんご用×ツヤ）</td>
+                    <td data-label="値">0.3</td>
+                    <td data-label="役割">ツヤがあるほどりんごらしいと判断する強さ</td>
+                </tr>
+                <tr>
+                    <td data-label="パラメータ">重み（みかん用×赤さ）</td>
+                    <td data-label="値">0.1</td>
+                    <td data-label="役割">赤さはみかん判定にあまり影響しない</td>
+                </tr>
+                <tr>
+                    <td data-label="パラメータ">重み（みかん用×丸さ）</td>
+                    <td data-label="値">-0.4</td>
+                    <td data-label="役割">丸すぎるとみかんらしくないと判断（マイナス）</td>
+                </tr>
+                <tr>
+                    <td data-label="パラメータ">重み（みかん用×ツヤ）</td>
+                    <td data-label="値">0.6</td>
+                    <td data-label="役割">ツヤがあるほどみかんらしいと判断する強さ</td>
+                </tr>
+                <tr>
+                    <td data-label="パラメータ">バイアス（りんご用）</td>
+                    <td data-label="値">0.2</td>
+                    <td data-label="役割">りんごと判定されやすい基本的な傾向</td>
+                </tr>
+                <tr>
+                    <td data-label="パラメータ">バイアス（みかん用）</td>
+                    <td data-label="値">-0.1</td>
+                    <td data-label="役割">みかんと判定されにくい基本的な傾向</td>
+                </tr>
+            </table>
+            <div class="points" style="margin-top:16px;">
+                <ul>
+                    <li>これら<strong>8個の数値こそが、AIが学習によって見つけ出す「パラメータ」</strong>であり、この数値の組み合わせが「りんごとみかんを見分ける知識」そのものです。</li>
+                    <li>実際の画像認識AIでは、この特徴の数が数百万〜数十億に膨れ上がりますが、やっていることの本質（<strong>掛けて、足して、活性化関数を通す</strong>）は、このりんごの例と全く同じです。</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>📅 最終更新：2026年9月5日</p>
+    </footer>
+</div>
+</body>
+</html>
