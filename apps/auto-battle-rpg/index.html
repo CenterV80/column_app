@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>オートバトルRPG</title>
+<style>
+  /* DotGothic16 (c) Fontworks Inc. — SIL Open Font License 1.1.
+     Subset to the characters this game draws so the screen needs no network. */
+  @font-face {
+    font-family: 'DotGothic16';
+    font-style: normal;
+    font-weight: 400;
+    src: url(data:font/woff2;base64,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) format('woff2');
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --shell: #b9b7a6;
+    --shell-hi: #d6d4c4;
+    --shell-lo: #86847a;
+    --bezel: #3f4048;
+    --bezel-hi: #5a5b64;
+    --btn: #8f2547;
+    --btn-lo: #5f1730;
+    --pad: #2e2f36;
+    --pad-lo: #17181d;
+    --page: #23242a;
+    --page-text: #cfcdc0;
+  }
+
+  body {
+    background: var(--page);
+    color: var(--page-text);
+    font-family: "DotGothic16", "Hiragino Sans", monospace;
+    display: flex;
+    justify-content: center;
+    padding: 8px;
+    min-height: 100vh;
+    overscroll-behavior: none;
+  }
+
+  #console { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 8px; }
+
+  /* ---- handheld shell: a thin bezel, so the screen dominates ---- */
+  #shell {
+    background: linear-gradient(165deg, var(--shell-hi) 0%, var(--shell) 34%, var(--shell-lo) 100%);
+    border-radius: 8px 8px 30px 8px;
+    padding: 9px 9px 11px;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.45), inset 0 -3px 0 rgba(0,0,0,.22),
+                0 5px 0 #6d6b61, 0 9px 16px rgba(0,0,0,.5);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #bezel {
+    background: var(--bezel);
+    border-radius: 6px 6px 18px 6px;
+    padding: 7px 10px 8px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,.65);
+  }
+
+  .bezel-top { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+  .bezel-rule { flex: 1; height: 1px; background: var(--bezel-hi); }
+  .bezel-title { font-size: 7px; letter-spacing: .16em; color: #a9a8b6; white-space: nowrap; }
+
+  canvas#screen {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 320 / 288;
+    background: #9bbc0f;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  .power {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 7px; letter-spacing: .1em; color: #a9a8b6; margin-top: 5px;
+  }
+  .led { width: 6px; height: 6px; border-radius: 50%; background: #ff4d4d; box-shadow: 0 0 5px #ff4d4d; }
+
+  /* ---- controls ---- */
+  #pads { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
+
+  #dpad { position: relative; width: 84px; height: 84px; }
+  #dpad button {
+    position: absolute;
+    background: var(--pad);
+    border: none;
+    color: #b9b9c4;
+    font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    width: 28px; height: 28px;
+  }
+  #dpad button:active { background: var(--pad-lo); }
+  #dpad .up { left: 28px; top: 0; border-radius: 5px 5px 0 0; }
+  #dpad .left { left: 0; top: 28px; border-radius: 5px 0 0 5px; }
+  #dpad .right { left: 56px; top: 28px; border-radius: 0 5px 5px 0; }
+  #dpad .down { left: 28px; top: 56px; border-radius: 0 0 5px 5px; }
+  #dpad .hub {
+    position: absolute; left: 28px; top: 28px; width: 28px; height: 28px;
+    background: var(--pad);
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  #dpad .hub::after {
+    content: ""; width: 13px; height: 13px; border-radius: 50%;
+    background: var(--pad-lo);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.8);
+  }
+
+  #ab { display: flex; gap: 11px; transform: rotate(-18deg); }
+  #ab button {
+    width: 42px; height: 42px; border-radius: 50%; border: none;
+    background: var(--btn); color: #ffd6e2; font-size: 13px;
+    font-family: inherit; cursor: pointer;
+    box-shadow: 0 3px 0 var(--btn-lo), inset 0 -2px 0 rgba(0,0,0,.25), inset 0 2px 0 rgba(255,255,255,.18);
+    touch-action: manipulation;
+  }
+  #ab button:active { background: var(--btn-lo); transform: translateY(3px); box-shadow: inset 0 2px 3px rgba(0,0,0,.4); }
+
+  #startsel { display: flex; gap: 14px; justify-content: center; transform: rotate(-18deg); }
+  #startsel button {
+    background: #6b6960; color: #e2e0d4; border: none; border-radius: 7px;
+    padding: 4px 13px; font-size: 8px; letter-spacing: .1em;
+    font-family: inherit; cursor: pointer;
+    box-shadow: 0 2px 0 #4a4941; touch-action: manipulation;
+  }
+  #startsel button:active { transform: translateY(2px); box-shadow: none; }
+
+  #lower { display: flex; align-items: center; justify-content: center; padding: 4px 0 0; }
+
+  #footer { font-size: 10px; line-height: 1.7; color: #8f8d84; text-align: center; }
+  #footer a { color: #a9bd77; }
+  #footer kbd { background: #34353c; border-radius: 3px; padding: 1px 4px; font-family: inherit; font-size: 9px; }
+</style>
+</head>
+<body>
+<div id="console">
+  <div id="shell">
+    <div id="bezel">
+      <div class="bezel-top">
+        <div class="bezel-rule"></div>
+        <span class="bezel-title">DOT MATRIX BATTLE SYSTEM</span>
+        <div class="bezel-rule"></div>
+      </div>
+      <canvas id="screen" width="320" height="288"></canvas>
+      <div class="power"><span class="led"></span>POWER</div>
+    </div>
+
+    <div id="pads">
+      <div id="dpad">
+        <button class="up" data-btn="UP" aria-label="上">▲</button>
+        <button class="left" data-btn="LEFT" aria-label="左">◀</button>
+        <div class="hub"></div>
+        <button class="right" data-btn="RIGHT" aria-label="右">▶</button>
+        <button class="down" data-btn="DOWN" aria-label="下">▼</button>
+      </div>
+      <div id="ab">
+        <button data-btn="B" aria-label="Bボタン">B</button>
+        <button data-btn="A" aria-label="Aボタン">A</button>
+      </div>
+    </div>
+
+    <div id="lower">
+      <div id="startsel">
+        <button data-btn="SELECT">SELECT</button>
+        <button data-btn="START">START</button>
+      </div>
+    </div>
+  </div>
+
+  <p id="footer">
+    キーボード: <kbd>←↑↓→</kbd> / <kbd>Z</kbd>=A / <kbd>X</kbd>=B / <kbd>Enter</kbd>=START / <kbd>Shift</kbd>=SELECT<br>
+    <a href="../../categories/mini-apps/index.html">← ミニアプリ一覧</a>
+  </p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // =====================================================================
+  // ENGINE START  (dev-scripts/verify-auto-battle.js extracts this block)
+  // =====================================================================
+
+  const CARDS = {
+    attack:   { id:"attack",   name:"こうげき",     kind:"action", short:"こうげき",
+                desc:"こうげき力ぶん てきに ダメージ" },
+    heal:     { id:"heal",     name:"かいふく",     kind:"action", short:"かいふく",
+                desc:"じぶんの HPを 3かいふく する" },
+    guard:    { id:"guard",    name:"ぼうぎょ",     kind:"state",  short:"ぼうぎょ",
+                desc:"このターン うけるダメージ-4 1バトル1かい" },
+    reckless: { id:"reckless", name:"すてみ",       kind:"action", short:"すてみ",
+                desc:"HP-2 して こうげき力+2" },
+    plus2:    { id:"plus2",    name:"+2",           kind:"boost",  short:"+2",
+                desc:"こうげき力+2 1バトルに1かい" },
+    times2:   { id:"times2",   name:"×2",           kind:"boost",  short:"×2",
+                desc:"こうげき力×2 1バトルに1かい" },
+    power:    { id:"power",    name:"るいじょう",   kind:"boost",  short:"るいじょう", needAwaken:true,
+                desc:"こうげき力を 2じょう かくせい中のみ" },
+    ifPinch:  { id:"ifPinch",  name:"ピンチ?",      kind:"cond",   short:"ピンチ?",
+                desc:"じぶんの HPが 2いかなら すすむ" },
+    ifHalf:   { id:"ifHalf",   name:"HPはんぶん?",  kind:"cond",   short:"はんぶん?",
+                desc:"じぶんの HPが はんぶんいかなら" },
+    ifStrong: { id:"ifStrong", name:"つよこうげき?",kind:"cond",   short:"つよこう?",
+                desc:"てきの つぎの手が つよこうげきなら" },
+  };
+
+  const START_CARDS = ["attack", "heal"];
+
+  const STAGES = [
+    {
+      id: 1, name: "スライム", sprite: "slime", hp: 6, armor: 0,
+      pattern: [{ t:"attack", v:2 }],
+      reward: ["reckless", "plus2"],
+      hint: "まいターン こうげき2。まずは なぐり合いで かてる。",
+    },
+    {
+      id: 2, name: "ゴブリン", sprite: "goblin", hp: 12, armor: 0,
+      pattern: [{ t:"attack", v:3 }, { t:"attack", v:3 }, { t:"strong", v:6 }],
+      reward: ["guard", "ifStrong"],
+      hint: "3ターンめに つよこうげき6。こうげき力を あげないと 3ターンで たおせない。",
+    },
+    {
+      id: 3, name: "ゴーレム", sprite: "golem", hp: 12, armor: 1,
+      pattern: [{ t:"attack", v:3 }, { t:"charge" }, { t:"strong", v:9 }],
+      reward: ["times2", "ifHalf"],
+      hint: "ダメージを1へらす いわのからだ。つよこうげき9は ぼうぎょで うけろ。",
+    },
+    {
+      id: 4, name: "ウィッチ", sprite: "witch", hp: 26, armor: 0,
+      pattern: [{ t:"attack", v:2 }, { t:"heal", v:3 }, { t:"attack", v:2 }, { t:"strong", v:6 }],
+      reward: ["power", "ifPinch"],
+      hint: "じぶんを 3かいふくする。けずる はやさで まけると たおせない。",
+    },
+    {
+      id: 5, name: "らいりゅう", sprite: "dragon", hp: 34, armor: 1,
+      pattern: [{ t:"attack", v:3 }, { t:"attack", v:3 }, { t:"charge" }, { t:"strong", v:10 }],
+      reward: [],
+      hint: "HP30。ふつうに たたかっては ぜったいに たりない。ピンチで かくせいし るいじょうを うて。",
+    },
+  ];
+
+  const MAX_DECK = 6;
+  const MAX_TURNS = 30;
+  const PLAYER_MAX_HP = 10;
+  const PLAYER_BASE_ATK = 2;
+  const AWAKEN_HP = 2;
+
+  // Jump target when a condition fails: skip past this block's action card.
+  function skipBlock(deck, i) {
+    for (let j = i + 1; j < deck.length; j++) {
+      if (CARDS[deck[j]].kind === "action") return j + 1;
+    }
+    return deck.length;
+  }
+
+  function nextEnemyAct(stage, idx) {
+    return stage.pattern[idx % stage.pattern.length];
+  }
+
+  function evalCond(id, P, E, stage) {
+    if (id === "ifPinch") return P.hp <= AWAKEN_HP;
+    if (id === "ifHalf") return P.hp * 2 <= P.maxHp;
+    if (id === "ifStrong") return nextEnemyAct(stage, E.idx).t === "strong";
+    return false;
+  }
+
+  // Fully deterministic: the same deck against the same stage always
+  // produces the same event list. No randomness anywhere.
+  function simulate(stage, deck) {
+    const P = { hp: PLAYER_MAX_HP, maxHp: PLAYER_MAX_HP, atk: PLAYER_BASE_ATK,
+                awaken: false, used: {}, guard: 0 };
+    const E = { hp: stage.hp, maxHp: stage.hp, armor: stage.armor || 0, idx: 0 };
+    const events = [];
+    let result = "draw";
+
+    const snap = () => ({
+      php: P.hp, patk: P.atk, ehp: E.hp, awaken: P.awaken,
+      used: Object.assign({}, P.used), eidx: E.idx, guard: P.guard,
+    });
+    const push = (o) => { o.s = snap(); events.push(o); };
+
+    const checkAwaken = () => {
+      if (P.hp > 0 && P.hp <= AWAKEN_HP && !P.awaken) {
+        P.awaken = true;
+        push({ t: "awaken" });
+      }
+    };
+
+    for (let turn = 1; turn <= MAX_TURNS; turn++) {
+      push({ t: "turn", turn });
+
+      let i = 0, acted = false;
+      while (i < deck.length) {
+        const c = CARDS[deck[i]];
+
+        if (c.kind === "cond") {
+          const ok = evalCond(c.id, P, E, stage);
+          push({ t: "cond", card: c.id, idx: i, ok });
+          i = ok ? i + 1 : skipBlock(deck, i);
+          continue;
+        }
+
+        // Boosts and states are once-per-battle resources: they resolve
+        // without ending the turn, so a block can brace and still act.
+        if (c.kind === "boost" || c.kind === "state") {
+          const blocked = P.used[c.id] ? "used" : (c.needAwaken && !P.awaken ? "noawaken" : null);
+          if (blocked) {
+            push({ t: "boostFail", card: c.id, idx: i, reason: blocked });
+          } else if (c.id === "guard") {
+            P.guard = 4;
+            P.used[c.id] = true;
+            push({ t: "guard", card: c.id, idx: i });
+          } else {
+            const from = P.atk;
+            if (c.id === "plus2") P.atk += 2;
+            else if (c.id === "times2") P.atk *= 2;
+            else if (c.id === "power") { P.atk = P.atk * P.atk; P.awaken = false; }
+            P.used[c.id] = true;
+            push({ t: "boost", card: c.id, idx: i, from, to: P.atk });
+          }
+          i++;
+          continue;
+        }
+
+        acted = true;
+        if (c.id === "attack") {
+          const dmg = Math.max(1, P.atk - E.armor);
+          E.hp -= dmg;
+          push({ t: "attack", card: c.id, idx: i, dmg });
+        } else if (c.id === "heal") {
+          const before = P.hp;
+          P.hp = Math.min(P.maxHp, P.hp + 3);
+          push({ t: "heal", card: c.id, idx: i, amt: P.hp - before });
+        } else if (c.id === "reckless") {
+          P.hp -= 2; P.atk += 2;
+          push({ t: "reckless", card: c.id, idx: i });
+        }
+        break;
+      }
+      if (!acted) push({ t: "idle" });
+
+      checkAwaken();
+      if (E.hp <= 0) { result = "win"; break; }
+      if (P.hp <= 0) { result = "lose"; break; }
+
+      const act = nextEnemyAct(stage, E.idx);
+      E.idx++;
+      if (act.t === "attack" || act.t === "strong") {
+        const dmg = Math.max(0, act.v - P.guard);
+        P.hp -= dmg;
+        push({ t: "enemyAtk", kind: act.t, raw: act.v, dmg, guarded: P.guard > 0 });
+      } else if (act.t === "charge") {
+        push({ t: "enemyCharge" });
+      } else if (act.t === "heal") {
+        const before = E.hp;
+        E.hp = Math.min(E.maxHp, E.hp + act.v);
+        push({ t: "enemyHeal", amt: E.hp - before });
+      }
+      P.guard = 0;
+
+      checkAwaken();
+      if (P.hp <= 0) { result = "lose"; break; }
+      if (E.hp <= 0) { result = "win"; break; }
+    }
+
+    push({ t: "end", result });
+    return { events, result };
+  }
+
+  // =====================================================================
+  // ENGINE END
+  // =====================================================================
+
+  // ---------------------------------------------------------------- art
+  // 32x32 sprites. '.'=transparent, 0=outline, 1=shadow, 2=mid, 3=light.
+  // Boundaries between tones are dithered so the 4-tone ramp reads as volume.
+  const SPRITES = {
+    slime: [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "............00000000............",
+      "..........033333333330..........",
+      "........0333333333333330........",
+      ".......033333333322222220.......",
+      "......03333333332222222220......",
+      ".....0333333333222222222220.....",
+      ".....0333333332222222222220.....",
+      "....033333332222222222222220....",
+      "....033333322222222222222220....",
+      "...03333322222222222222222220...",
+      "...03332222222222222222222220...",
+      "..0222220000222222220000222220..",
+      "..0222220330222222220330222220..",
+      "..0222220000222222220000222220..",
+      ".022222222222222222222222222220.",
+      ".022222222222000000222222222220.",
+      ".022222222222200002222222222220.",
+      ".021212121212121212121212121210.",
+      ".012121212121212121212121212120.",
+      ".011111111111111111111111111110.",
+      ".011111111111111111111111111110.",
+      "..0111111111111111111111111110..",
+      "...00000000000000000000000000...",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+    ],
+    goblin: [
+      "................................",
+      "................................",
+      "...00......000000......00.......",
+      "..0330....022222222220....0330..",
+      "..0230..0222222222222220..0320..",
+      "..0230022222222222222222200320..",
+      "...00022222222222222222222000...",
+      "....022220033330022220022220....",
+      "....0222203302222033022220......",
+      "....022222222200332222222220....",
+      ".....0222222222000022222220.....",
+      ".....02222220000000022220.......",
+      "......01111111111111111110......",
+      ".......011111111111111110.......",
+      ".....001110222222222222011100...",
+      "....011002222222222222200110....",
+      "....011002222221122222200110....",
+      ".....0100121212121212120010.....",
+      "......00011111111111111000......",
+      "........0111111111111110........",
+      "........0111110000111110........",
+      "........011111....0111110.......",
+      "........022222....0222220.......",
+      "........022222....0222220.......",
+      ".......00000000....000000000....",
+      "......000000000....000000000....",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+    ],
+    golem: [
+      "................................",
+      "................................",
+      "........00000000000000..........",
+      ".......0333333222222220.........",
+      "......033333222222222220........",
+      "......03330022220022220.........",
+      "......02220330220330220.........",
+      "......022222222222222220........",
+      "......022221111111122220........",
+      "......022222222222222220........",
+      ".....0000000000000000000000.....",
+      "..000033322222222221110000......",
+      ".03300332222222222221100110.....",
+      ".023002220330033022200110.......",
+      ".02300222022222222022200120.....",
+      ".02300212121212121212100120.....",
+      ".02300121212121212121200120.....",
+      ".03300111111111111111100110.....",
+      ".00000000000000000000000000.....",
+      ".....011111100001111110.........",
+      ".....0222222....02222220........",
+      ".....0222222....02222220........",
+      ".....0111111....01111110........",
+      "....000000000....000000000......",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+    ],
+    witch: [
+      ".................00.............",
+      "...............0033.............",
+      "..............003330............",
+      ".............01133330...........",
+      "............0111333330..........",
+      "...........011113333330.........",
+      ".........0111111333333300.......",
+      ".......011111111333333331110....",
+      "....000000000000000000000000....",
+      "......01110000000000001110......",
+      "..........03333333333330........",
+      "..........03330033003330........",
+      "..........033303303330..........",
+      "..........03333333333330........",
+      "...........033300003330.........",
+      "...........033333333330.........",
+      ".........002222222222222200.....",
+      ".......0222211111111111122220...",
+      "......022222111111111111222220..",
+      ".....02222221111111111112222220.",
+      ".....021212121212111111111110...",
+      "....01212121212121111111111110..",
+      "....0111111111111111111111111110",
+      "..011111111111111111111111111110",
+      ".000000000000000000000000000000.",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+    ],
+    dragon: [
+      "................................",
+      "....................00..00......",
+      "...................02200220.....",
+      "..................02200220......",
+      ".........0000....02200220.......",
+      ".......0033300..002222222200....",
+      ".....0333332222002222222222220..",
+      "...033322220000222222222222220..",
+      "..0330022220330222222222222220..",
+      ".033322222222000022222222222220.",
+      ".000022222222222222222222121210.",
+      ".00330222222222222222222121210..",
+      "..000022222222222222221212120...",
+      "...00222222222212111111111110...",
+      ".....02222222221212121111110....",
+      "......022222222111111111110.....",
+      ".......0222222211111111110......",
+      "........02222221111111110.......",
+      "........02222200111100110.......",
+      "........011110..01110010........",
+      "........00110....00100...00.....",
+      "........0000......000...........",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+    ],
+    hero: [
+      "................................",
+      "................................",
+      "...........0000000000...........",
+      "..........03330033300...........",
+      ".........0333303303330..........",
+      ".........02222222222220.........",
+      ".........00000022000000.........",
+      ".........00333022033300.........",
+      ".........02222222222220.........",
+      "..........011111111110..........",
+      "........0002223333222000........",
+      "......02220222222222222022200...",
+      ".....02222022222222222202222000.",
+      ".....01111022220330222201111003.",
+      ".....01111022222222222201111003.",
+      ".....00110011111111111101111003.",
+      ".......0001111111111110011003...",
+      "........011111111111100003......",
+      "........01111100111110..03......",
+      "........01111100111110..03......",
+      "........022222..0222220..03.....",
+      "........022222..0222220..03.....",
+      "........011111..0111110.030.....",
+      ".......00000000..00000000000....",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+    ],
+  };
+
+  const SPR = 32;
+
+  // ------------------------------------------------------------ renderer
+  const W = 320, H = 288;
+  const PAL = [[15,56,15], [48,98,48], [139,172,15], [155,188,15]];
+  const cv = document.getElementById("screen");
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+
+  const rgb = (t) => `rgb(${PAL[t][0]},${PAL[t][1]},${PAL[t][2]})`;
+  function rect(x, y, w, h, tone) { ctx.fillStyle = rgb(tone); ctx.fillRect(x | 0, y | 0, w | 0, h | 0); }
+
+  // 2px checkerboards give the mid tones real texture instead of flat fills.
+  function makePat(a, b) {
+    const p = document.createElement("canvas");
+    p.width = p.height = 4;
+    const c = p.getContext("2d");
+    c.fillStyle = rgb(a); c.fillRect(0, 0, 4, 4);
+    c.fillStyle = rgb(b); c.fillRect(0, 0, 2, 2); c.fillRect(2, 2, 2, 2);
+    return ctx.createPattern(p, "repeat");
+  }
+  let PAT_FIELD, PAT_GROUND, PAT_DARK, PAT_ARENA;
+  function initPatterns() {
+    PAT_FIELD = makePat(2, 1);   // page field: dark enough for windows to read
+    PAT_GROUND = makePat(1, 0);  // empty slots and locked tiles
+    PAT_DARK = makePat(1, 0);    // night sky
+    PAT_ARENA = makePat(3, 2);   // lit ground: sprites are dark figures on it
+  }
+  function patFill(pat, x, y, w, h) { ctx.fillStyle = pat; ctx.fillRect(x | 0, y | 0, w | 0, h | 0); }
+
+  // Every screen sits on a dithered field so windows have figure/ground.
+  function field() { patFill(PAT_FIELD, 0, 0, W, H); }
+
+  const FONT = 16, FONT_BIG = 32;
+  function setFont(size) { ctx.font = `${size}px "DotGothic16", monospace`; }
+  function txt(s, x, y, tone, size) {
+    setFont(size || FONT);
+    ctx.fillStyle = rgb(tone === undefined ? 0 : tone);
+    ctx.textBaseline = "top";
+    ctx.fillText(s, (x | 0), (y | 0));
+  }
+  function txtW(s, size) { setFont(size || FONT); return ctx.measureText(s).width; }
+  function txtMid(s, y, tone, size) { txt(s, ((W - txtW(s, size)) / 2) | 0, y, tone, size); }
+  // Right-aligned, for stat numerals.
+  function txtR(s, right, y, tone, size) { txt(s, (right - txtW(s, size)) | 0, y, tone, size); }
+
+  // Console window: solid light interior, hard frame, inner rule.
+  function win(x, y, w, h) {
+    rect(x, y, w, h, 3);
+    rect(x, y, w, 2, 0); rect(x, y + h - 2, w, 2, 0);
+    rect(x, y, 2, h, 0); rect(x + w - 2, y, 2, h, 0);
+    rect(x + 4, y + 4, w - 8, 1, 1); rect(x + 4, y + h - 5, w - 8, 1, 1);
+    rect(x + 4, y + 4, 1, h - 8, 1); rect(x + w - 5, y + 4, 1, h - 8, 1);
+  }
+
+  // A window with an inverted title strip: the console equivalent of a header.
+  function titledWin(x, y, w, h, title) {
+    win(x, y, w, h);
+    rect(x + 2, y + 2, w - 4, 20, 0);
+    txt(title, x + 8, y + 3, 3);
+  }
+
+  // Inverted plate — the GB convention for a status tag.
+  function plate(s, x, y) {
+    const w = txtW(s) + 10;
+    rect(x, y, w, 20, 0);
+    txt(s, x + 5, y + 2, 3);
+    return w;
+  }
+
+  // Button prompt: a key cap plus its label. Returns the next free x.
+  function keyHint(x, y, key, labelText) {
+    const kw = Math.max(18, txtW(key) + 8);
+    rect(x, y, kw, 18, 0);
+    txt(key, x + (kw - txtW(key)) / 2, y + 1, 3);
+    txt(labelText, x + kw + 5, y + 1, 0);
+    return x + kw + 5 + txtW(labelText) + 12;
+  }
+
+  // Button prompts belong on a framed strip, never loose on the field.
+  function hintWin(y, pairs) {
+    win(8, y, 304, 26);
+    let x = 16;
+    pairs.forEach((p) => { x = keyHint(x, y + 4, p[0], p[1]); });
+  }
+
+  function bar(x, y, w, ratio) {
+    const h = 12;
+    rect(x, y, w, h, 0);
+    rect(x + 2, y + 2, w - 4, h - 4, 3);
+    const inner = Math.max(0, Math.round((w - 4) * Math.max(0, Math.min(1, ratio))));
+    rect(x + 2, y + 2, inner, h - 4, 0);
+    if (inner > 2) rect(x + 2, y + 2, inner, 1, 1);
+  }
+
+  function sprite(name, x, y, scale, flash) {
+    const art = SPRITES[name];
+    if (!art) return;
+    const s = scale || 2;
+    for (let r = 0; r < art.length; r++) {
+      const row = art[r];
+      for (let c = 0; c < row.length; c++) {
+        const ch = row[c];
+        if (ch === ".") continue;
+        let tone = ch.charCodeAt(0) - 48;
+        if (flash) tone = 3 - tone;
+        rect(x + c * s, y + r * s, s, s, tone);
+      }
+    }
+  }
+
+  // A lit stage for a fighter: light interior, hard frame, dark floor strip.
+  function arena(x, y, w, h) {
+    rect(x, y, w, h, 0);
+    patFill(PAT_ARENA, x + 2, y + 2, w - 4, h - 4);
+    patFill(PAT_GROUND, x + 2, y + h - 14, w - 4, 12);
+    rect(x + 2, y + h - 16, w - 4, 2, 0);
+  }
+
+  // Sprites need something to stand on or they float in a void.
+  function shadow(cx, y, w) {
+    rect(cx - w / 2, y, w, 4, 1);
+    rect(cx - w / 2 + 4, y - 2, w - 8, 2, 1);
+    rect(cx - w / 2 + 4, y + 4, w - 8, 2, 1);
+  }
+
+  function cursor(x, y, tone) {
+    const t = tone === undefined ? 0 : tone;
+    for (let i = 0; i < 6; i++) {
+      rect(x, y + i, 6 - i, 1, t);
+      rect(x, y + 11 - i, 6 - i, 1, t);
+    }
+  }
+
+  // Card kind glyphs drawn as pixels, not font characters.
+  function kindIcon(kind, x, y, tone) {
+    const t = tone === undefined ? 0 : tone;
+    if (kind === "cond") {           // diamond
+      for (let i = 0; i < 5; i++) { rect(x + 5 - i, y + i, 1 + i * 2, 1, t); rect(x + 5 - i, y + 9 - i, 1 + i * 2, 1, t); }
+    } else if (kind === "boost") {   // up triangle
+      for (let i = 0; i < 5; i++) rect(x + 5 - i, y + 4 + i, 1 + i * 2, 1, t);
+    } else if (kind === "state") {   // filled square
+      rect(x + 1, y + 3, 9, 7, t);
+    } else {                          // action: filled circle
+      rect(x + 3, y + 2, 5, 9, t); rect(x + 2, y + 3, 7, 7, t);
+    }
+  }
+
+  function quantize() {
+    const img = ctx.getImageData(0, 0, W, H);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const lum = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
+      let best = 0, bestD = 1e9;
+      for (let p = 0; p < 4; p++) {
+        const c = PAL[p];
+        const pl = c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
+        const dist = Math.abs(pl - lum);
+        if (dist < bestD) { bestD = dist; best = p; }
+      }
+      d[i] = PAL[best][0]; d[i + 1] = PAL[best][1]; d[i + 2] = PAL[best][2]; d[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  // --------------------------------------------------------------- audio
+  const Snd = {
+    ac: null, on: true,
+    init() {
+      if (this.ac) { if (this.ac.state === "suspended") this.ac.resume(); return; }
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) this.ac = new AC();
+    },
+    tone(freq, dur, when, vol) {
+      if (!this.on || !this.ac) return;
+      const t0 = this.ac.currentTime + (when || 0);
+      const osc = this.ac.createOscillator();
+      const g = this.ac.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(vol === undefined ? 0.05 : vol, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g); g.connect(this.ac.destination);
+      osc.start(t0); osc.stop(t0 + dur + 0.01);
+    },
+    move() { this.tone(520, 0.05); },
+    ok() { this.tone(700, 0.06); this.tone(950, 0.08, 0.06); },
+    back() { this.tone(320, 0.08); },
+    hit() { this.tone(200, 0.06); this.tone(130, 0.1, 0.04); },
+    hurt() { this.tone(150, 0.14, 0, 0.06); },
+    buff() { this.tone(600, 0.05); this.tone(800, 0.05, 0.05); this.tone(1050, 0.08, 0.1); },
+    win() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.16, i * 0.12)); },
+    lose() { [392, 330, 262, 196].forEach((f, i) => this.tone(f, 0.22, i * 0.16)); },
+  };
+
+  // ---------------------------------------------------------------- save
+  const SAVE_KEY = "abrpg.save.v2";
+  const save = { cleared: [], seen: [], decks: {} };
+
+  function loadSave() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return;
+      const o = JSON.parse(raw);
+      if (Array.isArray(o.cleared)) save.cleared = o.cleared;
+      if (Array.isArray(o.seen)) save.seen = o.seen;
+      if (o.decks && typeof o.decks === "object") save.decks = o.decks;
+    } catch (e) { /* private mode: play without saving */ }
+  }
+  function writeSave() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* ignore */ }
+  }
+
+  function ownedCards() {
+    const owned = START_CARDS.slice();
+    STAGES.forEach((st) => {
+      if (save.cleared.indexOf(st.id) >= 0) {
+        st.reward.forEach((c) => { if (owned.indexOf(c) < 0) owned.push(c); });
+      }
+    });
+    return owned;
+  }
+  const stageUnlocked = (st) => st.id === 1 || save.cleared.indexOf(st.id - 1) >= 0;
+  const isCleared = (st) => save.cleared.indexOf(st.id) >= 0;
+  const hasSeen = (st) => save.seen.indexOf(st.id) >= 0;
+  function deckOf(stageId) {
+    const d = save.decks[stageId];
+    return Array.isArray(d) ? d.slice() : ["attack"];
+  }
+
+  // ---------------------------------------------------------------- game
+  const G = {
+    screen: "title", frame: 0,
+    mapCur: 0, stage: null,
+    deck: [], deckCur: 0, pickCur: 0,
+    howtoPage: 0,
+    battle: null, result: null, gained: [],
+  };
+  const setScreen = (s) => { G.screen = s; };
+
+  function actName(a) {
+    if (a.t === "attack") return "こうげき" + a.v;
+    if (a.t === "strong") return "つよこうげき" + a.v;
+    if (a.t === "charge") return "ためる";
+    if (a.t === "heal") return "かいふく" + a.v;
+    return "？";
+  }
+  function actShort(a) {
+    if (a.t === "attack") return "" + a.v;
+    if (a.t === "strong") return "!" + a.v;
+    if (a.t === "charge") return "た";
+    if (a.t === "heal") return "回";
+    return "?";
+  }
+
+  // ---- title
+  function drawTitle() {
+    field();
+    // dark sky plate: the logo's light face needs something to read against
+    patFill(PAT_DARK, 0, 0, W, 120);
+    rect(0, 118, W, 2, 0);
+    patFill(PAT_ARENA, 0, 120, W, 16);
+
+    sprite("dragon", 220, 50, 2);
+
+    const l1 = "オートバトル", l2 = "RPG";
+    txt(l1, 27, 33, 0, FONT_BIG);
+    txt(l1, 24, 30, 3, FONT_BIG);
+    txt(l2, 75, 73, 0, FONT_BIG);
+    txt(l2, 72, 70, 3, FONT_BIG);
+
+    win(16, 146, 288, 80);
+    txt("カードで さくせんを くみ", 30, 158);
+    txt("あとは じどうで たたかう。", 30, 180);
+    txt("らんすうは いっさい なし。", 30, 202, 1);
+
+    if (Math.floor(G.frame / 16) % 2 === 0) {
+      const ps = "PRESS START";
+      plate(ps, ((W - (txtW(ps) + 10)) / 2) | 0, 234);
+    }
+    hintWin(258, [["SEL", "あそびかた"]]);
+  }
+
+  // ---- how to play
+  const HOWTO = [
+    { title: "1. さくせんの くみかた", lines: [
+      "カードを たてに ならべる。",
+      "うえから じゅんに よまれる。",
+      "",
+      "◇じょうけん  △きょうか",
+      "■まもり    ●こうどう",
+    ] },
+    { title: "2. 1ターンの ながれ", lines: [
+      "じょうけん:せいりつで つぎへ",
+      "  ふせいりつなら この ブロックを",
+      "  とばして つぎの さくせんへ",
+      "きょうか/まもり:はつどうして つぎへ",
+      "こうどう:じっこうして ターンおわり",
+    ] },
+    { title: "3. ブロックの かたち", lines: [
+      "◇ピンチ?    ←じょうけん",
+      "  △るいじょう ←きょうか",
+      "  ●こうげき   ←こうどう",
+      "●こうげき    ←ふだんは これ",
+      "うえが だめなら したが つかわれる。",
+    ] },
+    { title: "4. たいせつな ルール", lines: [
+      "きょうか と まもりは",
+      "  1バトルに 1かいだけ。",
+      "  じゅんばんで けっかが かわる。",
+      "  +2→×2 は 8  ×2→+2 は 6",
+      "HP2いかで かくせい。るいじょうは",
+      "  かくせい中しか うてない。",
+    ] },
+  ];
+
+  function drawHowto() {
+    field();
+    titledWin(8, 8, 304, 240, "あそびかた " + (G.howtoPage + 1) + "/" + HOWTO.length);
+    const p = HOWTO[G.howtoPage];
+    txt(p.title, 22, 34, 0);
+    rect(22, 56, 276, 1, 1);
+    p.lines.forEach((l, i) => txt(l, 22, 64 + i * 24, 0));
+    hintWin(256, [["A", "つぎ"], ["B", "もどる"]]);
+  }
+
+  // ---- map: a route, not a list
+  const NODES = [[44, 118], [104, 74], [166, 122], [226, 72], [280, 124]];
+
+  function drawMap() {
+    field();
+    patFill(PAT_GROUND, 0, 140, W, 32);
+
+    // dotted path between the nodes
+    for (let i = 0; i < NODES.length - 1; i++) {
+      const [x1, y1] = NODES[i], [x2, y2] = NODES[i + 1];
+      const steps = 26;
+      for (let st = 0; st <= steps; st++) {
+        if (st % 2) continue;
+        rect(x1 + ((x2 - x1) * st) / steps, y1 + ((y2 - y1) * st) / steps, 2, 2, 0);
+      }
+    }
+
+    NODES.forEach(([x, y], i) => {
+      const st = STAGES[i];
+      const open = stageUnlocked(st);
+      const done = isCleared(st);
+      rect(x - 12, y - 12, 24, 24, 0);
+      if (done) rect(x - 10, y - 10, 20, 20, 0);
+      else { rect(x - 10, y - 10, 20, 20, 3); if (!open) patFill(PAT_GROUND, x - 9, y - 9, 18, 18); }
+      const mark = done ? "✓" : open ? String(st.id) : "?";
+      txt(mark, x - txtW(mark) / 2, y - 9, done || !open ? 3 : 0);
+      if (i === G.mapCur && Math.floor(G.frame / 8) % 2 === 0) cursor(x - 24, y - 6, 0);
+    });
+
+    titledWin(8, 8, 304, 26, "ステージ せんたく");
+
+    const st = STAGES[G.mapCur];
+    const open = stageUnlocked(st);
+    win(8, 176, 304, 72);
+    if (open) {
+      sprite(st.sprite, 20, 184, 1);
+      txt(st.id + ". " + st.name, 64, 186);
+      txt("HP " + st.hp + (st.armor ? "   ダメージ-" + st.armor : ""), 64, 210, 1);
+      if (isCleared(st)) plate("クリア", 232, 184);
+    } else {
+      txt("？？？？", 64, 196);
+      txt("まえの ステージを クリアしよう", 24, 218, 1);
+    }
+    hintWin(254, open ? [["A", "すすむ"], ["B", "タイトル"]] : [["B", "タイトル"]]);
+  }
+
+  // ---- enemy info
+  function drawInfo() {
+    const st = G.stage;
+    const seen = hasSeen(st);
+    field();
+    titledWin(8, 8, 304, 26, "てきの じょうほう");
+
+    arena(16, 40, 132, 78);
+    sprite(st.sprite, 48, 44, 2);
+    shadow(80, 104, 46);
+
+    win(160, 40, 152, 78);
+    txt("なまえ", 170, 48, 1);
+    txtR(st.name, 302, 48, 0);
+    txt("HP", 170, 70, 1);
+    txtR(String(st.hp), 302, 70, 0);
+    txt("まもり", 170, 92, 1);
+    txtR(st.armor ? "-" + st.armor : "なし", 302, 92, 0);
+
+    titledWin(8, 126, 304, 84, "こうどう パターン");
+    if (seen) {
+      st.pattern.forEach((a, i) => {
+        const x = 20 + i * 72, y = 156;
+        rect(x, y, 62, 42, 0);
+        rect(x + 2, y + 2, 58, 38, 3);
+        txt(String(i + 1), x + 5, y + 3, 1);
+        const s = actShort(a);
+        txt(s, x + (62 - txtW(s)) / 2, y + 16, 0);
+      });
+      txt(st.pattern.map((a) => actName(a)).join(" → "), 20, 200, 1);
+    } else {
+      txt("？？？", 20, 156);
+      txt("1どでも たたかえば わかる。", 20, 180, 1);
+    }
+
+    win(8, 214, 304, 40);
+    txt(seen ? st.hint : "まずは たたかって かんさつしよう", 20, 226, 0);
+    hintWin(258, [["A", "さくせんへ"], ["B", "もどる"]]);
+  }
+
+  // ---- deck edit
+  // Depth per card, so conditional blocks read as indented groups.
+  function deckIndents(deck) {
+    const out = [];
+    let inBlock = false;
+    deck.forEach((id) => {
+      const c = CARDS[id];
+      if (c.kind === "cond") { out.push(0); inBlock = true; return; }
+      out.push(inBlock ? 1 : 0);
+      if (c.kind === "action") inBlock = false;
+    });
+    return out;
+  }
+
+  function drawDeck() {
+    const st = G.stage;
+    field();
+    titledWin(8, 8, 304, 26, "さくせん");
+    txtR("VS " + st.name, 302, 11, 3);
+
+    // slot rack
+    win(8, 40, 196, 146);
+    const ind = deckIndents(G.deck);
+    for (let i = 0; i < MAX_DECK; i++) {
+      const y = 48 + i * 23;
+      const filled = i < G.deck.length;
+      const x = 26 + (filled && ind[i] ? 12 : 0);
+      const w = 168 - (filled && ind[i] ? 12 : 0);
+      rect(x, y, w, 20, 0);
+      if (filled) {
+        rect(x + 1, y + 1, w - 2, 18, 3);
+        const c = CARDS[G.deck[i]];
+        kindIcon(c.kind, x + 3, y + 5);
+        txt(c.name, x + 16, y + 1, 0);
+        if (c.kind === "boost" || c.kind === "state") txtR("1", x + w - 5, y + 1, 1);
+      } else {
+        patFill(PAT_GROUND, x + 1, y + 1, w - 2, 18);
+        rect(x + 3, y + 3, 14, 14, 3);
+        txt(String(i + 1), x + 6, y + 1, 0);
+      }
+      if (i === G.deckCur) cursor(14, y + 4, 0);
+    }
+
+    // the enemy you are building against
+    win(210, 40, 102, 146);
+    arena(216, 46, 90, 48);
+    sprite(st.sprite, 245, 50, 1);
+    txtMidIn(210, 102, 100, st.name, 0);
+    bar(220, 120, 82, 1);
+    txtMidIn(210, 102, 136, "HP " + st.hp, 1);
+    const known = hasSeen(st);
+    txtMidIn(210, 102, 146, "つぎ", 1);
+    txtMidIn(210, 102, 164, known ? actShort(st.pattern[0]) : "？", 0);
+
+    win(8, 192, 304, 44);
+    const cur = G.deck[G.deckCur];
+    txt(cur ? CARDS[cur].desc : "あきスロット。Aで カードを いれる", 20, 204, 0);
+
+    hintWin(240, [["A", "えらぶ"], ["STA", "たたかう"], ["SEL", "けす"]]);
+  }
+
+  // helper: center text inside a box
+  function txtMidIn(x, w, y, s, tone) { txt(s, (x + (w - txtW(s)) / 2) | 0, y, tone); }
+
+  // ---- card picker
+  // Grouped by kind so the four card types are learnable at a glance.
+  const ALL_CARDS = ["attack", "heal", "reckless", "guard",
+                     "plus2", "times2", "power",
+                     "ifHalf", "ifStrong", "ifPinch"];
+
+  function drawPick() {
+    const owned = ownedCards();
+    field();
+    titledWin(8, 8, 304, 26, "カードを えらぶ");
+    txtR(owned.length + "/" + ALL_CARDS.length, 302, 11, 3);
+
+    ALL_CARDS.forEach((id, i) => {
+      const c = CARDS[id];
+      const have = owned.indexOf(id) >= 0;
+      const sel = i === G.pickCur;
+      const x = 12 + (i % 2) * 150, y = 42 + Math.floor(i / 2) * 33;
+      rect(x, y, 146, 29, 0);
+      if (sel && have) {
+        rect(x + 2, y + 2, 142, 25, 0);
+        kindIcon(c.kind, x + 6, y + 8, 3);
+        txt(c.name, x + 20, y + 4, 3);
+      } else if (have) {
+        rect(x + 2, y + 2, 142, 25, 3);
+        kindIcon(c.kind, x + 6, y + 8, 0);
+        txt(c.name, x + 20, y + 4, 0);
+      } else {
+        patFill(PAT_GROUND, x + 2, y + 2, 142, 25);
+        txt("？？？", x + 20, y + 4, 3);
+        if (sel) { rect(x + 2, y + 2, 142, 2, 0); rect(x + 2, y + 25, 142, 2, 0); }
+      }
+    });
+
+    win(8, 214, 304, 40);
+    const cur = CARDS[ALL_CARDS[G.pickCur]];
+    const have = owned.indexOf(ALL_CARDS[G.pickCur]) >= 0;
+    txt(have ? cur.desc : "まだ てにいれていない カード", 20, 226, 0);
+    hintWin(258, [["A", "きめる"], ["B", "やめる"]]);
+  }
+
+  // ---- battle
+  function startBattle() {
+    const sim = simulate(G.stage, G.deck);
+    G.battle = {
+      events: sim.events, result: sim.result, i: -1,
+      state: { php: PLAYER_MAX_HP, patk: PLAYER_BASE_ATK, ehp: G.stage.hp, awaken: false, used: {}, eidx: 0 },
+      msg: ["", ""], cardIdx: -1, turn: 1, timer: 0, speed: 30,
+      flashE: 0, flashP: 0, lungeP: 0, lungeE: 0, pop: null, done: false,
+    };
+    if (!hasSeen(G.stage)) { save.seen.push(G.stage.id); writeSave(); }
+    setScreen("battle");
+  }
+
+  function eventText(e) {
+    const c = e.card ? CARDS[e.card] : null;
+    switch (e.t) {
+      case "turn": return ["- ターン " + e.turn + " -", ""];
+      case "cond": return [c.name, e.ok ? "→ せいりつ！ つぎへ" : "→ ふせいりつ。とばす"];
+      case "boost": return [c.name + " はつどう！", "こうげき力 " + e.from + " → " + e.to];
+      case "guard": return ["ぼうぎょの かまえ！", "うけるダメージ -4"];
+      case "boostFail": return [c.name + " は つかえない", e.reason === "used" ? "→ もう つかった" : "→ かくせい していない"];
+      case "attack": return ["こうげき！", "てきに " + e.dmg + " ダメージ"];
+      case "heal": return ["かいふく！", e.amt > 0 ? "HPが " + e.amt + " かいふく" : "HPは まんタン"];
+      case "reckless": return ["すてみ！", "HP-2 こうげき力+2"];
+      case "idle": return ["ようすを みている…", "つかえる カードが ない"];
+      case "awaken": return ["HPが 2いか！", "かくせい した！"];
+      case "enemyAtk": return [e.kind === "strong" ? "てきの つよこうげき！" : "てきの こうげき！",
+                               e.guarded ? e.dmg + " ダメージ (ぼうぎょ)" : e.dmg + " ダメージ"];
+      case "enemyCharge": return ["てきは ちからを ためている", "つぎの こうげきに ちゅうい"];
+      case "enemyHeal": return ["てきは かいふくした", "HPが " + e.amt + " もどった"];
+      case "end": return [e.result === "win" ? "てきを たおした！" : e.result === "lose" ? "ちからつきた…" : "じかんぎれ…", ""];
+      default: return ["", ""];
+    }
+  }
+
+  function stepBattle() {
+    const b = G.battle;
+    b.i++;
+    if (b.i >= b.events.length) { finishBattle(); return; }
+    const e = b.events[b.i];
+    b.state = e.s;
+    b.msg = eventText(e);
+    b.cardIdx = e.idx === undefined ? -1 : e.idx;
+    if (e.t === "turn") b.turn = e.turn;
+    if (e.t === "attack") { b.flashE = 6; b.lungeP = 8; b.pop = { v: "-" + e.dmg, x: 232, y: 24, life: 16 }; Snd.hit(); }
+    if (e.t === "enemyAtk" && e.dmg > 0) { b.flashP = 6; b.lungeE = 8; b.pop = { v: "-" + e.dmg, x: 28, y: 124, life: 16 }; Snd.hurt(); }
+    if (e.t === "boost" || e.t === "awaken") Snd.buff();
+    if (e.t === "reckless") { b.pop = { v: "-2", x: 28, y: 124, life: 14 }; Snd.hurt(); }
+    if (e.t === "heal") { b.pop = { v: "+" + e.amt, x: 28, y: 124, life: 14 }; Snd.move(); }
+    if (e.t === "enemyHeal") { b.pop = { v: "+" + e.amt, x: 232, y: 24, life: 14 }; Snd.move(); }
+    if (e.t === "guard") Snd.move();
+    if (e.t === "end") { b.done = true; if (e.result === "win") Snd.win(); else Snd.lose(); }
+  }
+
+  function finishBattle() {
+    const b = G.battle;
+    G.result = b.result;
+    G.gained = [];
+    if (b.result === "win" && !isCleared(G.stage)) {
+      save.cleared.push(G.stage.id);
+      G.gained = G.stage.reward.slice();
+      writeSave();
+    }
+    setScreen("result");
+  }
+
+  function drawBattle() {
+    const b = G.battle, s = b.state, st = G.stage;
+    field();
+
+    // --- enemy stage (right) and its stat window (left)
+    arena(176, 8, 136, 96);
+    const dead = s.ehp <= 0;
+    const ex = 208 + (b.lungeE > 0 ? -8 : 0);
+    if (!dead || Math.floor(G.frame / 3) % 2 === 0) {
+      if (!dead) shadow(ex + 32, 88, 48);
+      sprite(st.sprite, ex, 16, 2, b.flashE > 0);
+    }
+
+    win(8, 8, 160, 96);
+    txt(st.name, 18, 12, 0);
+    bar(18, 34, 140, Math.max(0, s.ehp) / st.hp);
+    txt("HP", 18, 52, 1);
+    txtR(Math.max(0, s.ehp) + "/" + st.hp, 158, 52, 0);
+    const na = nextEnemyAct(st, s.eidx);
+    const known = hasSeen(st);
+    txt("つぎ", 18, 76, 1);
+    txtR(known ? actName(na) : "？？？", 158, 76, na.t === "strong" && known ? 0 : 1);
+
+    // --- player stage (left) and stat window (right)
+    arena(8, 112, 80, 80);
+    const px = 16 + (b.lungeP > 0 ? 10 : 0);
+    shadow(px + 32, 176, 44);
+    sprite("hero", px, 120, 2, b.flashP > 0);
+
+    win(96, 112, 216, 80);
+    txt("ゆうしゃ", 106, 116, 0);
+    if (s.awaken && Math.floor(G.frame / 6) % 2 === 0) plate("かくせい!", 216, 115);
+    bar(106, 140, 196, Math.max(0, s.php) / PLAYER_MAX_HP);
+    txt("HP", 106, 160, 1);
+    txtR(Math.max(0, s.php) + "/" + PLAYER_MAX_HP, 192, 160, 0);
+    txt("ATK", 208, 160, 1);
+    txtR(String(s.patk), 302, 160, 0);
+
+    // --- deck trace: always all six slots
+    win(8, 200, 304, 24);
+    txt("さくせん", 14, 202, 1);
+    for (let i = 0; i < MAX_DECK; i++) {
+      const x = 96 + i * 26, y = 204;
+      rect(x, y, 22, 16, 0);
+      if (i < G.deck.length) {
+        const active = i === b.cardIdx;
+        rect(x + 1, y + 1, 20, 14, active ? 0 : 3);
+        if (!active) kindIcon(CARDS[G.deck[i]].kind, x + 5, y + 2);
+        else rect(x + 6, y + 4, 10, 8, 3);
+      } else {
+        patFill(PAT_GROUND, x + 1, y + 1, 20, 14);
+      }
+    }
+
+    // --- message window
+    win(8, 232, 304, 48);
+    txt(b.msg[0], 20, 236, 0);
+    txt(b.msg[1], 20, 258, 0);
+
+    // --- floating damage numeral, the clearest "this is a game" cue
+    if (b.pop && b.pop.life > 0) {
+      const rise = (16 - b.pop.life) / 2;
+      const y = b.pop.y - rise;
+      txt(b.pop.v, b.pop.x + 2, y + 2, 3, FONT_BIG);
+      txt(b.pop.v, b.pop.x, y, 0, FONT_BIG);
+    }
+
+    if (b.done && Math.floor(G.frame / 12) % 2 === 0) txt("▼", 290, 258, 0);
+  }
+
+  // ---- result
+  function drawResult() {
+    const won = G.result === "win";
+    field();
+    arena(112, 40, 96, 80);
+    sprite(won ? "hero" : G.stage.sprite, 128, 44, 2);
+    shadow(160, 106, 46);
+
+    const head = won ? "しょうり！" : G.result === "lose" ? "はいぼく…" : "じかんぎれ";
+    rect(8, 8, 304, 26, 0);
+    txtMid(head, 11, 3);
+
+    if (won) {
+      titledWin(8, 128, 304, 104, G.gained.length ? "カードを おぼえた！" : "クリアずみ");
+      if (G.gained.length) {
+        G.gained.forEach((id, i) => {
+          const c = CARDS[id], y = 158 + i * 30;
+          rect(24, y, 272, 26, 0);
+          rect(26, y + 2, 268, 22, 3);
+          kindIcon(c.kind, 32, y + 7);
+          txt(c.name, 48, y + 3, 0);
+          txtR(c.desc.length > 16 ? c.desc.slice(0, 16) : c.desc, 290, y + 3, 1);
+        });
+      } else {
+        txt("この ステージは クリアずみ。", 24, 170);
+      }
+    } else {
+      titledWin(8, 128, 304, 104, "ヒント");
+      txt("さくせんを くみなおして", 24, 158);
+      txt("もういちど いどもう。", 24, 182);
+      txt(G.stage.hint.slice(0, 20), 24, 206, 1);
+    }
+
+    hintWin(250, [["A", "さくせん"], ["B", "マップ"]]);
+  }
+
+  // ---- ending
+  function drawEnding() {
+    field();
+    rect(8, 8, 304, 26, 0);
+    txtMid("ぜんステージ クリア！", 11, 3);
+    arena(112, 44, 96, 88);
+    sprite("dragon", 128, 48, 2);
+    shadow(160, 118, 46);
+    win(8, 152, 304, 94);
+    txt("さくせんだけで りゅうを たおした。", 20, 166);
+    txt("つよさは ステータスでは なく", 20, 190);
+    txt("くみたてた さくせんの ことだった。", 20, 214);
+    hintWin(254, [["A", "タイトルへ"]]);
+  }
+
+  // ------------------------------------------------------------- drawing
+  function draw() {
+    switch (G.screen) {
+      case "title": drawTitle(); break;
+      case "howto": drawHowto(); break;
+      case "map": drawMap(); break;
+      case "info": drawInfo(); break;
+      case "deck": drawDeck(); break;
+      case "pick": drawPick(); break;
+      case "battle": drawBattle(); break;
+      case "result": drawResult(); break;
+      case "ending": drawEnding(); break;
+    }
+    quantize();
+  }
+
+  // --------------------------------------------------------------- input
+  function saveDeck() {
+    if (!G.stage) return;
+    save.decks[G.stage.id] = G.deck.slice();
+    writeSave();
+  }
+
+  function press(btn) {
+    Snd.init();
+    const s = G.screen;
+
+    if (s === "title") {
+      if (btn === "START" || btn === "A") { Snd.ok(); setScreen("map"); }
+      else if (btn === "SELECT") { Snd.ok(); G.howtoPage = 0; setScreen("howto"); }
+      return;
+    }
+
+    if (s === "howto") {
+      if (btn === "A" || btn === "RIGHT" || btn === "START") {
+        if (G.howtoPage < HOWTO.length - 1) { G.howtoPage++; Snd.move(); }
+        else { Snd.back(); setScreen("title"); }
+      } else if (btn === "LEFT") { if (G.howtoPage > 0) { G.howtoPage--; Snd.move(); } }
+      else if (btn === "B") { Snd.back(); setScreen("title"); }
+      return;
+    }
+
+    if (s === "map") {
+      if (btn === "UP" || btn === "LEFT") { G.mapCur = (G.mapCur + STAGES.length - 1) % STAGES.length; Snd.move(); }
+      else if (btn === "DOWN" || btn === "RIGHT") { G.mapCur = (G.mapCur + 1) % STAGES.length; Snd.move(); }
+      else if (btn === "A" || btn === "START") {
+        const st = STAGES[G.mapCur];
+        if (!stageUnlocked(st)) { Snd.back(); return; }
+        Snd.ok();
+        G.stage = st; G.deck = deckOf(st.id); G.deckCur = 0;
+        setScreen("info");
+      } else if (btn === "B") { Snd.back(); setScreen("title"); }
+      return;
+    }
+
+    if (s === "info") {
+      if (btn === "A" || btn === "START") { Snd.ok(); setScreen("deck"); }
+      else if (btn === "B") { Snd.back(); setScreen("map"); }
+      return;
+    }
+
+    if (s === "deck") {
+      if (btn === "UP") { G.deckCur = (G.deckCur + MAX_DECK - 1) % MAX_DECK; Snd.move(); }
+      else if (btn === "DOWN") { G.deckCur = (G.deckCur + 1) % MAX_DECK; Snd.move(); }
+      else if (btn === "LEFT" || btn === "RIGHT") {
+        const j = btn === "LEFT" ? G.deckCur - 1 : G.deckCur + 1;
+        if (G.deckCur < G.deck.length && j >= 0 && j < G.deck.length) {
+          const t = G.deck[G.deckCur]; G.deck[G.deckCur] = G.deck[j]; G.deck[j] = t;
+          G.deckCur = j; Snd.move(); saveDeck();
+        } else Snd.back();
+      } else if (btn === "A") { Snd.ok(); G.pickCur = 0; setScreen("pick"); }
+      else if (btn === "SELECT") {
+        if (G.deckCur < G.deck.length && G.deck.length > 1) {
+          G.deck.splice(G.deckCur, 1);
+          if (G.deckCur >= G.deck.length) G.deckCur = Math.max(0, G.deck.length - 1);
+          Snd.back(); saveDeck();
+        } else Snd.back();
+      } else if (btn === "START") {
+        if (!G.deck.length) { Snd.back(); return; }
+        saveDeck(); Snd.ok(); startBattle();
+      } else if (btn === "B") { saveDeck(); Snd.back(); setScreen("map"); }
+      return;
+    }
+
+    if (s === "pick") {
+      const n = ALL_CARDS.length;
+      if (btn === "UP") { G.pickCur = (G.pickCur + n - 2) % n; Snd.move(); }
+      else if (btn === "DOWN") { G.pickCur = (G.pickCur + 2) % n; Snd.move(); }
+      else if (btn === "LEFT") { G.pickCur = (G.pickCur + n - 1) % n; Snd.move(); }
+      else if (btn === "RIGHT") { G.pickCur = (G.pickCur + 1) % n; Snd.move(); }
+      else if (btn === "A" || btn === "START") {
+        const id = ALL_CARDS[G.pickCur];
+        if (ownedCards().indexOf(id) < 0) { Snd.back(); return; }
+        if (G.deckCur < G.deck.length) G.deck[G.deckCur] = id;
+        else if (G.deck.length < MAX_DECK) { G.deck.push(id); G.deckCur = G.deck.length - 1; }
+        saveDeck(); Snd.ok(); setScreen("deck");
+      } else if (btn === "B") { Snd.back(); setScreen("deck"); }
+      return;
+    }
+
+    if (s === "battle") {
+      const b = G.battle;
+      if (b.done && (btn === "A" || btn === "START" || btn === "B")) { finishBattle(); return; }
+      if (btn === "A") { b.speed = 8; stepBattle(); }
+      else if (btn === "START") { while (!b.done) stepBattle(); }
+      return;
+    }
+
+    if (s === "result") {
+      if (btn === "A" || btn === "START") {
+        Snd.ok();
+        if (G.result === "win" && G.stage.id === STAGES[STAGES.length - 1].id) { setScreen("ending"); return; }
+        setScreen("deck");
+      } else if (btn === "B") { Snd.back(); setScreen("map"); }
+      return;
+    }
+
+    if (s === "ending") {
+      if (btn === "A" || btn === "B" || btn === "START") { Snd.ok(); setScreen("title"); }
+      return;
+    }
+  }
+
+  document.querySelectorAll("[data-btn]").forEach((el) => {
+    el.addEventListener("pointerdown", (ev) => { ev.preventDefault(); press(el.dataset.btn); });
+  });
+
+  const KEYMAP = {
+    ArrowUp: "UP", ArrowDown: "DOWN", ArrowLeft: "LEFT", ArrowRight: "RIGHT",
+    z: "A", Z: "A", x: "B", X: "B", Enter: "START", Shift: "SELECT", " ": "A",
+  };
+  window.addEventListener("keydown", (e) => {
+    const b = KEYMAP[e.key];
+    if (!b) return;
+    e.preventDefault();
+    press(b);
+  });
+
+  // ---------------------------------------------------------------- loop
+  let last = 0;
+  function loop(t) {
+    requestAnimationFrame(loop);
+    if (t - last < 33) return;
+    last = t;
+    G.frame++;
+
+    const b = G.battle;
+    if (b) {
+      if (b.flashE > 0) b.flashE--;
+      if (b.flashP > 0) b.flashP--;
+      if (b.lungeP > 0) b.lungeP--;
+      if (b.lungeE > 0) b.lungeE--;
+      if (b.pop && b.pop.life > 0) b.pop.life--;
+      if (G.screen === "battle" && !b.done) {
+        b.timer++;
+        if (b.i < 0 || b.timer >= b.speed / 2) { b.timer = 0; stepBattle(); }
+      }
+    }
+    draw();
+  }
+
+  loadSave();
+  const boot = () => { initPatterns(); draw(); requestAnimationFrame(loop); };
+  if (document.fonts && document.fonts.load) {
+    Promise.race([
+      document.fonts.load('16px "DotGothic16"').then(() => document.fonts.ready),
+      new Promise((r) => setTimeout(r, 1500)),
+    ]).then(boot, boot);
+  } else boot();
+})();
+</script>
+</body>
+</html>

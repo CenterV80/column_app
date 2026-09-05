@@ -255,4 +255,11 @@ const APPS = [
     icon: "🎨",
     category: "substance-designer",
   },
+  {
+    name: "オートバトルRPG",
+    description: "カードを並べて「条件→強化→行動」の作戦を組むと、あとは乱数なしの完全自動戦闘。敵の行動パターンを読み、HPを資源として使って強敵を攻略する、ゲームボーイ風のパズルRPGです。",
+    path: "apps/auto-battle-rpg/",
+    icon: "⚔️",
+    category: "mini-apps",
+  },
 ];
