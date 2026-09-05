@@ -522,17 +522,17 @@
     dragon: [
       "................................",
       "....................00..00......",
-      "...................01100110.....",
-      "..................01100110......",
-      ".........0000....01100110.......",
-      ".......0033300..001111111100....",
-      ".....0333332222001111111111110..",
-      "...033322220000111111111111110..",
-      "..0330022220330221111111111110..",
-      ".033322222222000022111111111110.",
-      ".000022222222222222222222222220.",
-      ".00330222222222222222222222220..",
-      "..000022222222212121212121210...",
+      "...................02200220.....",
+      "..................02200220......",
+      ".........0000....02200220.......",
+      ".......0033300..002222222200....",
+      ".....0333332222002222222222220..",
+      "...033322220000222222222222220..",
+      "..0330022220330222222222222220..",
+      ".033322222222000022222222222220.",
+      ".000022222222222222222222121210.",
+      ".00330222222222222222222121210..",
+      "..000022222222222222221212120...",
       "...00222222222212111111111110...",
       ".....02222222221212121111110....",
       "......022222222111111111110.....",
@@ -609,11 +609,12 @@
     c.fillStyle = rgb(b); c.fillRect(0, 0, 2, 2); c.fillRect(2, 2, 2, 2);
     return ctx.createPattern(p, "repeat");
   }
-  let PAT_FIELD, PAT_GROUND, PAT_DARK;
+  let PAT_FIELD, PAT_GROUND, PAT_DARK, PAT_ARENA;
   function initPatterns() {
-    PAT_FIELD = makePat(2, 1);   // page background: dark enough for windows to read
-    PAT_GROUND = makePat(1, 0);  // floor bands, empty slots, bar tracks
-    PAT_DARK = makePat(1, 0);    // deep shade (sky plates)
+    PAT_FIELD = makePat(2, 1);   // page field: dark enough for windows to read
+    PAT_GROUND = makePat(1, 0);  // empty slots and locked tiles
+    PAT_DARK = makePat(1, 0);    // night sky
+    PAT_ARENA = makePat(3, 2);   // lit ground: sprites are dark figures on it
   }
   function patFill(pat, x, y, w, h) { ctx.fillStyle = pat; ctx.fillRect(x | 0, y | 0, w | 0, h | 0); }
 
@@ -676,7 +677,7 @@
   function bar(x, y, w, ratio) {
     const h = 12;
     rect(x, y, w, h, 0);
-    patFill(PAT_GROUND, x + 2, y + 2, w - 4, h - 4);
+    rect(x + 2, y + 2, w - 4, h - 4, 3);
     const inner = Math.max(0, Math.round((w - 4) * Math.max(0, Math.min(1, ratio))));
     rect(x + 2, y + 2, inner, h - 4, 0);
     if (inner > 2) rect(x + 2, y + 2, inner, 1, 1);
@@ -696,6 +697,14 @@
         rect(x + c * s, y + r * s, s, s, tone);
       }
     }
+  }
+
+  // A lit stage for a fighter: light interior, hard frame, dark floor strip.
+  function arena(x, y, w, h) {
+    rect(x, y, w, h, 0);
+    patFill(PAT_ARENA, x + 2, y + 2, w - 4, h - 4);
+    patFill(PAT_GROUND, x + 2, y + h - 14, w - 4, 12);
+    rect(x + 2, y + h - 16, w - 4, 2, 0);
   }
 
   // Sprites need something to stand on or they float in a void.
@@ -840,7 +849,7 @@
     // dark sky plate: the logo's light face needs something to read against
     patFill(PAT_DARK, 0, 0, W, 120);
     rect(0, 118, W, 2, 0);
-    patFill(PAT_GROUND, 0, 120, W, 14);
+    patFill(PAT_ARENA, 0, 120, W, 16);
 
     sprite("dragon", 220, 50, 2);
 
@@ -958,16 +967,16 @@
     field();
     titledWin(8, 8, 304, 26, "てきの じょうほう");
 
-    patFill(PAT_GROUND, 8, 100, 150, 16);
-    sprite(st.sprite, 28, 44, 2);
-    shadow(60, 104, 54);
+    arena(16, 40, 132, 78);
+    sprite(st.sprite, 48, 44, 2);
+    shadow(80, 104, 46);
 
-    win(164, 40, 148, 78);
-    txt("なまえ", 174, 48, 1);
+    win(160, 40, 152, 78);
+    txt("なまえ", 170, 48, 1);
     txtR(st.name, 302, 48, 0);
-    txt("HP", 174, 70, 1);
+    txt("HP", 170, 70, 1);
     txtR(String(st.hp), 302, 70, 0);
-    txt("まもり", 174, 92, 1);
+    txt("まもり", 170, 92, 1);
     txtR(st.armor ? "-" + st.armor : "なし", 302, 92, 0);
 
     titledWin(8, 126, 304, 84, "こうどう パターン");
@@ -1036,12 +1045,14 @@
 
     // the enemy you are building against
     win(210, 40, 102, 146);
-    sprite(st.sprite, 229, 48, 1);
-    txtMidIn(210, 102, 86, st.name, 0);
-    bar(220, 108, 82, 1);
-    txtMidIn(210, 102, 124, "HP " + st.hp, 1);
+    arena(216, 46, 90, 48);
+    sprite(st.sprite, 245, 50, 1);
+    txtMidIn(210, 102, 100, st.name, 0);
+    bar(220, 120, 82, 1);
+    txtMidIn(210, 102, 136, "HP " + st.hp, 1);
     const known = hasSeen(st);
-    txtMidIn(210, 102, 148, known ? "つぎ " + actName(st.pattern[0]) : "つぎ ？", 1);
+    txtMidIn(210, 102, 146, "つぎ", 1);
+    txtMidIn(210, 102, 164, known ? actShort(st.pattern[0]) : "？", 0);
 
     win(8, 192, 304, 44);
     const cur = G.deck[G.deckCur];
@@ -1137,12 +1148,12 @@
     b.msg = eventText(e);
     b.cardIdx = e.idx === undefined ? -1 : e.idx;
     if (e.t === "turn") b.turn = e.turn;
-    if (e.t === "attack") { b.flashE = 6; b.lungeP = 8; b.pop = { v: "-" + e.dmg, x: 250, y: 40, life: 16 }; Snd.hit(); }
-    if (e.t === "enemyAtk" && e.dmg > 0) { b.flashP = 6; b.lungeE = 8; b.pop = { v: "-" + e.dmg, x: 52, y: 140, life: 16 }; Snd.hurt(); }
+    if (e.t === "attack") { b.flashE = 6; b.lungeP = 8; b.pop = { v: "-" + e.dmg, x: 232, y: 24, life: 16 }; Snd.hit(); }
+    if (e.t === "enemyAtk" && e.dmg > 0) { b.flashP = 6; b.lungeE = 8; b.pop = { v: "-" + e.dmg, x: 28, y: 124, life: 16 }; Snd.hurt(); }
     if (e.t === "boost" || e.t === "awaken") Snd.buff();
-    if (e.t === "reckless") { b.pop = { v: "-2", x: 52, y: 140, life: 14 }; Snd.hurt(); }
-    if (e.t === "heal") { b.pop = { v: "+" + e.amt, x: 52, y: 140, life: 14 }; Snd.move(); }
-    if (e.t === "enemyHeal") { b.pop = { v: "+" + e.amt, x: 250, y: 40, life: 14 }; Snd.move(); }
+    if (e.t === "reckless") { b.pop = { v: "-2", x: 28, y: 124, life: 14 }; Snd.hurt(); }
+    if (e.t === "heal") { b.pop = { v: "+" + e.amt, x: 28, y: 124, life: 14 }; Snd.move(); }
+    if (e.t === "enemyHeal") { b.pop = { v: "+" + e.amt, x: 232, y: 24, life: 14 }; Snd.move(); }
     if (e.t === "guard") Snd.move();
     if (e.t === "end") { b.done = true; if (e.result === "win") Snd.win(); else Snd.lose(); }
   }
@@ -1163,59 +1174,60 @@
     const b = G.battle, s = b.state, st = G.stage;
     field();
 
-    // --- enemy half: sprite standing on a floor band
-    patFill(PAT_GROUND, 0, 96, W, 22);
-    rect(0, 94, W, 2, 0);
-    const ex = 224 + (b.lungeE > 0 ? -8 : 0);
-    sprite(st.sprite, ex, 30, 2, b.flashE > 0);
-    shadow(ex + 32, 100, 52);
+    // --- enemy stage (right) and its stat window (left)
+    arena(176, 8, 136, 96);
+    const dead = s.ehp <= 0;
+    const ex = 208 + (b.lungeE > 0 ? -8 : 0);
+    if (!dead || Math.floor(G.frame / 3) % 2 === 0) {
+      if (!dead) shadow(ex + 32, 88, 48);
+      sprite(st.sprite, ex, 16, 2, b.flashE > 0);
+    }
 
-    win(8, 12, 156, 80);
-    txt(st.name, 18, 16, 0);
-    bar(18, 38, 136, Math.max(0, s.ehp) / st.hp);
-    txt("HP", 18, 54, 1);
-    txtR(Math.max(0, s.ehp) + "/" + st.hp, 154, 54, 0);
+    win(8, 8, 160, 96);
+    txt(st.name, 18, 12, 0);
+    bar(18, 34, 140, Math.max(0, s.ehp) / st.hp);
+    txt("HP", 18, 52, 1);
+    txtR(Math.max(0, s.ehp) + "/" + st.hp, 158, 52, 0);
     const na = nextEnemyAct(st, s.eidx);
     const known = hasSeen(st);
-    txt("つぎ", 18, 72, 1);
-    txtR(known ? actName(na) : "？？？", 154, 72, na.t === "strong" && known ? 0 : 1);
+    txt("つぎ", 18, 76, 1);
+    txtR(known ? actName(na) : "？？？", 158, 76, na.t === "strong" && known ? 0 : 1);
 
-    // --- player half
-    patFill(PAT_GROUND, 0, 172, W, 18);
-    rect(0, 170, W, 2, 0);
+    // --- player stage (left) and stat window (right)
+    arena(8, 112, 80, 80);
     const px = 16 + (b.lungeP > 0 ? 10 : 0);
-    sprite("hero", px, 112, 2, b.flashP > 0);
-    shadow(px + 32, 176, 48);
+    shadow(px + 32, 176, 44);
+    sprite("hero", px, 120, 2, b.flashP > 0);
 
-    win(92, 108, 220, 68);
-    txt("ゆうしゃ", 102, 112, 0);
-    if (s.awaken && Math.floor(G.frame / 6) % 2 === 0) plate("かくせい!", 216, 111);
-    bar(102, 134, 200, Math.max(0, s.php) / PLAYER_MAX_HP);
-    txt("HP", 102, 150, 1);
-    txtR(Math.max(0, s.php) + "/" + PLAYER_MAX_HP, 190, 150, 0);
-    txt("こうげき力", 206, 150, 1);
-    txtR(String(s.patk), 302, 150, 0);
+    win(96, 112, 216, 80);
+    txt("ゆうしゃ", 106, 116, 0);
+    if (s.awaken && Math.floor(G.frame / 6) % 2 === 0) plate("かくせい!", 216, 115);
+    bar(106, 140, 196, Math.max(0, s.php) / PLAYER_MAX_HP);
+    txt("HP", 106, 160, 1);
+    txtR(Math.max(0, s.php) + "/" + PLAYER_MAX_HP, 192, 160, 0);
+    txt("ATK", 208, 160, 1);
+    txtR(String(s.patk), 302, 160, 0);
 
     // --- deck trace: always all six slots
-    win(8, 192, 304, 24);
-    txt("さくせん", 14, 194, 1);
+    win(8, 200, 304, 24);
+    txt("さくせん", 14, 202, 1);
     for (let i = 0; i < MAX_DECK; i++) {
-      const x = 92 + i * 26, y = 196;
+      const x = 96 + i * 26, y = 204;
       rect(x, y, 22, 16, 0);
       if (i < G.deck.length) {
         const active = i === b.cardIdx;
         rect(x + 1, y + 1, 20, 14, active ? 0 : 3);
         if (!active) kindIcon(CARDS[G.deck[i]].kind, x + 5, y + 2);
-        else { rect(x + 6, y + 4, 10, 8, 3); }
+        else rect(x + 6, y + 4, 10, 8, 3);
       } else {
         patFill(PAT_GROUND, x + 1, y + 1, 20, 14);
       }
     }
 
     // --- message window
-    win(8, 220, 304, 60);
-    txt(b.msg[0], 20, 230, 0);
-    txt(b.msg[1], 20, 254, 0);
+    win(8, 232, 304, 48);
+    txt(b.msg[0], 20, 236, 0);
+    txt(b.msg[1], 20, 258, 0);
 
     // --- floating damage numeral, the clearest "this is a game" cue
     if (b.pop && b.pop.life > 0) {
@@ -1225,25 +1237,23 @@
       txt(b.pop.v, b.pop.x, y, 0, FONT_BIG);
     }
 
-    if (b.done && Math.floor(G.frame / 12) % 2 === 0) txt("▼", 290, 254, 0);
+    if (b.done && Math.floor(G.frame / 12) % 2 === 0) txt("▼", 290, 258, 0);
   }
 
   // ---- result
   function drawResult() {
     const won = G.result === "win";
     field();
-    patFill(PAT_GROUND, 0, 96, W, 22);
-    rect(0, 94, W, 2, 0);
-
-    sprite(won ? "hero" : G.stage.sprite, 128, 32, 2);
-    shadow(160, 100, 54);
+    arena(112, 40, 96, 80);
+    sprite(won ? "hero" : G.stage.sprite, 128, 44, 2);
+    shadow(160, 106, 46);
 
     const head = won ? "しょうり！" : G.result === "lose" ? "はいぼく…" : "じかんぎれ";
     rect(8, 8, 304, 26, 0);
     txtMid(head, 11, 3);
 
     if (won) {
-      titledWin(8, 128, 304, 108, G.gained.length ? "カードを おぼえた！" : "クリアずみ");
+      titledWin(8, 128, 304, 104, G.gained.length ? "カードを おぼえた！" : "クリアずみ");
       if (G.gained.length) {
         G.gained.forEach((id, i) => {
           const c = CARDS[id], y = 158 + i * 30;
@@ -1257,7 +1267,7 @@
         txt("この ステージは クリアずみ。", 24, 170);
       }
     } else {
-      titledWin(8, 128, 304, 108, "ヒント");
+      titledWin(8, 128, 304, 104, "ヒント");
       txt("さくせんを くみなおして", 24, 158);
       txt("もういちど いどもう。", 24, 182);
       txt(G.stage.hint.slice(0, 20), 24, 206, 1);
@@ -1269,12 +1279,11 @@
   // ---- ending
   function drawEnding() {
     field();
-    patFill(PAT_GROUND, 0, 120, W, 24);
-    rect(0, 118, W, 2, 0);
     rect(8, 8, 304, 26, 0);
     txtMid("ぜんステージ クリア！", 11, 3);
-    sprite("dragon", 128, 56, 2);
-    shadow(160, 124, 54);
+    arena(112, 44, 96, 88);
+    sprite("dragon", 128, 48, 2);
+    shadow(160, 118, 46);
     win(8, 152, 304, 94);
     txt("さくせんだけで りゅうを たおした。", 20, 166);
     txt("つよさは ステータスでは なく", 20, 190);
