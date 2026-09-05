@@ -397,6 +397,16 @@ body{
     </ul>
   </div>
 
+  <div class="takeaways">
+    <h3><svg class="icon"><use href="#ic-note"/></svg>追記:実際にやってみての気づき</h3>
+    <ul>
+      <li><span class="mk">1</span>アプリの形態(Webアプリかデスクトップアプリか)は、一番最初に伝えておくべき情報だった。今回はフロントエンドの設計がある程度進んだ段階で発覚し、技術スタックの選定からやり直す羽目になった(フェーズ08)。</li>
+      <li><span class="mk">2</span>使用言語をPythonに固定する、という指示も冒頭で出しておくと良い。バックエンドからGUIまでPythonで完結させれば、依存ライブラリの管理がぐっとシンプルになる。</li>
+      <li><span class="mk">3</span>ログ出力(デバッグパネル)は後から足す機能ではなく、最初から組み込んでおきたいもの。動かして不具合が出たときにAIへ状況を正確に伝える手がかりになるので、実質必須の機能だと感じた。</li>
+      <li><span class="mk">4</span>疑問に思ったことは遠慮せずどんどん質問するのがコツ。fp8とGGUFの違いやpruned版の有無など、細かい点をその場で確認しながら進めたことで、後工程の手戻りを防げた。</li>
+    </ul>
+  </div>
+
   <div class="page-footer">
     <span class="caption">sample-image-maker 構想会話ログより再構成 ・ 学習教材用ダイジェスト版</span>
     📅 最終更新:2026年9月5日
@@ -436,6 +446,10 @@ body{
     <symbol id="ic-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M9 18h6M10 21.5h4"/>
       <path d="M12 2.5a6.5 6.5 0 0 0-3.8 11.8c.5.4.8 1 .8 1.6v.6h6v-.6c0-.6.3-1.2.8-1.6A6.5 6.5 0 0 0 12 2.5z"/>
+    </symbol>
+    <symbol id="ic-note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 4.5h16v12H8.5L4 20.5z"/>
+      <path d="M8 9h8M8 12.2h5.5"/>
     </symbol>
   </defs>
 </svg>
