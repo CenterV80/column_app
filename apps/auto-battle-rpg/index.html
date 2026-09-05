@@ -972,12 +972,9 @@
     shadow(80, 104, 46);
 
     win(160, 40, 152, 78);
-    txt("なまえ", 170, 48, 1);
-    txtR(st.name, 302, 48, 0);
-    txt("HP", 170, 70, 1);
-    txtR(String(st.hp), 302, 70, 0);
-    txt("まもり", 170, 92, 1);
-    txtR(st.armor ? "-" + st.armor : "なし", 302, 92, 0);
+    txtPair("なまえ", st.name, 170, 48, 132, 1, 0);
+    txtPair("HP", String(st.hp), 170, 70, 132, 1, 0);
+    txtPair("まもり", st.armor ? "-" + st.armor : "なし", 170, 92, 132, 1, 0);
 
     titledWin(8, 126, 304, 84, "こうどう パターン");
     if (seen) {
@@ -989,14 +986,13 @@
         const s = actShort(a);
         txt(s, x + (62 - txtW(s)) / 2, y + 16, 0);
       });
-      txt(st.pattern.map((a) => actName(a)).join(" → "), 20, 200, 1);
     } else {
       txt("？？？", 20, 156);
       txt("1どでも たたかえば わかる。", 20, 180, 1);
     }
 
-    win(8, 214, 304, 40);
-    txt(seen ? st.hint : "まずは たたかって かんさつしよう", 20, 226, 0);
+    win(8, 208, 304, 48);
+    wrapClip(seen ? st.hint : "まずは たたかって かんさつしよう", 20, 214, 284, 0, 2);
     hintWin(258, [["A", "さくせんへ"], ["B", "もどる"]]);
   }
 
@@ -1033,8 +1029,9 @@
         rect(x + 1, y + 1, w - 2, 18, 3);
         const c = CARDS[G.deck[i]];
         kindIcon(c.kind, x + 3, y + 5);
-        txt(c.name, x + 16, y + 1, 0);
-        if (c.kind === "boost" || c.kind === "state") txtR("1", x + w - 5, y + 1, 1);
+        const badge = (c.kind === "boost" || c.kind === "state") ? 14 : 0;
+        txtClip(c.name, x + 16, y + 1, w - 22 - badge, 0);
+        if (badge) txtR("1", x + w - 5, y + 1, 1);
       } else {
         patFill(PAT_GROUND, x + 1, y + 1, w - 2, 18);
         rect(x + 3, y + 3, 14, 14, 3);
@@ -1047,22 +1044,53 @@
     win(210, 40, 102, 146);
     arena(216, 46, 90, 48);
     sprite(st.sprite, 245, 50, 1);
-    txtMidIn(210, 102, 100, st.name, 0);
-    bar(220, 120, 82, 1);
-    txtMidIn(210, 102, 136, "HP " + st.hp, 1);
+    txtMidIn(210, 102, 100, fitStr(st.name, 94), 0);
+    txtMidIn(210, 102, 122, "HP " + st.hp, 1);
     const known = hasSeen(st);
-    txtMidIn(210, 102, 146, "つぎ", 1);
-    txtMidIn(210, 102, 164, known ? actShort(st.pattern[0]) : "？", 0);
+    txtMidIn(210, 102, 148, "つぎ", 1);
+    txtMidIn(210, 102, 166, known ? fitStr(actShort(st.pattern[0]), 94) : "？", 0);
 
     win(8, 192, 304, 44);
     const cur = G.deck[G.deckCur];
-    txt(cur ? CARDS[cur].desc : "あきスロット。Aで カードを いれる", 20, 204, 0);
+    txtClip(cur ? CARDS[cur].desc : "あきスロット。Aで カードを いれる", 20, 204, 284, 0);
 
     hintWin(240, [["A", "えらぶ"], ["STA", "たたかう"], ["SEL", "けす"]]);
   }
 
   // helper: center text inside a box
   function txtMidIn(x, w, y, s, tone) { txt(s, (x + (w - txtW(s)) / 2) | 0, y, tone); }
+
+  // Drop trailing characters until the string fits maxW pixels. Card names and
+  // descriptions vary a lot in width, so every bounded string goes through this.
+  function fitStr(s, maxW, size) {
+    let t = s;
+    while (t.length > 1 && txtW(t, size) > maxW) t = t.slice(0, -1);
+    return t;
+  }
+  function txtClip(s, x, y, maxW, tone, size) {
+    txt(fitStr(s, maxW, size), x, y, tone, size);
+  }
+  // Flow a long string over up to `lines` rows, breaking on spaces where it can.
+  function wrapClip(s, x, y, maxW, tone, lines, size) {
+    let rest = s;
+    for (let i = 0; i < lines && rest.length; i++) {
+      let take = fitStr(rest, maxW, size);
+      if (take.length < rest.length && i < lines - 1) {
+        const sp = take.lastIndexOf(" ");
+        if (sp > take.length / 2) take = take.slice(0, sp);
+      }
+      txt(take.trim(), x, y + i * 22, tone, size);
+      rest = rest.slice(take.length).replace(/^ +/, "");
+    }
+  }
+  // Label left, value right, both inside [x, x+w). The value only gets the
+  // space the label leaves, so the two can never overlap.
+  function txtPair(labelStr, valueStr, x, y, w, labelTone, valueTone, size) {
+    const lw = txtW(labelStr, size);
+    txt(labelStr, x, y, labelTone, size);
+    const v = fitStr(valueStr, w - lw - 8, size);
+    txt(v, x + w - txtW(v, size), y, valueTone, size);
+  }
 
   // ---- card picker
   // Grouped by kind so the four card types are learnable at a glance.
@@ -1085,11 +1113,11 @@
       if (sel && have) {
         rect(x + 2, y + 2, 142, 25, 0);
         kindIcon(c.kind, x + 6, y + 8, 3);
-        txt(c.name, x + 20, y + 4, 3);
+        txtClip(c.name, x + 20, y + 4, 120, 3);
       } else if (have) {
         rect(x + 2, y + 2, 142, 25, 3);
         kindIcon(c.kind, x + 6, y + 8, 0);
-        txt(c.name, x + 20, y + 4, 0);
+        txtClip(c.name, x + 20, y + 4, 120, 0);
       } else {
         patFill(PAT_GROUND, x + 2, y + 2, 142, 25);
         txt("？？？", x + 20, y + 4, 3);
@@ -1100,7 +1128,7 @@
     win(8, 214, 304, 40);
     const cur = CARDS[ALL_CARDS[G.pickCur]];
     const have = owned.indexOf(ALL_CARDS[G.pickCur]) >= 0;
-    txt(have ? cur.desc : "まだ てにいれていない カード", 20, 226, 0);
+    txtClip(have ? cur.desc : "まだ てにいれていない カード", 20, 226, 284, 0);
     hintWin(258, [["A", "きめる"], ["B", "やめる"]]);
   }
 
@@ -1186,12 +1214,11 @@
     win(8, 8, 160, 96);
     txt(st.name, 18, 12, 0);
     bar(18, 34, 140, Math.max(0, s.ehp) / st.hp);
-    txt("HP", 18, 52, 1);
-    txtR(Math.max(0, s.ehp) + "/" + st.hp, 158, 52, 0);
+    txtPair("HP", Math.max(0, s.ehp) + "/" + st.hp, 18, 52, 140, 1, 0);
     const na = nextEnemyAct(st, s.eidx);
     const known = hasSeen(st);
-    txt("つぎ", 18, 76, 1);
-    txtR(known ? actName(na) : "？？？", 158, 76, na.t === "strong" && known ? 0 : 1);
+    txtPair("つぎ", known ? actName(na) : "？？？", 18, 76, 140, 1,
+            na.t === "strong" && known ? 0 : 1);
 
     // --- player stage (left) and stat window (right)
     arena(8, 112, 80, 80);
@@ -1203,10 +1230,8 @@
     txt("ゆうしゃ", 106, 116, 0);
     if (s.awaken && Math.floor(G.frame / 6) % 2 === 0) plate("かくせい!", 216, 115);
     bar(106, 140, 196, Math.max(0, s.php) / PLAYER_MAX_HP);
-    txt("HP", 106, 160, 1);
-    txtR(Math.max(0, s.php) + "/" + PLAYER_MAX_HP, 192, 160, 0);
-    txt("ATK", 208, 160, 1);
-    txtR(String(s.patk), 302, 160, 0);
+    txtPair("HP", Math.max(0, s.php) + "/" + PLAYER_MAX_HP, 106, 160, 86, 1, 0);
+    txtPair("ATK", String(s.patk), 208, 160, 94, 1, 0);
 
     // --- deck trace: always all six slots
     win(8, 200, 304, 24);
@@ -1253,24 +1278,24 @@
     txtMid(head, 11, 3);
 
     if (won) {
-      titledWin(8, 128, 304, 104, G.gained.length ? "カードを おぼえた！" : "クリアずみ");
+      titledWin(8, 122, 304, 114, G.gained.length ? "カードを おぼえた！" : "クリアずみ");
       if (G.gained.length) {
         G.gained.forEach((id, i) => {
-          const c = CARDS[id], y = 158 + i * 30;
-          rect(24, y, 272, 26, 0);
-          rect(26, y + 2, 268, 22, 3);
-          kindIcon(c.kind, 32, y + 7);
-          txt(c.name, 48, y + 3, 0);
-          txtR(c.desc.length > 16 ? c.desc.slice(0, 16) : c.desc, 290, y + 3, 1);
+          const c = CARDS[id], y = 156 + i * 38;
+          rect(24, y, 272, 34, 0);
+          rect(26, y + 2, 268, 30, 3);
+          kindIcon(c.kind, 32, y + 9);
+          txtClip(c.name, 48, y + 1, 240, 0);
+          txtClip(c.desc, 48, y + 17, 240, 1);
         });
       } else {
-        txt("この ステージは クリアずみ。", 24, 170);
+        txtClip("この ステージは クリアずみ。", 24, 170, 268, 0);
       }
     } else {
-      titledWin(8, 128, 304, 104, "ヒント");
-      txt("さくせんを くみなおして", 24, 158);
-      txt("もういちど いどもう。", 24, 182);
-      txt(G.stage.hint.slice(0, 20), 24, 206, 1);
+      titledWin(8, 122, 304, 114, "ヒント");
+      txtClip("さくせんを くみなおして", 24, 156, 268, 0);
+      txtClip("もういちど いどもう。", 24, 178, 268, 0);
+      wrapClip(G.stage.hint, 24, 200, 268, 1, 2);
     }
 
     hintWin(250, [["A", "さくせん"], ["B", "マップ"]]);
