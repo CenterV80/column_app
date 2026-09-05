@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sample-image-maker 開発絵巻(バイブコーディング会話ログ)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#ECEEF2;
+  --surface:#FFFFFF;
+  --ink:#1B2331;
+  --muted:#5B6472;
+  --line:#DBDFE6;
+  --brand:#1C2432;
+  --brand-ink:#F2F4F7;
+  --accent:#1F3A5F;
+  --user-bg:#1F3A5F;
+  --user-text:#F5F7FA;
+  --claude-bg:#EEF0F3;
+  --claude-text:#232A35;
+  --claude-avatar-ink:#3E4A5C;
+  --system-bg:#E4E7EC;
+  --system-ink:#5B6472;
+  --file-bg:#F2F4F7;
+  --file-border:#C7CEDA;
+  --file-ink:#2A3242;
+  --shadow: 0 24px 60px -30px rgba(20,30,45,.35), 0 2px 8px rgba(20,30,45,.08);
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;
+  padding:clamp(16px,4vw,48px) 16px 72px;
+}
+.wrap{max-width:760px;margin:0 auto;}
+
+.back-link{
+  display:inline-block;
+  margin:0 0 20px;
+  color:var(--accent);
+  text-decoration:none;
+  font-weight:600;
+  font-size:.9rem;
+}
+.back-link:hover{text-decoration:underline;}
+
+.icon{width:1em;height:1em;flex:none;}
+.icon-sm{width:14px;height:14px;}
+
+.lede{
+  text-align:center;
+  margin-bottom:22px;
+}
+.lede .eyebrow{
+  font-family:"JetBrains Mono",monospace;
+  font-size:.72rem;
+  letter-spacing:.14em;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+.lede h1{
+  font-family:"Zen Maru Gothic",sans-serif;
+  font-weight:900;
+  font-size:clamp(1.5rem,4vw,2.1rem);
+  margin:.3em 0 .15em;
+  text-wrap:balance;
+}
+.lede p{
+  color:var(--muted);
+  font-size:.92rem;
+  max-width:44ch;
+  margin:0 auto;
+}
+
+.phone{
+  background:var(--surface);
+  border-radius:28px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  border:1px solid var(--line);
+}
+
+.appbar{
+  background:var(--brand);
+  color:var(--brand-ink);
+  padding:16px 20px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.appbar .avatars{
+  position:relative;
+  width:46px;height:38px;flex:0 0 auto;
+}
+.appbar .avatars span{
+  position:absolute;
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--brand);
+}
+.appbar .avatars span.a1{left:0;top:0;background:var(--user-bg);color:var(--user-text);}
+.appbar .avatars span.a2{left:18px;top:8px;background:var(--claude-bg);color:var(--claude-avatar-ink);}
+.appbar .titles h2{
+  font-family:"Zen Maru Gothic",sans-serif;
+  font-size:1.05rem;
+  font-weight:700;
+  margin:0;
+}
+.appbar .titles p{
+  margin:2px 0 0;
+  font-size:.76rem;
+  opacity:.82;
+  display:flex;align-items:center;gap:6px;
+}
+.dot{
+  width:7px;height:7px;border-radius:50%;
+  background:#8FD9BE;
+  box-shadow:0 0 0 0 rgba(143,217,190,.6);
+  animation:pulse 2.4s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce){ .dot{animation:none;} }
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(143,217,190,.55);}
+  70%{box-shadow:0 0 0 6px rgba(143,217,190,0);}
+  100%{box-shadow:0 0 0 0 rgba(143,217,190,0);}
+}
+
+.thread{
+  padding:22px 18px 26px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.phase-divider{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  margin:32px 0 14px;
+  padding-bottom:9px;
+  border-bottom:1px solid var(--line);
+}
+.phase-divider:first-child{margin-top:4px;}
+.phase-divider .num{
+  font-family:"JetBrains Mono",monospace;
+  font-size:.72rem;
+  letter-spacing:.06em;
+  color:var(--accent);
+  flex:none;
+}
+.phase-divider .label{
+  font-family:"Zen Maru Gothic",sans-serif;
+  font-weight:700;
+  font-size:.94rem;
+  color:var(--ink);
+}
+
+.msg{
+  display:flex;
+  gap:8px;
+  max-width:86%;
+  align-items:flex-end;
+}
+.msg.user{align-self:flex-end;flex-direction:row-reverse;}
+.msg.claude{align-self:flex-start;}
+
+.avatar{
+  flex:0 0 28px;
+  width:28px;height:28px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.msg.user .avatar{background:var(--user-bg);color:var(--user-text);}
+.msg.claude .avatar{background:var(--claude-bg);color:var(--claude-avatar-ink);border:1px solid var(--file-border);}
+.avatar .icon{width:15px;height:15px;}
+
+.bubble{
+  padding:10px 14px;
+  font-size:.94rem;
+  line-height:1.6;
+}
+.msg.user .bubble{
+  background:var(--user-bg);
+  color:var(--user-text);
+  border-radius:17px 17px 3px 17px;
+}
+.msg.claude .bubble{
+  background:var(--claude-bg);
+  color:var(--claude-text);
+  border-radius:17px 17px 17px 3px;
+}
+.bubble b{font-weight:700;}
+
+.system-pill{
+  align-self:center;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:.72rem;
+  color:var(--system-ink);
+  background:var(--system-bg);
+  padding:5px 12px;
+  border-radius:999px;
+  margin:2px 0;
+}
+
+.file-msg .bubble{
+  background:var(--file-bg);
+  border:1.5px dashed var(--file-border);
+  color:var(--file-ink);
+  border-radius:14px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding:12px 14px;
+}
+.file-msg .file-icon{
+  width:30px;height:30px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--file-ink);
+}
+.file-msg .file-icon .icon{width:20px;height:20px;}
+.file-msg .file-name{font-weight:700;font-size:.9rem;}
+.file-msg .file-sub{font-size:.72rem;opacity:.8;font-family:"JetBrains Mono",monospace;}
+
+.takeaways{
+  max-width:760px;
+  margin:36px auto 0;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-left:5px solid var(--accent);
+  border-radius:16px;
+  padding:22px 24px;
+  box-shadow:var(--shadow);
+}
+.takeaways h3{
+  font-family:"Zen Maru Gothic",sans-serif;
+  font-size:1.05rem;
+  margin:0 0 12px;
+  display:flex;align-items:center;gap:8px;
+  color:var(--ink);
+}
+.takeaways h3 .icon{width:18px;height:18px;color:var(--accent);}
+.takeaways ul{
+  margin:0;padding:0;list-style:none;
+  display:flex;flex-direction:column;gap:10px;
+}
+.takeaways li{
+  display:flex;gap:10px;
+  font-size:.9rem;line-height:1.6;
+  color:var(--ink);
+}
+.takeaways li .mk{
+  flex:0 0 auto;
+  font-family:"JetBrains Mono",monospace;
+  font-weight:600;
+  color:var(--accent);
+  background:var(--claude-bg);
+  border-radius:8px;
+  width:24px;height:24px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;
+}
+
+.page-footer{
+  text-align:center;
+  color:var(--muted);
+  font-size:.78rem;
+  margin-top:28px;
+}
+.page-footer .caption{
+  font-family:"JetBrains Mono",monospace;
+  font-size:.72rem;
+  display:block;
+  margin-bottom:6px;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-link" href="../categories/ai-coding/index.html">← AIコーディングに戻る</a>
+
+  <div class="lede">
+    <div class="eyebrow">Vibe Coding Replay</div>
+    <h1>sample-image-maker 開発絵巻</h1>
+    <p>「ComfyUIすらいらなくない?」の一言から、まさかの仕様書完成まで。実際の会話を吹き出し形式でダイジェスト再現しました。</p>
+  </div>
+
+  <div class="phone">
+    <div class="appbar">
+      <div class="avatars">
+        <span class="a1"><svg class="icon" width="16" height="16"><use href="#ic-face"/></svg></span>
+        <span class="a2"><svg class="icon" width="16" height="16"><use href="#ic-robot"/></svg></span>
+      </div>
+      <div class="titles">
+        <h2>sample-image-maker</h2>
+        <p><span class="dot"></span>User ⇄ Claude ・ 開発チャットログ</p>
+      </div>
+    </div>
+
+    <div class="thread">
+
+      <div class="phase-divider"><span class="num">01</span><span class="label">そもそもComfyUI、いる?</span></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">簡単な画像生成のシステムなら<b>ComfyUIすらいらない</b>んじゃない?モデル決め打ちなら。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">その通り。txt2img/img2imgだけでLoRA構成も固定でいいなら、<b>diffusers直叩き+軽量API</b>で十分です。</div></div>
+
+      <div class="phase-divider"><span class="num">02</span><span class="label">作るものを決める</span></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">キャラシートから<b>ポーズ違い画像を3x2レイアウト</b>で出すだけのツール作りたい。モデルはFluxとか何でもいい。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">Flux Kontext(キャラ一貫性重視)か SDXL+ControlNet OpenPose の二択ですね。6ポーズ推論してPILで3x2合成、で進めます。ポーズ指定はテキストだけ?骨格で厳密指定する?</div></div>
+
+      <div class="phase-divider"><span class="num">03</span><span class="label">棒人間エディタ、爆誕</span></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">いるかも。あと<b>棒人間描くエディタ</b>も入れたい。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">了解、OpenPose確定ですね。既存の openpose-editor を流用します?それともCanvas自作?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">Canvasの方が手軽だよね。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">Canvas自作で進めます。ちなみにこれ、ComfyUI WebUIのプロジェクトとは別物?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">はい、全く別のプロジェクトです。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">新規プロジェクトとして認識しました。名前、仮決めしましょうか。</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">sample image maker でどうですか?</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">「<b>sample-image-maker</b>」命名完了。次はフロントとバックエンド、どちらから攻めます?</div></div>
+
+      <div class="phase-divider"><span class="num">04</span><span class="label">まずバックエンドから</span></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">バックエンから。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">FastAPI + diffusers構成でいきましょう。<b>/generate</b>(6ポーズ推論→3x2合成)と<b>/presets</b>のAPI案を用意します。GPU環境は?</div></div>
+
+      <div class="phase-divider"><span class="num">05</span><span class="label">GPU問題、そしてモデル沼</span></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">GPU環境は会社のRTX5080です。あともう一台、RTX4070Tiも。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">5080(16GB)と4070Ti(12GB)、それぞれで動く構成を整理しますね。本番稼働はどっちのマシン?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">使うのは5080ですが、古いマシンでも動くような構成にしたいです。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">では4070Ti基準で選定しましょう。Flux Kontextは量子化必須、SDXL+ControlNetなら量子化なしで収まりやすいです。</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">すいません、まず必要なモデルとその容量を確認したいです。</div></div>
+      <div class="system-pill"><svg class="icon icon-sm"><use href="#ic-search"/></svg>Web検索実施</div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">Flux Kontext:フル約24GB / fp8約12GB / GGUF Q8約12.8GB / GGUF Q4約7GB。対して SDXL+ControlNet OpenPoseは合計<b>約9.3GB</b>。後者が4070Tiに無理なく収まりますね。</div></div>
+
+      <div class="phase-divider"><span class="num">06</span><span class="label">量子化沼にハマる</span></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">fp8量子化とGGUF Q8の違いは?</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">fp8はTensorコアでネイティブ高速演算、GGUF Q8は整数量子化で専用ローダーが必要、という違いです(比較表つきで整理)。</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">pruned版はないの?</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">pruned文化はSD1.5世代のもの。SDXL/Flux世代は元々軽量な配布なので、あまり存在しません。</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">pruned は古いやり方なのですか?</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">「古い」というより、削る対象自体がもう配布物に含まれなくなった感じです。軽量化の主流はpruning→quantizationに移りました。</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">話を戻してSDXL+ControlNetでお願いします。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">確定です。SDXL+ControlNet OpenPose、合計約9.3GBで5080・4070Ti両対応。次はAPI詳細、それともフロント?</div></div>
+
+      <div class="phase-divider"><span class="num">07</span><span class="label">API設計とモデル管理</span></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">バックエンドAPIの詳細。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble"><b>POST /generate</b>(キャラシート・6ポーズ・プロンプト等→合成画像・個別画像・seed・生成時間)、<b>GET /presets</b>、<b>GET /health</b>を用意しました。</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">モデルも含めてパッケージにしますか?</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">いえ、モデルは同梱しない方がいいです。ボリュームマウント等で分離、イメージ肥大化を防げます。運用はDocker?venv?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">モデルはStability Matrixのフォルダ階層から取ってくるようにしたいです。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">Stability Matrix標準構成(Models/StableDiffusion, VAE, ControlNet…)に沿ってパス解決しましょう。固定ファイル名指定?自動検出?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">model内のフォルダ階層を自動、は良いと思う。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble"><b>find_model_file</b>関数で自動検出します。複数ファイルが見つかった場合はどうします?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">複数はエラーでいいと思います。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">確定、複数該当時はエラーで起動停止。次はフロント(棒人間エディタ)いきましょうか?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">はい。</div></div>
+
+      <div class="phase-divider"><span class="num">08</span><span class="label">まさかのちゃぶ台返し</span></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">Konva.js(react-konva)で棒人間エディタを設計します。COCO18準拠の関節点、骨格接続、ドラッグ実装。6ポーズは同時編集?個別編集?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">サンプル画像を簡易に作るのが目的なので6ポーズ同時で。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">3x2グリッドで6セル同時編集ですね。想定ウィンドウサイズは?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">横は1980pでいいんじゃないですか。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">1980px幅前提で各セル実寸500x600px、高さ1400px前後で計算しました。出力解像度は可変対応します?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">出力サイズは可変で。個別出力にも対応してください。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">width/heightパラメータ追加しました。ダウンロードボタン、ZIP一括ダウンロードも要ります?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">ZIP一括もオプションとして入れてください。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">「3x2合成画像」「個別1枚保存」「ZIP一括ダウンロード」の3方式に整理完了です。GUIは何で作る想定ですか?</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">React + react-konva(Vite構成)を想定してますが、Electron化はします?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">すいません、<b>デスクトップアプリ前提</b>で話してました。</div></div>
+      <div class="system-pill"><svg class="icon icon-sm"><use href="#ic-pivot"/></svg>前提の大幅修正</div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">了解です。Tauri+React / Electron+React / PyQt・PySideの3案を比較します。Tauri+react-konva推しですが、<b>Python完結</b>の道もありますよ。</div></div>
+
+      <div class="phase-divider"><span class="num">09</span><span class="label">Python完結ルートへ</span></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">「Python完結」の方がライブラリの許可確認が楽そうです。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">ではPySide6(LGPLで扱いやすい)+ QGraphicsView/Sceneで棒人間エディタ、diffusers直接呼び出し、QThreadで非同期処理にします。これまでのAPI設計は関数分割としてそのまま流用できますよ。</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">はい。</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">メインウィンドウ案:左パネル(キャラシート・プロンプト・生成ボタン)/中央(6ポーズエディタ)/下部(結果プレビュー)。状態遷移は初期→ロード完了→生成中→完了、で整理しました。</div></div>
+
+      <div class="phase-divider"><span class="num">10</span><span class="label">最後のひと押し</span></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">デバッグ用のターミナル・ログのようなものを最初から入れて、バグ報告がしやすいようにできますか?</div></div>
+      <div class="msg claude"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble">いいですね。QTextEdit+カスタムloggingハンドラ、ログのコピー/ファイル保存ボタン、エラーレベルの色分け、未処理例外の自動キャッチ(sys.excepthook)を入れます。ここまでを技術仕様書にまとめましょうか?</div></div>
+      <div class="msg user"><div class="avatar"><svg class="icon"><use href="#ic-face"/></svg></div><div class="bubble">はい、お願いします。</div></div>
+      <div class="msg claude file-msg"><div class="avatar"><svg class="icon"><use href="#ic-robot"/></svg></div><div class="bubble"><span class="file-icon"><svg class="icon"><use href="#ic-doc"/></svg></span><span><span class="file-name">sample-image-maker_技術仕様書.md</span><br><span class="file-sub">Claude が作成・共有しました</span></span></div></div>
+
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <h3><svg class="icon"><use href="#ic-bulb"/></svg>この会話から学べること</h3>
+    <ul>
+      <li><span class="mk">1</span>「ComfyUIいらなくない?」の思いつきが、最終的には<b>PySide6のデスクトップアプリ</b>という全然違う形に着地する。バイブコーディングは最初の一言と最終形が一致しなくて当然。</li>
+      <li><span class="mk">2</span>「すいません、実は前提が違いました」は普通に起こる(フェーズ08参照)。その都度AIが方針転換して整理し直してくれるので、思いついた順に話して大丈夫。</li>
+      <li><span class="mk">3</span>会話は寄り道・沼(fp8 vs GGUF vs pruned)をしながら進む。最後にちゃんと<b>仕様書という1つのドキュメント</b>に落とし込むところまでが一区切り。</li>
+    </ul>
+  </div>
+
+  <div class="page-footer">
+    <span class="caption">sample-image-maker 構想会話ログより再構成 ・ 学習教材用ダイジェスト版</span>
+    📅 最終更新:2026年9月5日
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ic-face" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8"/>
+      <circle cx="9" cy="10.5" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="15" cy="10.5" r="1" fill="currentColor" stroke="none"/>
+      <path d="M8.5 15c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8"/>
+    </symbol>
+    <symbol id="ic-robot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="9" width="14" height="10" rx="2.4"/>
+      <circle cx="9.2" cy="14" r="1.1" fill="currentColor" stroke="none"/>
+      <circle cx="14.8" cy="14" r="1.1" fill="currentColor" stroke="none"/>
+      <path d="M9 19v1.6M15 19v1.6"/>
+      <path d="M12 9V6"/>
+      <circle cx="12" cy="4.4" r="1.2" fill="currentColor" stroke="none"/>
+      <path d="M2.8 12.5v4M21.2 12.5v4"/>
+    </symbol>
+    <symbol id="ic-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"/>
+      <path d="M21 21l-4.3-4.3"/>
+    </symbol>
+    <symbol id="ic-pivot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12a9 9 0 1 1-3-6.7"/>
+      <path d="M21 3v6h-6"/>
+    </symbol>
+    <symbol id="ic-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+      <path d="M14 2v6h6"/>
+      <path d="M9 13h6M9 17h6"/>
+    </symbol>
+    <symbol id="ic-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 18h6M10 21.5h4"/>
+      <path d="M12 2.5a6.5 6.5 0 0 0-3.8 11.8c.5.4.8 1 .8 1.6v.6h6v-.6c0-.6.3-1.2.8-1.6A6.5 6.5 0 0 0 12 2.5z"/>
+    </symbol>
+  </defs>
+</svg>
+</body>
+</html>
