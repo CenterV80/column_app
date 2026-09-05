@@ -1,4 +1,4 @@
-"""SDXL + ControlNet OpenPose による6ポーズ生成と3x2合成。"""
+"""SDXL img2img(棒人間スケルトンPNGを初期画像として使用)による6ポーズ生成と3x2合成。"""
 from __future__ import annotations
 
 import logging
@@ -29,7 +29,7 @@ class GenerationResult:
 
 
 class ModelManager:
-    """SDXL base + VAE + ControlNet OpenPose を1度だけロードして保持する。
+    """SDXL base + VAE を1度だけロードして保持する(img2img構成、ControlNet不採用)。
 
     プロセス内で直接diffusersを呼び出す構成のため、GUIとは別スレッド
     (QThread)からロード・推論を行うことを想定している。
@@ -45,7 +45,7 @@ class ModelManager:
 
     def load(self) -> None:
         import torch
-        from diffusers import AutoencoderKL, ControlNetModel, StableDiffusionXLControlNetPipeline
+        from diffusers import AutoencoderKL, StableDiffusionXLImg2ImgPipeline
 
         logger.info("モデル探索を開始します(Stability Matrixフォルダ階層)")
         self.model_paths = resolve_model_paths()
@@ -58,16 +58,10 @@ class ModelManager:
         logger.info("VAEをロード中... (%s)", self.model_paths.vae.name)
         vae = AutoencoderKL.from_single_file(str(self.model_paths.vae), torch_dtype=dtype)
 
-        logger.info("ControlNet OpenPoseをロード中... (%s)", self.model_paths.controlnet_openpose.name)
-        controlnet = ControlNetModel.from_single_file(
-            str(self.model_paths.controlnet_openpose), torch_dtype=dtype
-        )
-
         logger.info("SDXL baseをロード中... (%s)", self.model_paths.sdxl_base.name)
-        pipeline = StableDiffusionXLControlNetPipeline.from_single_file(
+        pipeline = StableDiffusionXLImg2ImgPipeline.from_single_file(
             str(self.model_paths.sdxl_base),
             vae=vae,
-            controlnet=controlnet,
             torch_dtype=dtype,
         )
         pipeline = pipeline.to(device)
@@ -84,7 +78,7 @@ class ModelManager:
         poses: List[Image.Image],
         prompt: str,
         negative_prompt: str = "",
-        controlnet_scale: float = 1.0,
+        denoising_strength: float = 0.65,
         seed: int = -1,
         width: int = 1024,
         height: int = 1024,
@@ -98,13 +92,19 @@ class ModelManager:
         import torch
 
         seed_used = random.randint(0, MAX_SEED) if seed is None or seed < 0 else seed
-        logger.info("生成開始 seed=%s size=%sx%s controlnet_scale=%s", seed_used, width, height, controlnet_scale)
+        logger.info(
+            "生成開始 seed=%s size=%sx%s denoising_strength=%s", seed_used, width, height, denoising_strength
+        )
 
         device = self._pipeline.device
         start_time = time.time()
         individual_images: List[Image.Image] = []
 
         # 逐次処理・バッチサイズ1固定(低VRAM機での安全性を優先)
+        # poses(棒人間スケルトンPNG)をimg2imgの初期画像として使用する。
+        # ControlNetのような専用ポーズ条件付けではないため、denoising_strengthが
+        # 低すぎると絵として破綻し、高すぎるとポーズが再現されない点に注意
+        # (技術仕様書4.4節を参照)。
         for i, pose_image in enumerate(poses):
             if progress_callback:
                 progress_callback(i, len(poses), f"ポーズ{i + 1}/{len(poses)}を生成中...")
@@ -114,7 +114,7 @@ class ModelManager:
                 prompt=prompt,
                 negative_prompt=negative_prompt or None,
                 image=pose_image,
-                controlnet_conditioning_scale=controlnet_scale,
+                strength=denoising_strength,
                 width=width,
                 height=height,
                 generator=generator,

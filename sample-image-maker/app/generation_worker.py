@@ -41,7 +41,7 @@ class GenerationWorker(QThread):
         poses: List[Image.Image],
         prompt: str,
         negative_prompt: str,
-        controlnet_scale: float,
+        denoising_strength: float,
         seed: int,
         width: int,
         height: int,
@@ -52,7 +52,7 @@ class GenerationWorker(QThread):
         self._poses = poses
         self._prompt = prompt
         self._negative_prompt = negative_prompt
-        self._controlnet_scale = controlnet_scale
+        self._denoising_strength = denoising_strength
         self._seed = seed
         self._width = width
         self._height = height
@@ -63,7 +63,7 @@ class GenerationWorker(QThread):
                 poses=self._poses,
                 prompt=self._prompt,
                 negative_prompt=self._negative_prompt,
-                controlnet_scale=self._controlnet_scale,
+                denoising_strength=self._denoising_strength,
                 seed=self._seed,
                 width=self._width,
                 height=self._height,
