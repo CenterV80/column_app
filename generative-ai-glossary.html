@@ -97,6 +97,119 @@
             color: #4a00e0;
         }
 
+        .term, .term h2 {
+            scroll-margin-top: 90px;
+        }
+
+        .term:target {
+            animation: highlight-term 1.8s ease-out;
+        }
+
+        @keyframes highlight-term {
+            0% { box-shadow: 0 0 0 3px #8e2de2; }
+            100% { box-shadow: 0 0 0 0 rgba(142, 45, 226, 0); }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+            vertical-align: top;
+            font-size: 0.92em;
+        }
+
+        th {
+            background: #4a00e0;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f6f2fd;
+        }
+
+        td strong {
+            color: #4a00e0;
+        }
+
+        .flow-wrap {
+            background: #2d2d2d;
+            border-radius: 8px;
+            padding: 20px 18px;
+            overflow-x: auto;
+            margin-top: 14px;
+        }
+
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .flow-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .flow-box {
+            background: #8e2de2;
+            color: white;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88em;
+            white-space: nowrap;
+        }
+
+        .flow-box.accent {
+            background: #4a00e0;
+        }
+
+        .flow-box.muted {
+            background: #555;
+        }
+
+        .flow-box.warn {
+            background: #b45309;
+        }
+
+        .flow-box.good {
+            background: #1a7f4b;
+        }
+
+        .flow-arrow {
+            color: #ccc;
+            font-size: 1.2em;
+        }
+
+        .flow-plus {
+            color: #ccc;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        .flow-caption {
+            text-align: center;
+            color: #aaa;
+            font-size: 0.82em;
+            margin-top: 6px;
+        }
+
+        .term-note {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ddd;
+        }
+
         footer {
             background: #f8f9fa;
             text-align: center;
@@ -139,7 +252,7 @@
                 </div>
             </div>
 
-            <div class="term">
+            <div class="term" id="term-quantization">
                 <h2>量子化（りょうしか / Quantization）</h2>
                 <div class="term-description">
                     <strong>モデルの重み（パラメータ）を、より少ないビット数の数値で表現し直す</strong>技術です。通常は32bitの浮動小数点数で保存されているところを、16bit・8bit・4bitなどに圧縮します。
@@ -147,14 +260,156 @@
                 <div class="term-description">
                     ビット数を減らすことで、モデルのファイルサイズとVRAM（メモリ）使用量を大幅に削減できます。その結果、性能が低いPCやGPUでも大きなモデルを動かせるようになります。精度がわずかに落ちることもありますが、影響の少ない部分を選んで圧縮するのが一般的です。
                 </div>
+                <div class="flow-wrap">
+                    <div class="flow-row">
+                        <span class="flow-box muted">32bit（フル精度）約24GB</span>
+                        <span class="flow-arrow">→ 量子化 →</span>
+                        <span class="flow-box accent">8bit・4bitなど 約7〜13GB</span>
+                    </div>
+                    <p class="flow-caption">ビット数を削るほど、ファイルサイズとVRAM使用量が小さくなる</p>
+                </div>
+                <div class="term-description">
+                    量子化にもやり方の違いがあり、代表的なのが<strong>fp8</strong>と<strong>GGUF</strong>です。
+                </div>
+                <table>
+                    <tr>
+                        <th>方式</th>
+                        <th>中身</th>
+                        <th>特徴</th>
+                    </tr>
+                    <tr>
+                        <td data-label="方式"><strong>fp8</strong></td>
+                        <td data-label="中身">8bitの浮動小数点数</td>
+                        <td data-label="特徴">GPUのTensorコアでそのまま高速演算できる。diffusersとの相性が良い</td>
+                    </tr>
+                    <tr>
+                        <td data-label="方式"><strong>GGUF（Q8 / Q4など）</strong></td>
+                        <td data-label="中身">8bit・4bitなどの整数</td>
+                        <td data-label="特徴">ファイルはより小さいが、計算前に逆量子化する専用ローダーが必要</td>
+                    </tr>
+                </table>
                 <div class="term-example">
-                    <strong>例：</strong> 「Q4」「Q8」といった表記のモデルファイルは、それぞれ4bit・8bitに量子化されたバージョンを指します。
+                    <strong>例：</strong> 「Q4」「Q8」といった表記のモデルファイルは、それぞれGGUF形式で4bit・8bitに量子化されたバージョンを指します。
+                </div>
+            </div>
+
+            <div class="term" id="term-pruned">
+                <h2>pruned（プルーンド / 刈り込み済み）</h2>
+                <div class="term-description">
+                    <strong>学習時にだけ必要だった余分なデータを削り、配布用に軽くした</strong>チェックポイントファイルのことです。「prune」は庭木の剪定という意味で、モデルを剪定して身軽にするイメージです。
+                </div>
+                <div class="flow-wrap">
+                    <div class="flow-row">
+                        <span class="flow-box muted">フル版（学習用の余剰データ入り）</span>
+                        <span class="flow-arrow">✂️ pruning →</span>
+                        <span class="flow-box accent">pruned版（配布・利用専用）</span>
+                    </div>
+                    <p class="flow-caption">生成に使わないデータだけを削るので、出力結果は変わらない</p>
+                </div>
+                <div class="term-description">
+                    これは主にSD1.5世代でよく見られた文化です。SDXLやFluxなど新しい世代の公式配布ファイルは、最初から生成に必要な分だけで作られていることが多く、pruned版がほとんど存在しません。軽量化の主流も、pruning（剪定）から量子化へと移ってきています。
+                </div>
+                <div class="term-example">
+                    <strong>ポイント：</strong> 「pruned」の表記がないからといって、そのモデルが重いとは限りません。世代によって配布のされ方自体が違うだけです。
+                </div>
+            </div>
+
+            <div class="term" id="term-text-encoder">
+                <h2>テキストエンコーダー（Text Encoder）</h2>
+                <div class="term-description">
+                    <strong>入力したプロンプト（文章）を、AIが扱える数値の並び（embedding）に変換する</strong>役割のモデルです。ここで作られた数値が、絵を描くU-Netに「何を描くか」を伝える設計図になります。
+                </div>
+                <div class="flow-wrap">
+                    <div class="flow-row">
+                        <span class="flow-box">プロンプト（文章）</span>
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-box accent">テキストエンコーダー</span>
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-box">数値ベクトル（embedding）</span>
+                    </div>
+                    <p class="flow-caption">この数値ベクトルがU-Netに渡り、生成内容を誘導する</p>
+                </div>
+                <div class="term-description">
+                    代表例は画像・テキストのペアで学習された<strong>CLIP</strong>ですが、テキストエンコーダーはCLIPだけではありません。SDXLは<strong>CLIP ViT-L</strong>と<strong>OpenCLIP ViT-bigG</strong>という2つのテキストエンコーダーの出力をつなげて使うことで、より豊かな表現を実現しています。
+                </div>
+                <div class="term-example">
+                    <strong>ポイント：</strong> テキストエンコーダーは<a href="#term-checkpoint">checkpoint</a>ファイルの中に含まれているのが一般的で、多くの場合は別途ダウンロードしたり容量を気にしたりする必要はありません。
+                </div>
+            </div>
+
+            <div class="term" id="term-checkpoint">
+                <h2>checkpoint（チェックポイント）</h2>
+                <div class="term-description">
+                    <strong>画像を生成するために必要な部品一式を、1つのファイルにまとめたもの</strong>です。「モデルファイル」と呼ばれることも多く、これ1つをロードするだけで生成が始められます。
+                </div>
+                <div class="flow-wrap">
+                    <div class="flow-row">
+                        <span class="flow-box accent">checkpointファイル</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-box">U-Net（絵を描く本体）</span>
+                        <span class="flow-plus">+</span>
+                        <span class="flow-box">VAE（画像⇔潜在空間の変換）</span>
+                        <span class="flow-plus">+</span>
+                        <span class="flow-box"><a href="#term-text-encoder" style="color:inherit;">テキストエンコーダー</a></span>
+                    </div>
+                    <p class="flow-caption">これらが1つのファイルに同梱されている</p>
+                </div>
+                <div class="term-example">
+                    <strong>例：</strong> 「SDXL baseのcheckpoint」と言えば、U-Net・VAE・2つのテキストエンコーダーがまとめて入った、約6.5GBの1ファイルを指します。
+                </div>
+            </div>
+
+            <div class="term" id="term-lora">
+                <h2>LoRA（ローラ / Low-Rank Adaptation）</h2>
+                <div class="term-description">
+                    <strong>巨大なベースモデル本体はそのままに、小さな追加ファイルだけで絵柄やキャラクターを追加学習させる</strong>手法です。ベースモデルが数GB〜数十GBあるのに対し、LoRAファイルは数十MB程度と非常に軽量です。
+                </div>
+                <div class="flow-wrap">
+                    <div class="flow-row">
+                        <span class="flow-box muted">ベースモデル（数GB〜）</span>
+                        <span class="flow-plus">+</span>
+                        <span class="flow-box accent">LoRA（数十MB）</span>
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-box good">追加学習された絵柄・キャラクター</span>
+                    </div>
+                    <p class="flow-caption">ベースモデル本体を書き換えず、差分だけを軽い追加ファイルとして持てる</p>
+                </div>
+                <div class="term-example">
+                    <strong>例：</strong> 「Turbo LoRA」は、通常より少ない生成ステップ数で速く生成できるようにする追加ファイルです。
+                </div>
+            </div>
+
+            <div class="term" id="term-controlnet">
+                <h2 id="term-openpose">ControlNet と OpenPose</h2>
+                <div class="term-description">
+                    <strong>ControlNet</strong>は、プロンプト（文章）だけでは伝えづらい構図・ポーズ・輪郭線などを、画像のような「ガイド」を渡すことでAIに正確に伝える仕組みです。
+                </div>
+                <div class="flow-wrap">
+                    <div class="flow-row">
+                        <span class="flow-box">プロンプトのみ</span>
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-box warn">ポーズや構図はAI任せ</span>
+                    </div>
+                    <div class="flow-row">
+                        <span class="flow-box">プロンプト</span>
+                        <span class="flow-plus">+</span>
+                        <span class="flow-box accent">ControlNetガイド（骨格など）</span>
+                        <span class="flow-arrow">→</span>
+                        <span class="flow-box good">狙い通りのポーズ・構図</span>
+                    </div>
+                </div>
+                <div class="term-description">
+                    <strong>OpenPose</strong>は、そのガイドの代表的な種類のひとつで、人体の関節位置を線でつないだ「棒人間」形式のポーズ情報です。ControlNetにOpenPoseのガイドを渡すことで、指定したポーズ通りの人物を生成できます。
+                </div>
+                <div class="term-example">
+                    <strong>例：</strong> 「SDXL+ControlNet OpenPose」は、SDXLで絵を描きつつ、OpenPose形式の棒人間でポーズを指定する構成を指します。
                 </div>
             </div>
         </div>
 
         <footer>
-            <p>📅 最終更新：2026年8月2日</p>
+            <p>📅 最終更新：2026年9月5日</p>
         </footer>
     </div>
 </body>

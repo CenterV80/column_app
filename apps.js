@@ -68,7 +68,7 @@ const APPS = [
   },
   {
     name: "生成AI用語",
-    description: "蒸留・量子化など、画像・動画生成AIの記事でよく見かける用語をやさしく解説します。",
+    description: "蒸留・量子化・pruned・テキストエンコーダー・checkpoint・LoRA・ControlNetなど、画像・動画生成AIの記事でよく見かける用語を図解でやさしく解説します。",
     path: "generative-ai-glossary.html",
     icon: "🧠",
     category: "ltx",
