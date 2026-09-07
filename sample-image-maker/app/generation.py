@@ -1,4 +1,9 @@
-"""SDXL img2img(棒人間スケルトンPNGを初期画像として使用)による6ポーズ生成と3x2合成。"""
+"""SDXL + ControlNet OpenPose(ポーズ)+ IP-Adapter(キャラクター参照)による
+6ポーズ生成と3x2合成。
+
+ControlNetが「何をしているか(ポーズ)」、IP-Adapterが「誰であるか(絵柄・
+キャラクター)」を分担する構成(技術仕様書3章・4.4節を参照)。
+"""
 from __future__ import annotations
 
 import logging
@@ -17,6 +22,10 @@ GRID_COLS = 3
 GRID_ROWS = 2
 MAX_SEED = 2**32 - 1
 
+# VRAM合計がこれ未満のGPU(例: RTX4070Ti 12GB)ではモデル全体を常駐させず
+# enable_model_cpu_offload()で緩和する(技術仕様書3章参照)。
+LOW_VRAM_THRESHOLD_BYTES = 14 * 1024**3
+
 ProgressCallback = Optional[Callable[[int, int, str], None]]
 
 
@@ -29,7 +38,7 @@ class GenerationResult:
 
 
 class ModelManager:
-    """SDXL base + VAE を1度だけロードして保持する(img2img構成、ControlNet不採用)。
+    """SDXL base + VAE + ControlNet OpenPose + IP-Adapter を1度だけロードして保持する。
 
     プロセス内で直接diffusersを呼び出す構成のため、GUIとは別スレッド
     (QThread)からロード・推論を行うことを想定している。
@@ -45,7 +54,7 @@ class ModelManager:
 
     def load(self) -> None:
         import torch
-        from diffusers import AutoencoderKL, StableDiffusionXLImg2ImgPipeline
+        from diffusers import AutoencoderKL, ControlNetModel, StableDiffusionXLControlNetPipeline
 
         logger.info("モデル探索を開始します(Stability Matrixフォルダ階層)")
         self.model_paths = resolve_model_paths()
@@ -58,13 +67,43 @@ class ModelManager:
         logger.info("VAEをロード中... (%s)", self.model_paths.vae.name)
         vae = AutoencoderKL.from_single_file(str(self.model_paths.vae), torch_dtype=dtype)
 
+        logger.info("ControlNet OpenPoseをロード中... (%s)", self.model_paths.controlnet_openpose.name)
+        controlnet = ControlNetModel.from_single_file(
+            str(self.model_paths.controlnet_openpose), torch_dtype=dtype
+        )
+
         logger.info("SDXL baseをロード中... (%s)", self.model_paths.sdxl_base.name)
-        pipeline = StableDiffusionXLImg2ImgPipeline.from_single_file(
+        pipeline = StableDiffusionXLControlNetPipeline.from_single_file(
             str(self.model_paths.sdxl_base),
             vae=vae,
+            controlnet=controlnet,
             torch_dtype=dtype,
         )
-        pipeline = pipeline.to(device)
+
+        logger.info(
+            "IP-Adapterをロード中... (%s / image_encoder=%s)",
+            self.model_paths.ip_adapter.name,
+            self.model_paths.ip_adapter_image_encoder.name,
+        )
+        pipeline.load_ip_adapter(
+            str(self.model_paths.ip_adapter.parent),
+            subfolder="",
+            weight_name=self.model_paths.ip_adapter.name,
+            image_encoder_folder=str(self.model_paths.ip_adapter_image_encoder.parent),
+        )
+
+        if device == "cuda":
+            total_vram = torch.cuda.get_device_properties(0).total_memory
+            if total_vram < LOW_VRAM_THRESHOLD_BYTES:
+                logger.info(
+                    "VRAM %.1fGB未満のためenable_model_cpu_offload()を使用します(生成速度は低下します)",
+                    LOW_VRAM_THRESHOLD_BYTES / 1024**3,
+                )
+                pipeline.enable_model_cpu_offload()
+            else:
+                pipeline = pipeline.to(device)
+        else:
+            pipeline = pipeline.to(device)
         pipeline.enable_attention_slicing()
 
         self._pipeline = pipeline
@@ -75,10 +114,12 @@ class ModelManager:
 
     def generate(
         self,
+        character_sheet: Image.Image,
         poses: List[Image.Image],
         prompt: str,
         negative_prompt: str = "",
-        denoising_strength: float = 0.65,
+        controlnet_scale: float = 1.0,
+        ip_adapter_scale: float = 0.6,
         seed: int = -1,
         width: int = 1024,
         height: int = 1024,
@@ -93,18 +134,20 @@ class ModelManager:
 
         seed_used = random.randint(0, MAX_SEED) if seed is None or seed < 0 else seed
         logger.info(
-            "生成開始 seed=%s size=%sx%s denoising_strength=%s", seed_used, width, height, denoising_strength
+            "生成開始 seed=%s size=%sx%s controlnet_scale=%s ip_adapter_scale=%s",
+            seed_used, width, height, controlnet_scale, ip_adapter_scale,
         )
+
+        self._pipeline.set_ip_adapter_scale(ip_adapter_scale)
 
         device = self._pipeline.device
         start_time = time.time()
         individual_images: List[Image.Image] = []
 
         # 逐次処理・バッチサイズ1固定(低VRAM機での安全性を優先)
-        # poses(棒人間スケルトンPNG)をimg2imgの初期画像として使用する。
-        # ControlNetのような専用ポーズ条件付けではないため、denoising_strengthが
-        # 低すぎると絵として破綻し、高すぎるとポーズが再現されない点に注意
-        # (技術仕様書4.4節を参照)。
+        # poses(棒人間スケルトンPNG)はControlNetの条件付け画像として「ポーズ」を、
+        # character_sheetはIP-Adapterの参照画像として「キャラクターの見た目」を
+        # それぞれ担当する(技術仕様書4.4節を参照)。
         for i, pose_image in enumerate(poses):
             if progress_callback:
                 progress_callback(i, len(poses), f"ポーズ{i + 1}/{len(poses)}を生成中...")
@@ -114,7 +157,8 @@ class ModelManager:
                 prompt=prompt,
                 negative_prompt=negative_prompt or None,
                 image=pose_image,
-                strength=denoising_strength,
+                ip_adapter_image=character_sheet,
+                controlnet_conditioning_scale=controlnet_scale,
                 width=width,
                 height=height,
                 generator=generator,

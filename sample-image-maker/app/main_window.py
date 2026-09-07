@@ -149,18 +149,28 @@ class MainWindow(QMainWindow):
         size_row.addWidget(self.height_spin)
         layout.addLayout(size_row)
 
-        strength_row = QHBoxLayout()
-        strength_row.addWidget(QLabel("変化の強さ(denoising strength)"))
-        self.denoising_strength_spin = QDoubleSpinBox(panel)
-        self.denoising_strength_spin.setRange(0.0, 1.0)
-        self.denoising_strength_spin.setSingleStep(0.05)
-        self.denoising_strength_spin.setValue(0.65)
-        self.denoising_strength_spin.setToolTip(
-            "低いほど棒人間の構図に忠実(絵として崩れやすい)、"
-            "高いほど自然な絵になるがポーズの再現度が下がります。"
+        cn_row = QHBoxLayout()
+        cn_row.addWidget(QLabel("ControlNet強度(ポーズ)"))
+        self.controlnet_scale_spin = QDoubleSpinBox(panel)
+        self.controlnet_scale_spin.setRange(0.0, 2.0)
+        self.controlnet_scale_spin.setSingleStep(0.05)
+        self.controlnet_scale_spin.setValue(1.0)
+        self.controlnet_scale_spin.setToolTip("棒人間のポーズをどれだけ厳密に反映するか。")
+        cn_row.addWidget(self.controlnet_scale_spin)
+        layout.addLayout(cn_row)
+
+        ip_row = QHBoxLayout()
+        ip_row.addWidget(QLabel("IP-Adapter強度(キャラ参照)"))
+        self.ip_adapter_scale_spin = QDoubleSpinBox(panel)
+        self.ip_adapter_scale_spin.setRange(0.0, 1.0)
+        self.ip_adapter_scale_spin.setSingleStep(0.05)
+        self.ip_adapter_scale_spin.setValue(0.6)
+        self.ip_adapter_scale_spin.setToolTip(
+            "高いほどキャラクターシートの絵柄・特徴を強く反映しますが、"
+            "プロンプトでの指示(表情・服装の変更など)が効きにくくなります。"
         )
-        strength_row.addWidget(self.denoising_strength_spin)
-        layout.addLayout(strength_row)
+        ip_row.addWidget(self.ip_adapter_scale_spin)
+        layout.addLayout(ip_row)
 
         seed_row = QHBoxLayout()
         seed_row.addWidget(QLabel("Seed(-1でランダム)"))
@@ -389,10 +399,12 @@ class MainWindow(QMainWindow):
 
         self._generation_worker = GenerationWorker(
             self.model_manager,
+            character_sheet=self.character_sheet_image,
             poses=poses,
             prompt=self.prompt_edit.toPlainText(),
             negative_prompt=self.negative_prompt_edit.toPlainText(),
-            denoising_strength=self.denoising_strength_spin.value(),
+            controlnet_scale=self.controlnet_scale_spin.value(),
+            ip_adapter_scale=self.ip_adapter_scale_spin.value(),
             seed=self.seed_spin.value(),
             width=width,
             height=height,

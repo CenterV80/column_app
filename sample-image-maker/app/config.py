@@ -13,7 +13,7 @@ CONFIG_FILE = Path(__file__).resolve().parent.parent / "config.local.json"
 
 DEFAULT_MODELS_DIR = Path.home() / "StabilityMatrix" / "Data" / "Models"
 
-MODEL_EXTENSIONS = (".safetensors", ".ckpt")
+MODEL_EXTENSIONS = (".safetensors", ".ckpt", ".bin")
 
 
 def find_model_file(category_dir: Path, keyword: str | None = None,
@@ -63,12 +63,16 @@ def _load_models_dir_override() -> Path | None:
 class ModelPaths:
     sdxl_base: Path
     vae: Path
+    controlnet_openpose: Path
+    ip_adapter: Path
+    ip_adapter_image_encoder: Path
 
 
 def resolve_model_paths() -> ModelPaths:
-    """Stability Matrixのフォルダ階層からモデル2種を自動検出する。
+    """Stability Matrixのフォルダ階層からモデル5種を自動検出する。
 
-    img2img構成(ControlNet不採用)のため、SDXL base と VAE のみ検出する。
+    SDXL base + VAE + ControlNet OpenPose(ポーズ制御)+
+    IP-Adapter SDXL + IP-Adapter用CLIP画像エンコーダ(キャラクター参照)。
     該当ファイルが0件・複数件の場合は例外を送出し、呼び出し側で
     起動停止(エラーダイアログ表示)させる想定。
     """
@@ -77,11 +81,20 @@ def resolve_model_paths() -> ModelPaths:
 
     sdxl_base = find_model_file(models_dir / "StableDiffusion", keyword="xl")
     vae = find_model_file(models_dir / "VAE")
+    controlnet_openpose = find_model_file(models_dir / "ControlNet", keyword="openpose")
+    ip_adapter = find_model_file(models_dir / "IpAdaptersXl")
+    ip_adapter_image_encoder = find_model_file(models_dir / "ClipVision")
 
     logger.info("SDXL base: %s", sdxl_base.name)
     logger.info("VAE: %s", vae.name)
+    logger.info("ControlNet OpenPose: %s", controlnet_openpose.name)
+    logger.info("IP-Adapter: %s", ip_adapter.name)
+    logger.info("IP-Adapter image encoder: %s", ip_adapter_image_encoder.name)
 
     return ModelPaths(
         sdxl_base=sdxl_base,
         vae=vae,
+        controlnet_openpose=controlnet_openpose,
+        ip_adapter=ip_adapter,
+        ip_adapter_image_encoder=ip_adapter_image_encoder,
     )
