@@ -29,29 +29,54 @@ SDXL + ControlNet OpenPose + IP-Adapter構成を採用(Flux Kontextはフル版2
 - 4.4節で指摘した「1枚の初期画像でポーズだけ変えて絵柄を保持する」というimg2img単体の矛盾は、ControlNet(ポーズ専用の条件付け)とIP-Adapter(絵柄専用の条件付け、初期画像スロットを消費しない)を役割分離することで解消できる。
 - これによりキャラクターシートを**表示専用ではなく実際に生成へ反映**できるようになる(IP-Adapterの`ip_adapter_image`として使用)。
 
+IP-Adapterには**ViT-H版(`ip-adapter_sdxl_vit-h`)を採用する**。IP-Adapter公式が「ViT-bigGはViT-Hより遥かに大きいが実験上有意な差は見られず、小さいモデルの方が推論時のメモリを削減できる」と記載しており、必要なCLIP画像エンコーダがViT-bigGの約6.9GBからViT-Hの約2.4GBに縮小され、対象GPU要件との両立が現実的になるため。
+
+**ディスク容量(配布ファイル)**
+
 | モデル | 容量目安 | 用途 |
 |---|---|---|
 | SDXL base 1.0(fp16) | 約6.5GB | ベースモデル |
 | VAE(sdxl-vae-fp16-fix) | 約300MB | VAE |
 | ControlNet OpenPose(xinsir版, fp16) | 約2.5GB | ポーズ制御(「何をしているか」) |
-| IP-Adapter SDXL(`ip-adapter_sdxl.bin`) | 約0.7GB | キャラクター参照条件付け重み |
-| IP-Adapter image encoder(OpenCLIP ViT-bigG-14) | 約2.5GB | IP-Adapterが参照画像を埋め込むためのCLIP画像エンコーダ(「誰であるか」) |
-| **合計** | **約12.5GB** | |
+| IP-Adapter SDXL ViT-H版(`ip-adapter_sdxl_vit-h.safetensors`) | 約700MB | キャラクター参照条件付け重み |
+| CLIP画像エンコーダ(OpenCLIP ViT-H-14、HF形式フォルダ) | 約2.4GB | IP-Adapterが参照画像を埋め込むためのエンコーダ(「誰であるか」) |
+| **合計** | **約12.4GB** | |
+
+**fp16ロード時のVRAM概算(重みのみ。推論時の活性化メモリは別途必要)**
+
+IP-Adapter本体とCLIP画像エンコーダはfp32で配布されているため、fp16でロードすればVRAM上の占有はディスク容量の約半分になる。**ディスク容量とVRAM使用量は一致しない点に注意する。**
+
+| モデル | fp16ロード時 |
+|---|---|
+| SDXL base(配布時点でfp16) | 約6.5GB |
+| VAE | 約0.2GB |
+| ControlNet OpenPose(配布時点でfp16) | 約2.5GB |
+| IP-Adapter ViT-H版 | 約0.35GB |
+| CLIP画像エンコーダ ViT-H | 約1.2GB |
+| **合計** | **約10.7GB** |
 
 出典: [h94/IP-Adapter (Hugging Face)](https://huggingface.co/h94/IP-Adapter/tree/main/sdxl_models)、[diffusers IP-Adapterドキュメント](https://huggingface.co/docs/diffusers/en/using-diffusers/ip_adapter)、ComfyUIコミュニティの実践記事([Medium: How I Solved Character Consistency in ComfyUI](https://medium.com/@sophie_62065/how-i-solved-character-consistency-in-comfyui-after-trying-controlnet-and-ipadapter-fcd9eda25109)、[RunComfy: Create Consistent Characters within ComfyUI](https://www.runcomfy.com/comfyui-workflows/create-consistent-characters-within-comfyui))。
 
 ### 対象GPU環境
-- RTX5080(16GB、本番稼働用): 合計約12.5GBがVRAMに収まるため、全モデルをVRAM常駐(`pipeline.to("cuda")`)させて動作させる。
-- RTX4070Ti(12GB、古いマシンでも動作することを前提とした構成): 合計約12.5GBはVRAM容量を上回る可能性が高く、fp16のままVRAM常駐させると動作しない、または他プロセスとの競合でOOMになるおそれがある。**diffusersの`enable_model_cpu_offload()`(使用中のモデルだけをVRAMに乗せ、それ以外はCPU RAM側に置いておく機構)を使ってVRAM使用量を抑える。** 引き換えにモデルの出し入れが発生するため、RTX5080に比べて生成速度は低下する。
+- RTX5080(16GB、本番稼働用): 重み合計 約10.7GB(fp16)に活性化メモリを加えても収まるため、全モデルをVRAM常駐(`pipeline.to("cuda")`)させる。
+- RTX4070Ti(12GB、古いマシンでも動作することを前提とした構成): 重みだけで約10.7GBを占め、1024x1024生成時の活性化メモリを加えると余裕がない。**diffusersの`enable_model_cpu_offload()`(使用中のモデルだけをVRAMに乗せ、それ以外はCPU RAM側に置いておく機構)でVRAM使用量を抑える。** 引き換えにモデルの出し入れが発生するため、RTX5080に比べて生成速度は低下する。なおCLIP画像エンコーダは参照画像を埋め込む際に1度動くだけでデノイジングループには参加しないため、オフロード機構との相性は良い。
 - 実装上は`torch.cuda.get_device_properties(0).total_memory`等でVRAM容量を確認し、一定値未満(目安14GB未満)なら`enable_model_cpu_offload()`、それ以上なら`pipeline.to("cuda")`を使う、というハードウェア別の分岐を行う。
 
 ### モデル配置・自動検出
 
-モデルファイルはStability Matrixのフォルダ階層(`Models/StableDiffusion/`、`Models/VAE/`、`Models/ControlNet/`、`Models/IpAdaptersXl/`、`Models/ClipVision/`)から自動検出する。パッケージ内にモデルは含めない。
+モデルファイルはStability Matrixのフォルダ階層(`Models/StableDiffusion/`、`Models/VAE/`、`Models/ControlNet/`、`Models/IpAdaptersXl/`)から自動検出する。パッケージ内にモデルは含めない。
 
 - 各カテゴリフォルダ内を拡張子(`.safetensors`, `.ckpt`, `.bin`)で検索(IP-Adapter系は`.bin`配布が多いため`.bin`も対象に含める)
-- キーワード絞り込み(例: StableDiffusionフォルダは`"xl"`、ControlNetフォルダは`"openpose"`)で対象を限定
+- キーワード絞り込み(例: StableDiffusionフォルダは`"xl"`、ControlNetフォルダは`"openpose"`、IpAdaptersXlフォルダは`"vit-h"`)で対象を限定
 - 該当ファイルが0件、または複数件の場合はエラーで起動を停止する(意図しないモデルでの生成事故防止)
+
+#### CLIP画像エンコーダだけは例外(単一ファイル自動検出の対象外)
+
+**IP-Adapter用のCLIP画像エンコーダのみ、上記の「Stability Matrixから単一ファイルを自動検出する」方式が使えない。** diffusersは画像エンコーダを`CLIPVisionModelWithProjection.from_pretrained()`で読み込むため、`config.json`と重みを含む**HF形式のフォルダ**を必要とする。一方Stability Matrixの`Models/ClipVision/`に置かれるのはComfyUI流の単一`.safetensors`ファイルであり(ComfyUIは独自ローダーで読むため成立している)、そのままではdiffusersから読めない。
+
+そのため画像エンコーダは、**HF形式フォルダ(h94/IP-Adapter の `models/image_encoder`)をユーザーが任意の場所に手動配置し、そのフォルダパスをアプリの設定(「設定 → 画像エンコーダフォルダを設定」、`config.local.json`の`image_encoder_dir`、または環境変数`SAMPLE_IMAGE_MAKER_IMAGE_ENCODER_DIR`)で指定する**方式とする。初回起動時にHugging Faceから自動ダウンロードする方式は、実行時に外部ネットワークへ出るため社内環境での許可確認の観点(本プロジェクトがPython完結構成を選んだ理由と同じ観点)から採用しない。
+
+起動時に指定フォルダの`config.json`の存在を確認し、無ければ何を配置すべきかを明示したエラーで停止する。
 
 ```python
 def find_model_file(category_dir: Path, keyword: str = None, extensions=(".safetensors", ".ckpt", ".bin")) -> Path:
@@ -115,9 +140,14 @@ REST API形式ではなく、内部関数呼び出しとして設計する(GUI�
 2. **img2img(棒人間画像を初期画像に、ControlNetの代わり)**: ControlNetモデルが不要になる利点はあったが、「1枚の初期画像でポーズだけ変えて絵柄を保持する」という要求はimg2img単体では原理的に両立しない(denoising_strengthを下げると新ポーズにならず、上げると絵柄が保持されない)、かつキャラクターシートは依然として未接続のままだった。
 3. **ControlNet OpenPose + IP-Adapter併用(現行)**: ComfyUIコミュニティで確立されている「ControlNetがポーズ、IP-Adapterがキャラクター参照」という役割分担を採用し、上記2つの課題を解消した。
 
+4の段階で、3の記述に以下の誤りが見つかったため訂正した(記録として残す)。
+
+4. **記述の訂正とViT-H版への変更**: 3の時点でCLIP画像エンコーダの容量を「OpenCLIP ViT-bigG-14 = 約2.5GB」と記載していたが、**約2.5GBはViT-H(SD1.5側)エンコーダの容量であり、ViT-bigGの取り違えだった**(ViT-bigGは約6.9GB)。正しくは合計約16.9GB(ディスク)となり、「RTX5080(16GB)なら常駐可」という結論も成立していなかった。またディスク上の配布サイズとfp16ロード時のVRAM占有を混同して合計していた。訂正の上で、IP-Adapter公式が「ViT-bigGとViT-Hに有意な差は見られず、小さい方が推論時メモリを削減できる」としていることを踏まえ、**ViT-H版(`ip-adapter_sdxl_vit-h`)に変更**した。
+
 現行構成でも残るトレードオフ:
 
-- **VRAM要件が増える**: モデル合計が約12.5GBになり、RTX4070Ti(12GB)では`enable_model_cpu_offload()`による緩和が前提になる(3章参照)。緩和した場合、モデルの出し入れにより生成速度がRTX5080より低下する。
+- **VRAM要件が増える**: 重み合計が約10.7GB(fp16)になり、RTX4070Ti(12GB)では`enable_model_cpu_offload()`による緩和が前提になる(3章参照)。緩和した場合、モデルの出し入れにより生成速度がRTX5080より低下する。
+- **CLIP画像エンコーダだけモデルの入手・配置方法が異なる**: 他のモデルはStability Matrixから単一ファイルで自動検出できるが、画像エンコーダのみHF形式フォルダを手動配置してパスを設定する必要がある(3章参照)。セットアップ手順が1つ増える。
 - **`ip_adapter_scale`と`controlnet_scale`の両方を調整する運用になる**: IP-Adapterを強くしすぎるとプロンプトでの指示(表情・服装の変更等)が効きにくくなり、弱すぎるとキャラクターの特徴が薄れる。両パラメータの組み合わせを試行錯誤する前提のUIにする。
 - **参照画像は「キャラクターシート」1枚をそのまま使う**: キャラクターシートが複数アングル・複数コマを含む1枚の画像である場合、IP-Adapterはその構図全体を「見た目の特徴」として抽出するため、コマ割りの線や背景も特徴として拾われる可能性がある。精度が問題になる場合は、キャラクターシートから顔・上半身などを切り出してIP-Adapterに渡す前処理を追加で検討する(初版の範囲外、将来課題)。
 

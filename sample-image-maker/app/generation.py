@@ -55,6 +55,7 @@ class ModelManager:
     def load(self) -> None:
         import torch
         from diffusers import AutoencoderKL, ControlNetModel, StableDiffusionXLControlNetPipeline
+        from transformers import CLIPVisionModelWithProjection
 
         logger.info("モデル探索を開始します(Stability Matrixフォルダ階層)")
         self.model_paths = resolve_model_paths()
@@ -72,24 +73,31 @@ class ModelManager:
             str(self.model_paths.controlnet_openpose), torch_dtype=dtype
         )
 
+        logger.info("CLIP画像エンコーダをロード中... (%s)", self.model_paths.ip_adapter_image_encoder_dir)
+        image_encoder = CLIPVisionModelWithProjection.from_pretrained(
+            str(self.model_paths.ip_adapter_image_encoder_dir), torch_dtype=dtype
+        )
+
         logger.info("SDXL baseをロード中... (%s)", self.model_paths.sdxl_base.name)
         pipeline = StableDiffusionXLControlNetPipeline.from_single_file(
             str(self.model_paths.sdxl_base),
             vae=vae,
             controlnet=controlnet,
+            image_encoder=image_encoder,
             torch_dtype=dtype,
         )
 
-        logger.info(
-            "IP-Adapterをロード中... (%s / image_encoder=%s)",
-            self.model_paths.ip_adapter.name,
-            self.model_paths.ip_adapter_image_encoder.name,
-        )
+        # 画像エンコーダは上で自前ロード済みのためimage_encoder_folder=Noneにする。
+        # diffusersのload_ip_adapter()はimage_encoder_folderを常にIP-Adapter本体の
+        # パスからの相対サブフォルダとして解決するため、別の場所にあるHF形式フォルダを
+        # 絶対パスで渡すことはできない。feature_extractorはimage_encoder_folderの
+        # 分岐の外側で、登録済みのimage_encoderのconfigを見て自動生成される。
+        logger.info("IP-Adapterをロード中... (%s)", self.model_paths.ip_adapter.name)
         pipeline.load_ip_adapter(
             str(self.model_paths.ip_adapter.parent),
             subfolder="",
             weight_name=self.model_paths.ip_adapter.name,
-            image_encoder_folder=str(self.model_paths.ip_adapter_image_encoder.parent),
+            image_encoder_folder=None,
         )
 
         if device == "cuda":

@@ -108,6 +108,10 @@ class MainWindow(QMainWindow):
         models_dir_action.triggered.connect(self._on_settings_models_dir)
         settings_menu.addAction(models_dir_action)
 
+        encoder_dir_action = QAction("画像エンコーダフォルダを設定...", self)
+        encoder_dir_action.triggered.connect(self._on_settings_image_encoder_dir)
+        settings_menu.addAction(encoder_dir_action)
+
     def _build_left_panel(self) -> QWidget:
         panel = QWidget(self)
         layout = QVBoxLayout(panel)
@@ -343,6 +347,21 @@ class MainWindow(QMainWindow):
         self.status_label.setText("モデルロード失敗")
         QMessageBox.critical(self, "モデルロードエラー", message)
 
+    def _save_config_value(self, key: str, value: str) -> None:
+        """config.local.json の1キーだけを更新する(他のキーは保持する)。"""
+        import json
+
+        data = {}
+        if CONFIG_FILE.exists():
+            try:
+                data = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                logger.warning("既存のconfig.local.jsonを読めなかったため新規作成します")
+        data[key] = value
+        CONFIG_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        logger.info("設定を保存しました: %s = %s", key, value)
+        QMessageBox.information(self, "設定を保存しました", "再起動後に新しい設定が使用されます。")
+
     def _on_settings_models_dir(self) -> None:
         text, ok = QInputDialog.getText(
             self,
@@ -352,11 +371,15 @@ class MainWindow(QMainWindow):
         )
         if not ok or not text.strip():
             return
-        import json
+        self._save_config_value("models_dir", text.strip())
 
-        CONFIG_FILE.write_text(json.dumps({"models_dir": text.strip()}, ensure_ascii=False, indent=2), encoding="utf-8")
-        logger.info("モデルフォルダ設定を保存しました: %s", text.strip())
-        QMessageBox.information(self, "設定を保存しました", "再起動後に新しいモデルフォルダが使用されます。")
+    def _on_settings_image_encoder_dir(self) -> None:
+        path = QFileDialog.getExistingDirectory(
+            self, "IP-Adapter用CLIP画像エンコーダのフォルダを選択(config.jsonを含むHF形式フォルダ)"
+        )
+        if not path:
+            return
+        self._save_config_value("image_encoder_dir", path)
 
     # ------------------------------------------------------------------
     # キャラクターシート
