@@ -94,7 +94,7 @@ function overlaps(a, b) {
 
   await audit("タイトル");
   await key("Shift");
-  for (let i = 0; i < 4; i++) { await audit("あそびかた" + (i + 1)); await key("z"); }
+  for (let i = 0; i < 5; i++) { await audit("あそびかた" + (i + 1)); await key("z"); }
   await key("Enter"); await audit("マップ");
 
   for (const stage of [0, 1, 2, 3, 4]) {
@@ -103,8 +103,14 @@ function overlaps(a, b) {
     for (let i = 0; i < stage; i++) await key("ArrowDown", 120);
     await key("z"); await audit("てき情報(" + (stage + 1) + ")");
     await key("z"); await audit("さくせん(" + (stage + 1) + ")");
+    // walk the whole cursor, including the ためしうち command row
+    for (let i = 0; i < 7; i++) { await key("ArrowDown", 90); await audit("さくせん(" + (stage + 1) + ")-" + i); }
+    await key("z"); await audit("ためしうち(" + (stage + 1) + ")");
+    for (let i = 0; i < 4; i++) { await key("ArrowDown", 90); await audit("ためしうち(" + (stage + 1) + ")-" + i); }
+    await key("x");
+    await key("ArrowDown", 90);
     await key("z"); await audit("カードえらび(" + (stage + 1) + ")");
-    for (let i = 0; i < 9; i++) { await key("ArrowDown", 90); await audit("カードえらび(" + (stage + 1) + ")-" + i); }
+    for (let i = 0; i < 11; i++) { await key("ArrowDown", 90); await audit("カードえらび(" + (stage + 1) + ")-" + i); }
     await key("x");
     await key("Enter", 700); await audit("バトル(" + (stage + 1) + ")");
     await key("Enter", 700); await audit("バトル終了(" + (stage + 1) + ")");
