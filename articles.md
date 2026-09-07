@@ -1,5 +1,10 @@
 ## 2026年9月
 
+### MiniMax-H3-Semantic-Bridge - 他モデルの意味理解をMiniMax-H3に「橋渡し」するアダプター
+[Hugging Face - speach1sdef178/MiniMax-H3-Semantic-Bridge](https://huggingface.co/speach1sdef178/MiniMax-H3-Semantic-Bridge)
+
+MiniMax-H3の標準的なFL2VA（テキスト条件付き生成）パイプライン向けに公開された、条件付け空間を変換する小型アダプター。LoRAでもチェックポイントのマージでも、パラメータを直接移植する手法でもなく、動画用トランスフォーマーに入る前のH3のネイティブな条件付け情報を変換し、学習済みの意味表現を任意の強さでH3側にブレンドし直すという仕組みを取る。開発の出発点は、異なるアーキテクチャ間で表現を転移させる実験的なプロジェクトで、その際は画像生成モデル「SenseNova U1.5」を「意味理解の教師」として利用して学習させている。ただし公開されている最終版のアダプターはスタンドアロンで完結しており、推論時にSenseNova本体を必要としない点がポイント。ComfyUI用のカスタムノード（`MiniMax_H3_Semantic_Bridge_v1.0.zip`）と、アダプター本体（`MiniMaxH3_SemanticBridge_v1.safetensors`）のほか、研究資料・プロンプトデータセット・比較検証用の動画も同梱されている。現行のv1は標準的なFL2VA・テキスト条件付き生成向けで、Ref2VA（参照素材を使う生成）には対応していない。
+
 ### ComfyUI-H3VAE_TRT - MiniMax-H3のVAEをTensorRT化して最大1.7倍高速化
 [GitHub - lihaoyun6/ComfyUI-H3VAE_TRT](https://github.com/lihaoyun6/ComfyUI-H3VAE_TRT)
 
