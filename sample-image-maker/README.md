@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 ## モデルの配置
 
-Stability Matrix のフォルダ階層から以下5種類を自動検出します。パッケージにモデルは含まれないため、
+Stability Matrix のフォルダ階層から以下4種類を自動検出します。パッケージにモデルは含まれないため、
 事前に配置してください。
 
 | フォルダ | キーワード | 内容 |
@@ -33,14 +33,26 @@ Stability Matrix のフォルダ階層から以下5種類を自動検出しま�
 | `Models/StableDiffusion/` | `xl` | SDXL base 1.0 (fp16, `.safetensors`) |
 | `Models/VAE/` | (なし) | sdxl-vae-fp16-fix |
 | `Models/ControlNet/` | `openpose` | ControlNet OpenPose (xinsir版, fp16) |
-| `Models/IpAdaptersXl/` | (なし) | IP-Adapter SDXL (`ip-adapter_sdxl.bin` 等) |
-| `Models/ClipVision/` | (なし) | IP-Adapter用CLIP画像エンコーダ (OpenCLIP ViT-bigG-14) |
+| `Models/IpAdaptersXl/` | `vit-h` | IP-Adapter SDXL ViT-H版 (`ip-adapter_sdxl_vit-h.safetensors`) |
 
 各フォルダに対象ファイルが0件・複数件の場合は起動時にエラーで停止します(意図しないモデルでの生成事故防止)。
 
 モデルフォルダの場所は既定で `~/StabilityMatrix/Data/Models` を探しますが、異なる場合は
 アプリの「設定 → モデルフォルダを設定」から変更するか、環境変数 `SAMPLE_IMAGE_MAKER_MODELS_DIR`
 で指定してください。
+
+### CLIP画像エンコーダだけは別途フォルダ指定が必要
+
+IP-Adapterが参照画像を埋め込むために使うCLIP画像エンコーダは、diffusersが `config.json` を含む
+**HF形式のフォルダ**を要求するため、他のモデルのような単一ファイル自動検出ができません
+(Stability Matrix の `ClipVision/` に置かれるのはComfyUI流の単一ファイルで、diffusersからは読めません)。
+
+[h94/IP-Adapter](https://huggingface.co/h94/IP-Adapter) の `models/image_encoder`
+(OpenCLIP ViT-H-14、約2.4GB、`config.json` と重みを含むフォルダ)を任意の場所にダウンロードし、
+アプリの「設定 → 画像エンコーダフォルダを設定」でそのフォルダを指定してください
+(環境変数 `SAMPLE_IMAGE_MAKER_IMAGE_ENCODER_DIR` でも指定できます)。
+
+実行時にHugging Faceから自動ダウンロードする方式は、社内環境での許可確認の観点から採用していません。
 
 ## 起動
 
@@ -50,9 +62,12 @@ python main.py
 
 ## VRAMについて
 
-モデル合計は約12.5GBです。RTX5080(16GB)ではVRAMに常駐させて動作しますが、RTX4070Ti(12GB)など
-VRAMが不足する環境では自動的に`enable_model_cpu_offload()`(使用中のモデルだけをVRAMに乗せる仕組み)
-に切り替わります。その場合、モデルの出し入れが発生するため生成速度は低下します。
+配布ファイルの合計は約12.4GBですが、fp16でロードするためVRAM上の重みは**約10.7GB**です
+(IP-Adapterと画像エンコーダはfp32配布のため、ロード時に約半分になります)。
+
+RTX5080(16GB)ではVRAMに常駐させて動作しますが、RTX4070Ti(12GB)などVRAMが不足する環境では
+自動的に`enable_model_cpu_offload()`(使用中のモデルだけをVRAMに乗せる仕組み)に切り替わります。
+その場合、モデルの出し入れが発生するため生成速度は低下します。
 
 ## 既知の制約・今後の課題
 
