@@ -38,10 +38,12 @@ class GenerationWorker(QThread):
     def __init__(
         self,
         model_manager: ModelManager,
+        character_sheet: Image.Image,
         poses: List[Image.Image],
         prompt: str,
         negative_prompt: str,
-        denoising_strength: float,
+        controlnet_scale: float,
+        ip_adapter_scale: float,
         seed: int,
         width: int,
         height: int,
@@ -49,10 +51,12 @@ class GenerationWorker(QThread):
     ):
         super().__init__(parent)
         self._model_manager = model_manager
+        self._character_sheet = character_sheet
         self._poses = poses
         self._prompt = prompt
         self._negative_prompt = negative_prompt
-        self._denoising_strength = denoising_strength
+        self._controlnet_scale = controlnet_scale
+        self._ip_adapter_scale = ip_adapter_scale
         self._seed = seed
         self._width = width
         self._height = height
@@ -60,10 +64,12 @@ class GenerationWorker(QThread):
     def run(self) -> None:
         try:
             result: GenerationResult = self._model_manager.generate(
+                character_sheet=self._character_sheet,
                 poses=self._poses,
                 prompt=self._prompt,
                 negative_prompt=self._negative_prompt,
-                denoising_strength=self._denoising_strength,
+                controlnet_scale=self._controlnet_scale,
+                ip_adapter_scale=self._ip_adapter_scale,
                 seed=self._seed,
                 width=self._width,
                 height=self._height,
