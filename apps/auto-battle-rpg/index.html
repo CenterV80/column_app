@@ -210,6 +210,8 @@
                 desc:"じぶんの HPが はんぶんいかなら" },
     ifStrong: { id:"ifStrong", name:"つよこうげき?",kind:"cond",   short:"つよこう?",
                 desc:"てきの つぎの手が つよこうげきなら" },
+    ifCharge: { id:"ifCharge", name:"ためる?",       kind:"cond",   short:"ためる?",
+                desc:"てきの つぎの手が ためる なら" },
   };
 
   const START_CARDS = ["attack", "heal"];
@@ -224,7 +226,7 @@
     {
       id: 2, name: "ゴブリン", sprite: "goblin", hp: 12, armor: 0,
       pattern: [{ t:"attack", v:3 }, { t:"attack", v:3 }, { t:"strong", v:6 }],
-      reward: ["guard", "ifStrong"],
+      reward: ["guard", "ifStrong", "ifCharge"],
       hint: "3ターンめに つよこうげき6。こうげき力を あげないと 3ターンで たおせない。",
     },
     {
@@ -269,6 +271,7 @@
     if (id === "ifPinch") return P.hp <= AWAKEN_HP;
     if (id === "ifHalf") return P.hp * 2 <= P.maxHp;
     if (id === "ifStrong") return nextEnemyAct(stage, E.idx).t === "strong";
+    if (id === "ifCharge") return nextEnemyAct(stage, E.idx).t === "charge";
     return false;
   }
 
@@ -822,7 +825,7 @@
   const G = {
     screen: "title", frame: 0,
     mapCur: 0, stage: null,
-    deck: [], deckCur: 0, pickCur: 0,
+    deck: [], deckCur: 0, pickCur: 0, planTop: 0,
     howtoPage: 0,
     battle: null, result: null, gained: [],
   };
@@ -836,11 +839,11 @@
     return "？";
   }
   function actShort(a) {
-    if (a.t === "attack") return "" + a.v;
-    if (a.t === "strong") return "!" + a.v;
-    if (a.t === "charge") return "た";
-    if (a.t === "heal") return "回";
-    return "?";
+    if (a.t === "attack") return "こう" + a.v;
+    if (a.t === "strong") return "つよ" + a.v;
+    if (a.t === "charge") return "ためる";
+    if (a.t === "heal") return "かいふく";
+    return "？";
   }
 
   // ---- title
@@ -901,6 +904,15 @@
       "  +2→×2 は 8  ×2→+2 は 6",
       "HP2いかで かくせい。るいじょうは",
       "  かくせい中しか うてない。",
+    ] },
+    { title: "5. けいさんして くむ", lines: [
+      "さくせん画面の みぎに「てきの手」が",
+      "ターンじゅんに ならんでいる。",
+      "なんターンめに なにが くるか",
+      "さきに わかる。",
+      "",
+      "「ためしうち」を えらべば",
+      "けっかを ぜんぶ けいさんできる。",
     ] },
   ];
 
@@ -982,9 +994,9 @@
         const x = 20 + i * 72, y = 156;
         rect(x, y, 62, 42, 0);
         rect(x + 2, y + 2, 58, 38, 3);
-        txt(String(i + 1), x + 5, y + 3, 1);
-        const s = actShort(a);
-        txt(s, x + (62 - txtW(s)) / 2, y + 16, 0);
+        txt(String(i + 1), x + 5, y + 2, 1, 14);
+        const lbl = fitStr(actShort(a), 56, 14);
+        txt(lbl, x + (62 - txtW(lbl, 14)) / 2, y + 20, 0, 14);
       });
     } else {
       txt("？？？", 20, 156);
@@ -994,6 +1006,43 @@
     win(8, 208, 304, 48);
     wrapClip(seen ? st.hint : "まずは たたかって かんさつしよう", 20, 214, 284, 0, 2);
     hintWin(258, [["A", "さくせんへ"], ["B", "もどる"]]);
+  }
+
+  // Rolls the event list up into one row per turn: what you did, and where
+  // both HP bars ended up. This is the whole point of a deterministic battle —
+  // the player can read the fight off a table instead of guessing.
+  function planRows(stage, deck) {
+    const sim = simulate(stage, deck);
+    const rows = [];
+    let cur = null;
+    const ACTS = { attack: "こうげき", heal: "かいふく", guard: "ぼうぎょ",
+                   reckless: "すてみ", idle: "ようす見" };
+    sim.events.forEach((e) => {
+      if (e.t === "turn") {
+        cur = { turn: e.turn, boosts: [], act: "", php: e.s.php, ehp: e.s.ehp, enemy: "" };
+        rows.push(cur);
+        return;
+      }
+      if (!cur) return;
+      if (e.t === "boost") cur.boosts.push(CARDS[e.card].short);
+      else if (ACTS[e.t]) cur.act = ACTS[e.t];
+      else if (e.t === "guard") cur.boosts.push("ぼうぎょ");
+      else if (e.t === "enemyAtk") cur.enemy = (e.kind === "strong" ? "つよ" : "こう") + e.dmg;
+      else if (e.t === "enemyCharge") cur.enemy = "ためる";
+      else if (e.t === "enemyHeal") cur.enemy = "かいふく";
+      cur.php = e.s.php; cur.ehp = e.s.ehp;
+    });
+    return { rows, result: sim.result };
+  }
+
+  // One-line verdict for the deck screen.
+  function planSummary(stage, deck) {
+    const { rows, result } = planRows(stage, deck);
+    const last = rows[rows.length - 1];
+    const n = last ? last.turn : 0;
+    if (result === "win") return { s: n + "ターンめに しょうり  のこりHP" + Math.max(0, last.php), ok: true };
+    if (result === "lose") return { s: n + "ターンめに はいぼく  てきHP" + Math.max(0, last.ehp) + "のこり", ok: false };
+    return { s: "きまらない (" + n + "ターン ひきわけ)", ok: false };
   }
 
   // ---- deck edit
@@ -1017,44 +1066,63 @@
     txtR("VS " + st.name, 302, 11, 3);
 
     // slot rack
-    win(8, 40, 196, 146);
+    win(8, 40, 196, 138);
     const ind = deckIndents(G.deck);
     for (let i = 0; i < MAX_DECK; i++) {
-      const y = 48 + i * 23;
+      const y = 48 + i * 21;
       const filled = i < G.deck.length;
       const x = 26 + (filled && ind[i] ? 12 : 0);
       const w = 168 - (filled && ind[i] ? 12 : 0);
-      rect(x, y, w, 20, 0);
+      rect(x, y, w, 19, 0);
       if (filled) {
-        rect(x + 1, y + 1, w - 2, 18, 3);
+        rect(x + 1, y + 1, w - 2, 17, 3);
         const c = CARDS[G.deck[i]];
-        kindIcon(c.kind, x + 3, y + 5);
+        kindIcon(c.kind, x + 3, y + 4);
         const badge = (c.kind === "boost" || c.kind === "state") ? 14 : 0;
-        txtClip(c.name, x + 16, y + 1, w - 22 - badge, 0);
-        if (badge) txtR("1", x + w - 5, y + 1, 1);
+        txtClip(c.name, x + 16, y, w - 22 - badge, 0, 14);
+        if (badge) txtR("1", x + w - 5, y, 1, 14);
       } else {
-        patFill(PAT_GROUND, x + 1, y + 1, w - 2, 18);
-        rect(x + 3, y + 3, 14, 14, 3);
-        txt(String(i + 1), x + 6, y + 1, 0);
+        patFill(PAT_GROUND, x + 1, y + 1, w - 2, 17);
+        rect(x + 3, y + 2, 14, 15, 3);
+        txt(String(i + 1), x + 6, y + 1, 0, 14);
+        txtClip("あき", x + 22, y + 1, w - 30, 3, 14);
       }
       if (i === G.deckCur) cursor(14, y + 4, 0);
     }
 
-    // the enemy you are building against
-    win(210, 40, 102, 146);
-    arena(216, 46, 90, 48);
-    sprite(st.sprite, 245, 50, 1);
-    txtMidIn(210, 102, 100, fitStr(st.name, 94), 0);
-    txtMidIn(210, 102, 122, "HP " + st.hp, 1);
+    // command row: the dry run is a menu entry, not a hidden key
+    const onCmd = G.deckCur === MAX_DECK;
+    rect(20, 182, 176, 22, 0);
+    rect(22, 184, 172, 18, onCmd ? 0 : 3);
+    txtMidIn(22, 172, 184, "ためしうち", onCmd ? 3 : 0);
+    if (onCmd) cursor(10, 188, 0);
+
+    // the enemy's schedule: which action lands on which turn
     const known = hasSeen(st);
-    txtMidIn(210, 102, 148, "つぎ", 1);
-    txtMidIn(210, 102, 166, known ? fitStr(actShort(st.pattern[0]), 94) : "？", 0);
+    titledWin(210, 40, 102, 164, "てきの手");
+    for (let i = 0; i < 7; i++) {
+      const y = 70 + i * 19;
+      txt(String(i + 1), 218, y, 1, 14);
+      const a = st.pattern[i % st.pattern.length];
+      const strong = a.t === "strong";
+      if (strong) rect(232, y + 1, 74, 16, 0);
+      txtClip(known ? actShort(a) : "？？", 236, y, 70, strong ? 3 : 0, 14);
+    }
 
-    win(8, 192, 304, 44);
+    win(8, 208, 304, 46);
     const cur = G.deck[G.deckCur];
-    txtClip(cur ? CARDS[cur].desc : "あきスロット。Aで カードを いれる", 20, 204, 284, 0);
+    txtClip(onCmd ? "この さくせんの けっかを けいさんする"
+                  : cur ? CARDS[cur].desc : "あきスロット。Aで カードを いれる",
+            20, 212, 284, 0, 14);
+    if (known && G.deck.length) {
+      const p = planSummary(st, G.deck);
+      txt("よそく", 20, 232, 1, 14);
+      txtClip(p.s, 68, 232, 236, p.ok ? 0 : 1, 14);
+    } else {
+      txtClip("1どでも たたかうと てきの手が わかる", 20, 232, 284, 1, 14);
+    }
 
-    hintWin(240, [["A", "えらぶ"], ["STA", "たたかう"], ["SEL", "けす"]]);
+    hintWin(258, [["A", "きめる"], ["STA", "たたかう"], ["SEL", "けす"]]);
   }
 
   // helper: center text inside a box
@@ -1092,11 +1160,53 @@
     txt(v, x + w - txtW(v, size), y, valueTone, size);
   }
 
+  // ---- dry run: the whole fight as a table, so a deck can be reasoned about
+  // instead of guessed at. The battle is deterministic, so this is not a
+  // preview — it is the fight itself, written down.
+  function drawPlan() {
+    const st = G.stage;
+    field();
+    titledWin(8, 8, 304, 26, "ためしうち");
+    txtR("VS " + st.name, 302, 11, 3);
+
+    const { rows, result } = planRows(st, G.deck);
+    const total = rows.length;
+    const shown = Math.min(7, total - G.planTop);
+    win(8, 40, 304, 176);
+
+    txt("T", 18, 46, 1, 14);
+    txt("じぶんの て", 40, 46, 1, 14);
+    txt("HP", 196, 46, 1, 14);
+    txt("てき", 226, 46, 1, 14);
+    txtR("HP", 302, 46, 1, 14);
+    rect(14, 64, 292, 1, 1);
+
+    for (let i = 0; i < shown; i++) {
+      const r = rows[G.planTop + i];
+      const y = 70 + i * 20;
+      txt(String(r.turn), 18, y, 0, 14);
+      const mine = (r.boosts.length ? r.boosts.join("+") + "→" : "") + (r.act || "-");
+      txtClip(mine, 40, y, 150, 0, 14);
+      txtClip(String(Math.max(0, r.php)), 196, y, 26, 0, 14);
+      if (r.enemy) txtClip(r.enemy, 226, y, 50, 1, 14);
+      txtR(String(Math.max(0, r.ehp)), 302, y, 0, 14);
+    }
+
+    if (G.planTop + shown < total) txt("▼", 296, 196, 1, 14);
+    if (G.planTop > 0) txt("▲", 296, 70, 1, 14);
+
+    const label = result === "win" ? "しょうり！" : result === "lose" ? "はいぼく…" : "ひきわけ";
+    rect(8, 222, 304, 26, result === "win" ? 1 : 0);
+    txtMid(label + "  " + total + "ターン", 226, 3);
+
+    hintWin(254, [["B", "さくせんへ"], ["STA", "たたかう"]]);
+  }
+
   // ---- card picker
   // Grouped by kind so the four card types are learnable at a glance.
   const ALL_CARDS = ["attack", "heal", "reckless", "guard",
                      "plus2", "times2", "power",
-                     "ifHalf", "ifStrong", "ifPinch"];
+                     "ifHalf", "ifStrong", "ifCharge", "ifPinch"];
 
   function drawPick() {
     const owned = ownedCards();
@@ -1324,6 +1434,7 @@
       case "map": drawMap(); break;
       case "info": drawInfo(); break;
       case "deck": drawDeck(); break;
+      case "plan": drawPlan(); break;
       case "pick": drawPick(); break;
       case "battle": drawBattle(); break;
       case "result": drawResult(); break;
@@ -1378,15 +1489,21 @@
     }
 
     if (s === "deck") {
-      if (btn === "UP") { G.deckCur = (G.deckCur + MAX_DECK - 1) % MAX_DECK; Snd.move(); }
-      else if (btn === "DOWN") { G.deckCur = (G.deckCur + 1) % MAX_DECK; Snd.move(); }
+      const SLOTS = MAX_DECK + 1;  // last row is the ためしうち command
+      if (btn === "UP") { G.deckCur = (G.deckCur + SLOTS - 1) % SLOTS; Snd.move(); }
+      else if (btn === "DOWN") { G.deckCur = (G.deckCur + 1) % SLOTS; Snd.move(); }
       else if (btn === "LEFT" || btn === "RIGHT") {
         const j = btn === "LEFT" ? G.deckCur - 1 : G.deckCur + 1;
         if (G.deckCur < G.deck.length && j >= 0 && j < G.deck.length) {
           const t = G.deck[G.deckCur]; G.deck[G.deckCur] = G.deck[j]; G.deck[j] = t;
           G.deckCur = j; Snd.move(); saveDeck();
         } else Snd.back();
-      } else if (btn === "A") { Snd.ok(); G.pickCur = 0; setScreen("pick"); }
+      } else if (btn === "A") {
+        if (G.deckCur === MAX_DECK) {
+          if (!G.deck.length) { Snd.back(); return; }
+          Snd.ok(); G.planTop = 0; setScreen("plan");
+        } else { Snd.ok(); G.pickCur = 0; setScreen("pick"); }
+      }
       else if (btn === "SELECT") {
         if (G.deckCur < G.deck.length && G.deck.length > 1) {
           G.deck.splice(G.deckCur, 1);
@@ -1397,6 +1514,15 @@
         if (!G.deck.length) { Snd.back(); return; }
         saveDeck(); Snd.ok(); startBattle();
       } else if (btn === "B") { saveDeck(); Snd.back(); setScreen("map"); }
+      return;
+    }
+
+    if (s === "plan") {
+      const total = planRows(G.stage, G.deck).rows.length;
+      if (btn === "DOWN") { if (G.planTop < total - 7) { G.planTop++; Snd.move(); } else Snd.back(); }
+      else if (btn === "UP") { if (G.planTop > 0) { G.planTop--; Snd.move(); } else Snd.back(); }
+      else if (btn === "START") { Snd.ok(); startBattle(); }
+      else if (btn === "B" || btn === "A" || btn === "LEFT") { Snd.back(); setScreen("deck"); }
       return;
     }
 
