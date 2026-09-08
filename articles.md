@@ -1,5 +1,24 @@
 ## 2026年9月
 
+### MiniMax H3 プロンプト共有 - アニメ風ファッションフィルム×ダンスの実例
+[X (@aimikoda)](https://x.com/aimikoda?s=11)
+
+X上でMiniMax H3向けのプロンプトを共有しているaimikoda氏の投稿より。アニメ調のダンスファッションフィルムを15秒で生成するためのプロンプトで、アニメのミュージックビデオやオープニング・エンディング映像などにキャラクターを差し替えて流用できる、実践的なテンプレートとして紹介されている。以下、投稿されたプロンプト原文（英語）をそのまま掲載する。
+
+15-second experimental anime fashion film. Use @[character reference] for the character's exact identity, outfit and rendering style. A pristine, uniform lemon-yellow cyclorama with a seamless matte floor. Flat, clean yellow throughout, free of grain, gradients and set dressing. 16:9. No text or logos.
+
+The character performs one fast, unconventional dance phrase: ankles weave while the torso stays suspended, a wrist flick ripples through both elbows into a chest pop, knees fold into a low corkscrew pivot, then a heel swivel unwinds the body into an off-balance editorial pose. Continue through asymmetric shoulder rolls, angular arm threading around the face and a sideways glide with the head counter-rotating toward the lens. Every sharp lock immediately releases into another surprising movement. Convincing weight, precise foot contact and expressive follow-through.
+
+Electric cyan and hot pink dominate the motion effects. Bold, opaque silhouette afterimages peel away from opposite sides of the body, replay the previous gesture a fraction late and slam back into alignment on each pose. Arm sweeps stretch them into broad curved ribbons; crossing steps weave pink and cyan trails around the ankles; rapid turns fan out overlapping screen-print impressions. At the strongest accents, oversized cyan and pink cutouts of the current pose slide across the foreground, briefly masking the lens. Keep the real character crisp and recognizable, with clean yellow visible between effect bursts.
+
+The camera dances in counterpoint: skim backward at ankle height through advancing footwork, whip upward around an outstretched wrist into an extreme face close-up, then use the passing forearm to cut into a rotating overhead view of the low pivot. Dive to a tilted low-angle full-body composition as the character rises. Orbit opposite the sideways glide, exaggerating hands and feet near the wide lens. Accelerate between compositions and brake hard on pose locks.
+
+Finish with a sudden forward lean toward the lens while enormous pink and cyan echoes continue leaning farther, sweeping past both sides of the camera. Snap wide: the character lands a final asymmetric pose as the colored echoes collapse precisely into the silhouette. Hard cut to black.
+
+170 BPM broken beat, syncopated accents, fluid animation and razor-fast camera transitions. No slow motion or prolonged holds.
+
+上記のように、被写体の指定（`@[character reference]`部分）・背景・ダンスの振り付け・モーションエフェクトの配色・カメラワーク・BPMやカット割りのテンポ感まで、要素ごとに段落を分けて細かく指定しているのが特徴。キャラクター参照部分だけ差し替えれば、同じ演出パターンを別のキャラクターにも流用できる構成になっている。
+
 ### MiniMax-H3-Semantic-Bridge - 他モデルの意味理解をMiniMax-H3に「橋渡し」するアダプター
 [Hugging Face - speach1sdef178/MiniMax-H3-Semantic-Bridge](https://huggingface.co/speach1sdef178/MiniMax-H3-Semantic-Bridge)
 
