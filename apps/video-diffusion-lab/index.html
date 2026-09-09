@@ -285,29 +285,61 @@
     </p>
     <p>
       動画モデルはこれを、<strong>予測するときに隣のフレームも一緒に見る</strong>ことで解決しています
-      （実装としては時間方向のAttentionや3D畳み込み）。下の2つは、<strong>その1点だけを変えて、
-      同じシード・同じ設定で計算したもの</strong>です。
+      （実装としては時間方向のAttentionや3D畳み込み）。これは<strong>latent上での拡散の最中</strong>に起きることで、
+      できあがった映像を後からなめらかにしているわけではありません。
+      下の2つは、<strong>その1点だけを変えて、同じシード・同じ設定で計算したもの</strong>です。
     </p>
+
+    <div class="note">
+      <span class="t">📍 まず、どの段階の話なのか</span>
+      ちらつきは<b>latentの段階で生まれます</b>。拡散の最中に、各フレームが別々の答えへ進んでしまう。
+      VAEデコードはそれを<b>直しも作りもしません</b>。ただ通すだけです。<br>
+      なので下では、<b>デコード前（latent）とデコード後（ピクセル）の両方</b>を並べています。
+      ちらつきがすでにlatentの側にあることを確かめてください。
+    </div>
 
     <div class="canvas-row">
       <div class="cv-card video-card">
         <div class="cv-title">❌ 隣のフレームを見ない</div>
+        <div class="stack-label">デコード前（latent 24×24）</div>
+        <canvas id="flick-off-lat" width="24" height="24" class="pixelated"></canvas>
+        <div class="stack-arrow">↓ VAEデコード</div>
+        <div class="stack-label">デコード後（ピクセル 128px）</div>
         <canvas id="flick-off" width="128" height="128"></canvas>
-        <div class="cv-sub">画像モデルを1枚ずつ回した状態。<br>細部がフレームごとに踊ります。</div>
+        <div class="cv-sub">画像モデルを1枚ずつ回した状態。<br>latentの時点ですでに暴れています。</div>
       </div>
       <div class="cv-card video-card">
         <div class="cv-title">⭕ 隣のフレームも見る</div>
+        <div class="stack-label">デコード前（latent 24×24）</div>
+        <canvas id="flick-on-lat" width="24" height="24" class="pixelated"></canvas>
+        <div class="stack-arrow">↓ VAEデコード</div>
+        <div class="stack-label">デコード後（ピクセル 128px）</div>
         <canvas id="flick-on" width="128" height="128"></canvas>
-        <div class="cv-sub">動画モデル。同じノイズから始めても<br>つながった動きになります。</div>
+        <div class="cv-sub">動画モデル。同じノイズから始めても<br>latentの段階で揃っています。</div>
       </div>
     </div>
 
     <h3>目だけでなく、数字でも見てみる</h3>
     <p>
-      隣り合うフレームがどれだけ違うかを測ってみます。被写体が動いている以上ゼロにはなりませんが、
-      <strong>お手本の値が「本来あるべき変化量」</strong>です。それより大きい分が、ちらつきです。
+      画面全体の平均の色が、フレームごとにどれだけ揺れるかを測ります。被写体が動くだけなら
+      画面全体の平均はほとんど変わらないので、ここが揺れていれば見た目そのものが暴れているということです。
+      <strong>お手本の値が「本来あるべき変化量」</strong>で、それより大きい分がちらつきです。
     </p>
-    <div class="metric" id="flick-metric"></div>
+    <div class="tbl-wrap"><table class="tbl" id="flick-metric">
+      <tr><th></th><th>デコード前<br>（latentフレーム間）</th><th>デコード後<br>（出力フレーム間）</th></tr>
+    </table></div>
+    <p class="caption">
+      latentは6フレーム、出力は24フレームなので、latent側は隣り合うフレームの時間間隔が4倍あります。
+      そのぶん数字は大きく出るので、<b>列をまたいで比べるのではなく、各列のなかで お手本 → ⭕ → ❌ を比べて</b>ください。
+      どちらの列でも ❌ がお手本から大きく外れていれば、ちらつきはデコード前から存在していることになります。
+    </p>
+
+    <div class="note">
+      <span class="t">🛠️ だから「あとから直す」では解決しない</span>
+      ちらつきがlatentの段階で決まってしまうということは、<b>ピクセルになった時点ではもう手遅れ</b>だということです。
+      出力にフレーム補間やデノイズをかけても、揺れをぼかせるだけで元には戻りません。
+      対策が「拡散の最中にフレームを見せ合う」という方向に集中しているのは、そこでしか直せないからです。
+    </div>
 
     <div class="note">
       <span class="t">🧩 だから動画AIは重い</span>

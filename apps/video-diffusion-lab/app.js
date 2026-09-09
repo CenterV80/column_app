@@ -879,6 +879,7 @@ const el = {
   difX: $("dif-x"), difEps: $("dif-eps"), difX0: $("dif-x0"),
   difSlider: $("dif-slider"), difPlay: $("dif-play"),
   difFirst: $("dif-first"), difLast: $("dif-last"), difReadout: $("dif-readout"),
+  flickOffLat: $("flick-off-lat"), flickOnLat: $("flick-on-lat"),
   flickOff: $("flick-off"), flickOn: $("flick-on"), flickMetric: $("flick-metric"),
   vaeLat: $("vae-lat"), vaeOut: $("vae-out"),
   labCfg: $("lab-cfg"), labSteps: $("lab-steps"), labSeed: $("lab-seed"),
@@ -1101,8 +1102,35 @@ function setStepPlaying(on) {
 
 /* ------------------------------------------------- ステージ5：ちらつき */
 
+const flickOffLatView = videoView(el.flickOffLat);
+const flickOnLatView = videoView(el.flickOnLat);
 const flickOffView = videoView(el.flickOff);
 const flickOnView = videoView(el.flickOn);
+
+/* デコードする前の、latentの段階でのちらつき量。
+   ピクセル側と同じ「画面全体の平均の色がどれだけ揺れるか」を、
+   latentの6フレームに対してそのまま測る。
+   ちらつきがデコードで生まれたのではないことを確かめるための数字。 */
+function latentFlickerScore(lat) {
+  const means = [];
+  for (let f = 0; f < FLAT; f++) {
+    const off = f * FRAME_N;
+    let c0 = 0, c1 = 0, c2 = 0;
+    for (let i = 0; i < PLANE; i++) {
+      c0 += lat[off + i];
+      c1 += lat[off + PLANE + i];
+      c2 += lat[off + PLANE * 2 + i];
+    }
+    const rgb = channelsToRGB(c0 / PLANE, c1 / PLANE, c2 / PLANE);
+    means.push(rgb.map((v) => clamp(v, 0, 1) * 255));
+  }
+  let total = 0;
+  for (let f = 0; f < FLAT; f++) {
+    const a = means[f], b = means[(f + 1) % FLAT];
+    total += (Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2])) / 3;
+  }
+  return total / FLAT;
+}
 
 function renderStage5() {
   const common = {
@@ -1112,21 +1140,35 @@ function renderStage5() {
   const off = sample(Object.assign({}, common, { coupled: false }));
   const on = state.frames;   // 通常の生成が「隣を見る」側
 
+  const offLat = off[off.length - 1].x;
+  const onLat = on[on.length - 1].x;
+
+  // デコード前（latent）と デコード後（ピクセル）を両方見せる
+  flickOffLatView.frames = latentVideoRaw(offLat);
+  flickOnLatView.frames = latentVideoRaw(onLat);
+
   const w = el.flickOff.width;
-  const offVid = decodeVideo(off[off.length - 1].x, w);
-  const onVid = decodeVideo(on[on.length - 1].x, w);
+  const offVid = decodeVideo(offLat, w);
+  const onVid = decodeVideo(onLat, w);
   const refVid = decodeVideo(state.tCond, w);
   flickOffView.frames = offVid;
   flickOnView.frames = onVid;
 
-  const dRef = flickerScore(refVid), dOn = flickerScore(onVid), dOff = flickerScore(offVid);
+  const rows = [
+    { cls: "ref", label: "お手本（本来あるべき変化）",
+      lat: latentFlickerScore(state.tCond), px: flickerScore(refVid) },
+    { cls: "good", label: "⭕ 隣のフレームを見る",
+      lat: latentFlickerScore(onLat), px: flickerScore(onVid) },
+    { cls: "bad", label: "❌ 隣のフレームを見ない",
+      lat: latentFlickerScore(offLat), px: flickerScore(offVid) },
+  ];
   el.flickMetric.innerHTML =
-    '<div class="ref"><div class="k">お手本（本来あるべき変化）</div><div class="v">' +
-      dRef.toFixed(2) + '</div></div>' +
-    '<div class="good"><div class="k">⭕ 隣のフレームを見る</div><div class="v">' +
-      dOn.toFixed(2) + '</div></div>' +
-    '<div class="bad"><div class="k">❌ 隣のフレームを見ない</div><div class="v">' +
-      dOff.toFixed(2) + '</div></div>';
+    '<tr><th></th><th>デコード前<br>（latentフレーム間）</th>' +
+    '<th>デコード後<br>（出力フレーム間）</th></tr>' +
+    rows.map((r) =>
+      '<tr><td>' + r.label + '</td>' +
+      '<td class="num ' + r.cls + '">' + r.lat.toFixed(2) + '</td>' +
+      '<td class="num ' + r.cls + '">' + r.px.toFixed(2) + '</td></tr>').join("");
 }
 
 /* ------------------------------------------------- ステージ6：デコード */
