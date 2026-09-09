@@ -276,4 +276,11 @@ const APPS = [
     icon: "⚔️",
     category: "mini-apps",
   },
+  {
+    name: "画像生成AI ラボ",
+    description: "「りんごを描いて」というプロンプトが、latentの砂嵐から1枚の絵になるまでの工程を、実際に動かしながら確かめられる実験室。シード・ステップ数・CFGを変えて結果を見比べられます。",
+    path: "apps/image-diffusion-lab/",
+    icon: "🍎",
+    category: "ai-basics",
+  },
 ];
