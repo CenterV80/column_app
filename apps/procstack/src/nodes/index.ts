@@ -4,8 +4,9 @@ import { grid } from "./grid";
 import { transform } from "./transform";
 import { attributeNoise } from "./attributeNoise";
 import { polyextrude } from "./polyextrude";
+import { scatter } from "./scatter";
 
-export const NODES: Record<string, NodeDef> = { box, grid, transform, attributeNoise, polyextrude };
+export const NODES: Record<string, NodeDef> = { box, grid, transform, attributeNoise, polyextrude, scatter };
 
 export function defaultParams(type: string): ParamValues {
   const out: ParamValues = {};
