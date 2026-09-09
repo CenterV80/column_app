@@ -130,13 +130,70 @@
       <tr><td>比</td><td colspan="2" id="ratio">-</td></tr>
     </table></div>
 
+    <h3>本物のモデルは、どれくらい縮めているのか</h3>
+    <p>
+      この「何分の1にするか」は、動画AIの性格をほぼ決めてしまう設計値です。
+      強く縮めるほど速く軽くなり、長い尺も狙えますが、細部は戻ってきません。
+      主要なモデルがどこを選んでいるかを並べてみます。
+    </p>
+
+    <div class="tbl-wrap"><table class="tbl">
+      <tr>
+        <th>モデル</th><th>空間</th><th>時間</th>
+        <th>latentの<br>チャンネル</th><th>情報量</th>
+      </tr>
+      <tr>
+        <td>このデモ</td><td>1/8</td><td>1/4</td><td>4</td><td>1/192</td>
+      </tr>
+      <tr>
+        <td>一般的な動画VAE<br><span class="dim">CogVideoX・HunyuanVideo など</span></td>
+        <td>1/8</td><td>1/4 〜 1/8</td><td>16</td><td>1/48 〜 1/96</td>
+      </tr>
+      <tr>
+        <td>MiniMax-H3<br><span class="dim">H3-VisualVAE</span></td>
+        <td>1/16<br><span class="dim">→ パッチ化で実効 1/32</span></td>
+        <td>1/4</td><td>24</td><td>1/128</td>
+      </tr>
+      <tr>
+        <td>LTX-Video</td>
+        <td>1/32<br><span class="dim">パッチ化をVAE側へ移して実現</span></td>
+        <td>1/8</td><td>128</td><td>1/192</td>
+      </tr>
+    </table></div>
+
     <div class="note">
-      <span class="t">📏 本物の数字</span>
-      実際の動画VAEは、空間を1/8・時間を1/4〜1/8に縮めつつチャンネルを16へ増やす構成が主流で、
-      情報量はおよそ<b>1/48〜1/96</b>になります。LTX-Videoはさらに攻めていて、
-      <b>空間1/32・時間1/8・128チャンネル</b>で約<b>1/192</b>。圧縮を強くするほど速く軽くなりますが、
-      細部は落ちやすくなります。<br>
-      （このデモは見やすさのため4チャンネルのままなので、圧縮率は特定のモデルと一致しません。）
+      <span class="t">🔍 同じ「実効1/32」に、別の道から着いている</span>
+      おもしろいのは、MiniMax-H3とLTX-Videoが<b>どちらも実効1/32</b>に到達していることです。ただし行き方が違います。
+      MiniMax-H3はVAEで1/16まで縮め、そのあと<code>1×2×2</code>のパッチ化でさらに半分にして1/32。
+      LTX-Videoは、ふつうTransformerの入口でやるパッチ化を<b>VAE側へ移して</b>、VAEの出力がそのまま1/32になっています。<br>
+      縮めたぶんはチャンネル数で買い戻します。LTXが128チャンネルという極端な値を持っているのは、
+      空間・時間を攻めた代償を埋めるためです。
+    </div>
+
+    <h3>で、latentは実際に何マスになるのか</h3>
+    <p>
+      「1/32」は<strong>率</strong>であって、latentの<strong>大きさ</strong>ではありません。
+      同じ率でも、作る動画が大きければlatentも大きくなります。768pxの動画で並べるとこうなります。
+    </p>
+
+    <div class="tbl-wrap"><table class="tbl">
+      <tr><th>空間の圧縮率</th><th>768px の動画なら</th><th>192px の動画なら</th></tr>
+      <tr><td>1/8（このデモ・主流のVAE）</td><td>96 × 96</td><td><b>24 × 24</b>（このデモ）</td></tr>
+      <tr><td>1/16（MiniMax-H3のVAE単体）</td><td>48 × 48</td><td>12 × 12</td></tr>
+      <tr><td>1/32（実効値。H3・LTX）</td><td><b>24 × 24</b></td><td>6 × 6</td></tr>
+    </table></div>
+    <p class="caption">
+      このデモのlatentが24×24なのは、192pxを1/8に縮めたから。LTXやMiniMax-H3で24×24になるのは、
+      768pxを1/32に縮めたときです。同じマス目の数でも、後ろにある映像の大きさがまるで違います。
+    </p>
+
+    <div class="note warn">
+      <span class="t">⚠️ 紛らわしい一致について</span>
+      上の表で、このデモとLTX-Videoがどちらも<b>1/192</b>になっていますが、<b>中身はまったく別物</b>です。
+      デモは「空間1/8 × 時間1/4」と控えめに縮めるかわりにチャンネルを4しか持たない。
+      LTXは「空間1/32 × 時間1/8」と大胆に縮めるかわりにチャンネルを128も持つ。
+      たまたま同じ数字に着地しているだけで、デモがLTXと同じ構成というわけではありません。
+      このデモが4チャンネルなのは、ステージ3でチャンネルの中身を並べて見せるためです。
     </div>
   </section>
 
@@ -375,7 +432,8 @@
       <tr><td>フレーム間の結合</td><td>時間方向の単純な平均（ぼかし）</td><td>時間方向のAttention。どのフレームのどこを見るかを学習で決める</td></tr>
       <tr><td>描けるもの・動き</td><td>用意した数種類の組み合わせだけ</td><td>学習データにあった、ほぼ何でも</td></tr>
       <tr><td>解像度・尺</td><td>192px・24フレーム・2秒</td><td>数百〜1000px級・数秒〜。latentの形は同じ考え方</td></tr>
-      <tr><td>チャンネル数</td><td>4（画像版と揃えて見やすさ優先）</td><td>16が主流。LTX-Videoは128</td></tr>
+      <tr><td>チャンネル数</td><td>4（ステージ3で中身を並べて見せるため）</td><td>16が主流。MiniMax-H3は24、LTX-Videoは128</td></tr>
+      <tr><td>空間の圧縮率</td><td>1/8</td><td>1/8が主流。MiniMax-H3・LTX-Videoは実効1/32</td></tr>
     </table></div>
     <p>
       それでも、<strong>ComfyUIで動画ワークフローを組むときに触るつまみは、ほぼこのページに出てきたもの</strong>です。
