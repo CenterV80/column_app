@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>動画生成AI ラボ | column_app</title>
+<meta name="description" content="画像生成AIに「時間」を足すと何が変わるのか。時間つきlatent・フレーム間の結合・ちらつきの正体を、実際に動かしながら理解できるインタラクティブアプリです。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+  <a class="back-link" href="../../categories/ltx/index.html">← AI動画に戻る</a>
+
+  <header class="hero">
+    <div class="hero-icon">🎬✨</div>
+    <h1>動画生成AI ラボ<small>画像生成AIに「時間」を足すと、何が変わるのか</small></h1>
+    <p class="hero-lead">
+      動画生成AIは、画像生成AIの拡張です。ノイズから削り出すという骨組みはそのままで、
+      扱う板が<b>「1枚」から「時間方向に積み重なった何枚か」</b>に変わります。
+      ——それだけの違いなのに、<b>ちらつき</b>という動画特有の難問が生まれ、VRAMは一気に足りなくなります。
+      このページは、その理由を実際に動かして確かめる実験室です。
+    </p>
+    <div class="hero-badges">
+      <span class="badge">画像版の続き</span>
+      <span class="badge">全部ブラウザ内で計算</span>
+      <span class="badge">通信・APIキー不要</span>
+    </div>
+    <p class="hero-lead" style="margin-top:14px;">
+      プロンプトからノイズを削って絵になるまでの基本は
+      <a href="../image-diffusion-lab/">画像生成AI ラボ</a> で扱っています。
+      テキストエンコーダーやCFGの基礎はそちらが詳しいので、ここでは<b>動画で初めて出てくる話</b>に絞ります。
+    </p>
+  </header>
+
+  <!-- ===================== 操作パネル ===================== -->
+  <section class="console">
+    <div class="console-label">プロンプト（何が、どう動く？）</div>
+    <div class="prompt-row">
+      <input id="prompt" type="text" value="りんごが跳ねる" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="chips" id="presets"></div>
+
+    <div class="knobs">
+      <div class="knob">
+        <div class="knob-head"><label for="seed">シード</label><span class="val" id="seed-val">42</span></div>
+        <input id="seed" type="range" min="1" max="200" value="42" step="1">
+        <div class="knob-note">最初のノイズの柄。フレームごとに別々のノイズが置かれます。</div>
+      </div>
+      <div class="knob">
+        <div class="knob-head"><label for="steps">ステップ数</label><span class="val" id="steps-val">20</span></div>
+        <input id="steps" type="range" min="2" max="40" value="20" step="1">
+        <div class="knob-note">何回に分けてノイズを削るか。動画では1ステップの計算量がフレーム数ぶん増えます。</div>
+      </div>
+      <div class="knob">
+        <div class="knob-head"><label for="cfg">CFGスケール</label><span class="val" id="cfg-val">7.0</span></div>
+        <input id="cfg" type="range" min="0" max="20" value="7" step="0.5">
+        <div class="knob-note">プロンプトにどれだけ忠実にするか。上げすぎると色が焼き付きます。</div>
+      </div>
+    </div>
+
+    <div class="run-row">
+      <button class="btn" id="run">▶ この設定で生成する</button>
+      <button class="btn ghost" id="reroll">🎲 シードをランダムに</button>
+      <button class="btn ghost" id="tour-stop" hidden>⏹ 案内を止める</button>
+      <span class="busy" id="busy" hidden>計算中…</span>
+    </div>
+    <div class="parse-note" id="parse-note"></div>
+  </section>
+
+  <ol class="rail" id="rail">
+    <li data-target="stage-1"><span class="n">1</span>何が動く</li>
+    <li data-target="stage-2"><span class="n">2</span>時間つきlatent</li>
+    <li data-target="stage-3"><span class="n">3</span>ノイズ動画</li>
+    <li data-target="stage-4"><span class="n">4</span>削り出し</li>
+    <li data-target="stage-5"><span class="n">5</span>ちらつき</li>
+    <li data-target="stage-6"><span class="n">6</span>動画に戻す</li>
+  </ol>
+
+  <!-- ===================== ステージ1 ===================== -->
+  <section class="stage" id="stage-1">
+    <h2><span class="step-badge">1</span>「何が」だけでなく「どう動くか」</h2>
+    <p class="sub">動画のプロンプトには、被写体に加えて動きが要る</p>
+
+    <p>
+      画像生成なら「りんご」だけで足りますが、動画では<strong>時間をどう使うか</strong>まで決めないといけません。
+      跳ねるのか、横切るのか、カメラが寄るのか。ここが決まらないと、AIは「とりあえず止まっている絵を24枚」
+      作ってしまいます。実際の動画AIのプロンプトに動きやカメラワークの記述が推奨されるのは、このためです。
+    </p>
+
+    <div class="canvas-row" id="parse-cards"></div>
+
+    <div class="note">
+      <span class="t">💡 ここが大事</span>
+      動画モデルは「動き」も学習データから覚えています。<b>ボールは落ちて跳ね返る、煙は上に立ちのぼる</b>——
+      こうした時間のパターンを持っているからこそ、それらしい動画になります。
+      逆に学習データにない動きは苦手で、指を折る・液体を注ぐといった動作が崩れやすいのはそのためです。
+    </div>
+  </section>
+
+  <!-- ===================== ステージ2 ===================== -->
+  <section class="stage" id="stage-2">
+    <h2><span class="step-badge">2</span>latentに「時間」の軸が増える</h2>
+    <p class="sub">画像は1枚の板。動画は、板が時間方向にも積み重なる</p>
+
+    <p>
+      画像生成のlatentは<code>縦 × 横 × チャンネル</code>の3次元でした。動画では<strong>フレームの軸</strong>が増えて4次元になります。
+      しかもここが動画AIの肝で、<strong>時間方向も圧縮されます</strong>。このデモでは
+      <strong>4フレームぶんが、latentの1フレームに畳まれます</strong>。
+    </p>
+
+    <div class="canvas-row">
+      <div class="cv-card video-card">
+        <div class="cv-title">latentの中身（そのまま色として表示）</div>
+        <canvas id="lat-video" width="24" height="24" class="pixelated"></canvas>
+        <div class="cv-sub">latentは6フレームしかないので、間は補間して再生しています。</div>
+      </div>
+      <div class="cv-card">
+        <div class="cv-title">latentの6フレーム</div>
+        <div class="frame-strip" id="lat-frames"></div>
+        <div class="cv-sub">これが動画の全部。24フレームの見た目は、この6枚から作られます。</div>
+      </div>
+    </div>
+
+    <h3>どれくらい圧縮されている？</h3>
+    <div class="tbl-wrap"><table class="tbl">
+      <tr><th></th><th>見えている動画</th><th>latent（AIが作業する場所）</th></tr>
+      <tr><td>大きさ</td><td id="px-size">-</td><td id="lat-size">-</td></tr>
+      <tr><td>数字の個数</td><td id="px-count">-</td><td id="lat-count">-</td></tr>
+      <tr><td>比</td><td colspan="2" id="ratio">-</td></tr>
+    </table></div>
+
+    <div class="note">
+      <span class="t">📏 本物の数字</span>
+      実際の動画VAEは、空間を1/8・時間を1/4〜1/8に縮めつつチャンネルを16へ増やす構成が主流で、
+      情報量はおよそ<b>1/48〜1/96</b>になります。LTX-Videoはさらに攻めていて、
+      <b>空間1/32・時間1/8・128チャンネル</b>で約<b>1/192</b>。圧縮を強くするほど速く軽くなりますが、
+      細部は落ちやすくなります。<br>
+      （このデモは見やすさのため4チャンネルのままなので、圧縮率は特定のモデルと一致しません。）
+    </div>
+  </section>
+
+  <!-- ===================== ステージ3 ===================== -->
+  <section class="stage" id="stage-3">
+    <h2><span class="step-badge">3</span>ノイズ「動画」から始まる</h2>
+    <p class="sub">しかも、フレームごとに別々のノイズが置かれる</p>
+
+    <p>
+      画像のときと同じで、スタートは砂嵐です。違うのは<strong>フレームの枚数だけ砂嵐がある</strong>こと。
+      そして重要なのは、<strong>その砂嵐はフレームごとにまったく無関係</strong>だという点です。
+      1枚目の砂嵐と2枚目の砂嵐に、つながりはありません。
+    </p>
+
+    <div class="canvas-row">
+      <div class="cv-card video-card">
+        <div class="cv-title">最初のlatent（再生）</div>
+        <canvas id="noise-video" width="24" height="24" class="pixelated"></canvas>
+        <div class="cv-sub">フレームごとに柄が変わるので、激しくちらついて見えます。</div>
+      </div>
+      <div class="cv-card">
+        <div class="cv-title">4つのチャンネル</div>
+        <div class="chan-grid" id="noise-chans"></div>
+        <div class="cv-sub">latentは意味の違う板が4枚重なったもの。これが6フレームぶんあります。</div>
+      </div>
+    </div>
+
+    <div class="note warn">
+      <span class="t">⚠️ ここが動画の難しさの出発点</span>
+      バラバラのノイズから出発して、<b>最後にはつながった動画にしないといけない</b>。
+      何もしなければ、各フレームは勝手に別々の答えへ進んでしまいます。
+      これがステージ5で見る「ちらつき」の正体です。
+    </div>
+  </section>
+
+  <!-- ===================== ステージ4 ===================== -->
+  <section class="stage" id="stage-4">
+    <h2><span class="step-badge">4</span>ノイズを削る（やることは画像と同じ）</h2>
+    <p class="sub">式は画像版とまったく同じ。ただし対象がフレーム数ぶんある</p>
+
+    <p>
+      ここは画像生成とまったく同じです。「ノイズはこれだと思う」と予測して、少し引く。それを繰り返す。
+      スケジュールもCFGの式も変わりません。<strong>変わるのは、それを全フレームまとめて行うこと</strong>だけです。
+      下の3枚はすべて動画として再生されています。スライダーでステップを動かしてみてください。
+    </p>
+
+    <div class="canvas-row">
+      <div class="cv-card video-card">
+        <div class="cv-title">① いまのlatent</div>
+        <canvas id="dif-x" width="24" height="24" class="pixelated"></canvas>
+        <div class="cv-sub">まだノイズが乗っている作業中の板</div>
+      </div>
+      <div class="cv-card video-card">
+        <div class="cv-title">② 予測されたノイズ</div>
+        <canvas id="dif-eps" width="24" height="24" class="pixelated"></canvas>
+        <div class="cv-sub">これを引く</div>
+      </div>
+      <div class="cv-card video-card">
+        <div class="cv-title">③ 完成予想の動画</div>
+        <canvas id="dif-x0" width="96" height="96"></canvas>
+        <div class="cv-sub">いまノイズを全部引いたらこうなる、という見込み</div>
+      </div>
+    </div>
+
+    <div class="transport">
+      <button class="btn small" id="dif-play">▶ ステップ再生</button>
+      <input id="dif-slider" type="range" min="0" max="20" value="0" step="1">
+      <button class="btn small ghost" id="dif-first">⏮</button>
+      <button class="btn small ghost" id="dif-last">⏭</button>
+    </div>
+    <div class="readout" id="dif-readout"></div>
+
+    <div class="note">
+      <span class="t">👀 注目ポイント</span>
+      序盤は<b>大きな色の塊がぼんやり動いているだけ</b>で、何が起きているのか分かりません。
+      ステップが進むと、まず<b>動きの大枠</b>が決まり、そのあとで形と質感が詰まっていきます。
+      画像のときと同じ「大きいものが先、細部は後」が、時間方向にも起きています。
+    </div>
+  </section>
+
+  <!-- ===================== ステージ5 ===================== -->
+  <section class="stage" id="stage-5">
+    <h2><span class="step-badge">5</span>ちらつきの正体</h2>
+    <p class="sub">動画モデルが画像モデルに足したもの、そのものずばり</p>
+
+    <p>
+      いよいよ本題です。<strong>もし画像生成AIを1フレームずつ24回動かしたら、動画になるでしょうか。</strong>
+      答えは「なりません」。フレームごとのノイズが無関係なので、各フレームが少しずつ別の答えに着地するからです。
+    </p>
+    <p>
+      動画モデルはこれを、<strong>予測するときに隣のフレームも一緒に見る</strong>ことで解決しています
+      （実装としては時間方向のAttentionや3D畳み込み）。下の2つは、<strong>その1点だけを変えて、
+      同じシード・同じ設定で計算したもの</strong>です。
+    </p>
+
+    <div class="canvas-row">
+      <div class="cv-card video-card">
+        <div class="cv-title">❌ 隣のフレームを見ない</div>
+        <canvas id="flick-off" width="128" height="128"></canvas>
+        <div class="cv-sub">画像モデルを1枚ずつ回した状態。<br>細部がフレームごとに踊ります。</div>
+      </div>
+      <div class="cv-card video-card">
+        <div class="cv-title">⭕ 隣のフレームも見る</div>
+        <canvas id="flick-on" width="128" height="128"></canvas>
+        <div class="cv-sub">動画モデル。同じノイズから始めても<br>つながった動きになります。</div>
+      </div>
+    </div>
+
+    <h3>目だけでなく、数字でも見てみる</h3>
+    <p>
+      隣り合うフレームがどれだけ違うかを測ってみます。被写体が動いている以上ゼロにはなりませんが、
+      <strong>お手本の値が「本来あるべき変化量」</strong>です。それより大きい分が、ちらつきです。
+    </p>
+    <div class="metric" id="flick-metric"></div>
+
+    <div class="note">
+      <span class="t">🧩 だから動画AIは重い</span>
+      フレームを見せ合うということは、<b>計算が1枚のなかで閉じない</b>ということです。
+      画像なら1枚ぶんのメモリで済むところ、動画は関係するフレームをまとめて持つ必要がある。
+      「尺を倍にしたらVRAMが足りなくなった」の正体はここにあります。
+    </div>
+  </section>
+
+  <!-- ===================== ステージ6 ===================== -->
+  <section class="stage" id="stage-6">
+    <h2><span class="step-badge">6</span>latentを動画に戻す</h2>
+    <p class="sub">空間を8倍に広げ、さらに時間も引き伸ばす</p>
+
+    <p>
+      最後はVAEデコーダーです。画像のときは縦横を広げるだけでしたが、動画では
+      <strong>時間方向にも引き伸ばします</strong>。このデモでは、latentの6フレームから24フレームを作っています。
+    </p>
+
+    <div class="canvas-row">
+      <div class="cv-card video-card">
+        <div class="cv-title">デコード前（latent 24×24 × 6フレーム）</div>
+        <canvas id="vae-lat" width="24" height="24" class="pixelated"></canvas>
+        <div class="cv-sub">色に関わる3チャンネルを、そのまま拡大表示したもの</div>
+      </div>
+      <div class="cv-card video-card">
+        <div class="cv-title">デコード後（完成動画）</div>
+        <canvas id="vae-out" width="192" height="192"></canvas>
+        <div class="cv-sub">空間8倍・時間4倍に広げたもの</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="t">🩹 「速い動きだけ崩れる」の理由</span>
+      時間方向にも圧縮しているので、<b>4フレームの間に起きた細かい変化は、そもそもlatentに入っていません</b>。
+      素早く動く手足や、パッと切り替わるカット、細かい振動が溶けてしまうのは、拡散の失敗というより
+      この時間圧縮の限界に当たっているケースが多いです。
+    </div>
+  </section>
+
+  <!-- ===================== 実験室 ===================== -->
+  <section class="stage" id="stage-lab">
+    <h2><span class="step-badge">🧪</span>実験室：つまみの効き方</h2>
+    <p class="sub">すべて動画として再生されます</p>
+
+    <h3>① CFGスケール</h3>
+    <div class="lab-grid" id="lab-cfg"></div>
+    <p class="caption">画像のときと同じ効き方をします。上げすぎると色が焼き付き、動きも硬くなります。</p>
+
+    <h3>② ステップ数</h3>
+    <div class="lab-grid" id="lab-steps"></div>
+    <p class="caption">
+      少ないステップだと、形が決まる前に打ち切られます。動画では1ステップの計算量がフレーム数ぶん重いので、
+      ここを削りたい誘惑が常にあります。
+    </p>
+
+    <h3>③ シード</h3>
+    <div class="lab-grid" id="lab-seed"></div>
+    <p class="caption">同じプロンプト・同じ設定でも、最初のノイズが変われば動きの出方が変わります。</p>
+
+    <div class="run-row">
+      <button class="btn ghost" id="lab-run">🔁 いまのプロンプトで実験しなおす</button>
+    </div>
+  </section>
+
+  <!-- ===================== VRAM ===================== -->
+  <section class="stage" id="stage-vram">
+    <h2><span class="step-badge">💾</span>なぜ動画は、あっという間にVRAMが足りなくなるのか</h2>
+    <p class="sub">「尺を倍に」がなぜ倍では済まないか</p>
+
+    <p>
+      latentの大きさは<strong>フレーム数に比例して増えます</strong>。ここまでは素直な話です。
+      問題は、フレーム同士を見せ合う仕組み（時間方向のAttention）にあります。
+      これは<strong>フレーム数の2乗</strong>で効いてくるため、尺を倍にすると負担は4倍近くになります。
+    </p>
+
+    <div class="tbl-wrap"><table class="tbl">
+      <tr><th>尺</th><th>latentのフレーム数</th><th>latentの数字の個数</th><th>フレーム間の組み合わせ</th></tr>
+      <tr><td>1秒</td><td id="v1f">-</td><td id="v1n">-</td><td id="v1a">-</td></tr>
+      <tr><td>2秒（このデモ）</td><td id="v2f">-</td><td id="v2n">-</td><td id="v2a">-</td></tr>
+      <tr><td>4秒</td><td id="v4f">-</td><td id="v4n">-</td><td id="v4a">-</td></tr>
+      <tr><td>8秒</td><td id="v8f">-</td><td id="v8n">-</td><td id="v8a">-</td></tr>
+    </table></div>
+    <p class="caption">
+      数字の個数は素直に比例しますが、右端の列だけ伸び方が違います。長尺の動画生成が急に苦しくなるのはここです。
+    </p>
+
+    <div class="note">
+      <span class="t">🔧 だから各モデルはここを工夫している</span>
+      時間圧縮を強くしてlatentのフレーム数自体を減らす、Attentionを近いフレームだけに限る、
+      短いクリップを作ってつなぐ——長尺対策として語られる手法は、どれもこの表の右端を小さくするための工夫です。
+    </div>
+  </section>
+
+  <!-- ===================== 用語 ===================== -->
+  <section class="stage" id="stage-words">
+    <h2><span class="step-badge">📖</span>ここまでに出てきた言葉</h2>
+    <p class="sub">画像生成と共通の用語は、画像版のページにまとめています</p>
+    <div class="tbl-wrap"><table class="tbl">
+      <tr><th>言葉</th><th>このアプリでいうと</th><th>ざっくり言うと</th></tr>
+      <tr><td>時間圧縮 / temporal compression</td><td>ステージ2</td><td>数フレームをlatentの1フレームに畳むこと</td></tr>
+      <tr><td>時間方向のAttention / 3D畳み込み</td><td>ステージ5の「隣を見る」</td><td>予測するときに前後のフレームも参照する仕組み</td></tr>
+      <tr><td>temporal consistency（時間的一貫性）</td><td>ステージ5の⭕側</td><td>フレーム間で見た目が保たれていること</td></tr>
+      <tr><td>flicker（ちらつき）</td><td>ステージ5の❌側</td><td>一貫性が崩れ、細部がフレームごとに踊る現象</td></tr>
+      <tr><td>DiT</td><td>ステージ4の「ノイズ予測」</td><td>拡散のノイズ予測をTransformerで行う方式。動画系の主流</td></tr>
+      <tr><td>I2V / T2V</td><td>—</td><td>画像から動画 / テキストから動画</td></tr>
+      <tr><td>fps・尺</td><td>24フレーム・2秒</td><td>latentのフレーム数と直結し、そのままVRAMに効く</td></tr>
+    </table></div>
+  </section>
+
+  <!-- ===================== 免責 ===================== -->
+  <section class="stage" id="stage-honest">
+    <h2><span class="step-badge">⚠️</span>このアプリと本物の違い</h2>
+    <p class="sub">分かりやすさのために、意図的に簡単にしているところ</p>
+    <p>
+      latentの形・時間圧縮・サンプラーの式・CFGの式・「隣のフレームを見るかどうか」で
+      ちらつきが決まること——このあたりの<strong>骨組みは本物と同じ</strong>です。次の点は見立てです。
+    </p>
+    <div class="tbl-wrap"><table class="tbl">
+      <tr><th>項目</th><th>このアプリ</th><th>本物（LTX・Wanなど）</th></tr>
+      <tr><td>ノイズを予測する部分</td><td>あらかじめ用意した動画に向かってぼかしを弱めていく簡易ルール</td><td>数十億パラメータのニューラルネット（DiT）</td></tr>
+      <tr><td>フレーム間の結合</td><td>時間方向の単純な平均（ぼかし）</td><td>時間方向のAttention。どのフレームのどこを見るかを学習で決める</td></tr>
+      <tr><td>描けるもの・動き</td><td>用意した数種類の組み合わせだけ</td><td>学習データにあった、ほぼ何でも</td></tr>
+      <tr><td>解像度・尺</td><td>192px・24フレーム・2秒</td><td>数百〜1000px級・数秒〜。latentの形は同じ考え方</td></tr>
+      <tr><td>チャンネル数</td><td>4（画像版と揃えて見やすさ優先）</td><td>16が主流。LTX-Videoは128</td></tr>
+    </table></div>
+    <p>
+      それでも、<strong>ComfyUIで動画ワークフローを組むときに触るつまみは、ほぼこのページに出てきたもの</strong>です。
+      フレーム数、fps、Steps、CFG、Seed——どれがどこに効くのか、手を動かして掴んでもらえたら十分です。
+    </p>
+  </section>
+
+  <p class="footer-note">すべての計算はブラウザ内で行われます。プロンプトや生成物が外部に送られることはありません。</p>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
