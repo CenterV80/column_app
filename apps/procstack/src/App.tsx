@@ -1,24 +1,18 @@
-import { useMemo, useRef } from "react";
-import type { Geo } from "./geo/types";
 import { geoStats } from "./geo/empty";
-import { evaluate } from "./eval/evaluate";
 import { useStackStore } from "./store/stackStore";
 import { C } from "./theme";
 import { Viewport } from "./viewport/Viewport";
 import { StackList } from "./ui/StackList";
 import { ParamsPanel } from "./ui/ParamsPanel";
 import { Icon, P_FRAME } from "./ui/Icon";
+import { useEvalWorker } from "./worker/useEvalWorker";
 
 export default function App() {
   const stack = useStackStore((s) => s.stack);
   const frameKey = useStackStore((s) => s.frameKey);
   const bumpFrame = useStackStore((s) => s.bumpFrame);
-  const cache = useRef(new Map<string, Geo | null>());
 
-  const geo = useMemo(() => {
-    if (cache.current.size > 400) cache.current.clear();
-    return evaluate(stack, cache.current);
-  }, [stack]);
+  const geo = useEvalWorker(stack);
 
   const stats = geoStats(geo);
 
