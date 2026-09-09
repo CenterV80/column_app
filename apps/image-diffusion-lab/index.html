@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>画像生成AI ラボ | column_app</title>
+<meta name="description" content="「りんごを描いて」というプロンプトが、テキストエンコーダー・latentのノイズ・拡散ステップ・VAEデコードを通って1枚の絵になるまでを、実際に動かしながら理解できるインタラクティブアプリです。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+  <a class="back-link" href="../../categories/ai-basics/index.html">← AI基礎に戻る</a>
+
+  <header class="hero">
+    <div class="hero-icon">🍎✨</div>
+    <h1>画像生成AI ラボ<small>「りんごを描いて」が、ノイズから絵になるまで</small></h1>
+    <p class="hero-lead">
+      画像生成AIは「プロンプトを入れたら絵が出てくる箱」に見えますが、中では
+      <b>①言葉を数字に変える → ②砂嵐（ノイズ）を用意する → ③ノイズを少しずつ取り除く → ④小さな数字の塊を画像に戻す</b>
+      という4つの工程が順番に走っています。このページはその工程を、実際に手で動かしながら確かめられる実験室です。
+      スライダーを動かすと、途中の「AIの頭の中」がその場で描き変わります。
+    </p>
+    <div class="hero-badges">
+      <span class="badge">予備知識ゼロでOK</span>
+      <span class="badge">全部ブラウザ内で計算</span>
+      <span class="badge">通信・APIキー不要</span>
+    </div>
+  </header>
+
+  <!-- ===================== 操作パネル ===================== -->
+  <section class="console">
+    <div class="console-label">プロンプト（描いてほしいもの）</div>
+    <div class="prompt-row">
+      <input id="prompt" type="text" value="りんごを描いて" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="chips" id="presets"></div>
+
+    <div class="knobs">
+      <div class="knob">
+        <div class="knob-head"><label for="seed">シード（最初の砂嵐の柄）</label><span class="val" id="seed-val">42</span></div>
+        <input id="seed" type="range" min="1" max="200" value="42" step="1">
+        <div class="knob-note">同じ数字なら毎回まったく同じ絵。変えると構図や色味が変わります。</div>
+      </div>
+      <div class="knob">
+        <div class="knob-head"><label for="steps">ステップ数（何回で削るか）</label><span class="val" id="steps-val">24</span></div>
+        <input id="steps" type="range" min="2" max="50" value="24" step="1">
+        <div class="knob-note">少ないと速いけれど雑に。多いほど丁寧ですが時間がかかります。</div>
+      </div>
+      <div class="knob">
+        <div class="knob-head"><label for="cfg">CFGスケール（言うことを聞く強さ）</label><span class="val" id="cfg-val">7.0</span></div>
+        <input id="cfg" type="range" min="0" max="20" value="7" step="0.5">
+        <div class="knob-note">0だとプロンプトを無視。上げすぎると色が焼き付いて崩れます。</div>
+      </div>
+    </div>
+
+    <div class="run-row">
+      <button class="btn" id="run">▶ この設定で生成する</button>
+      <button class="btn ghost" id="reroll">🎲 シードをランダムに</button>
+      <button class="btn ghost" id="tour-stop" hidden>⏹ 案内を止める</button>
+    </div>
+    <div class="parse-note" id="parse-note"></div>
+  </section>
+
+  <ol class="rail" id="rail">
+    <li data-target="stage-1"><span class="n">1</span>プロンプト</li>
+    <li data-target="stage-2"><span class="n">2</span>言葉→数字</li>
+    <li data-target="stage-3"><span class="n">3</span>ノイズ</li>
+    <li data-target="stage-4"><span class="n">4</span>削り出し</li>
+    <li data-target="stage-5"><span class="n">5</span>画像に戻す</li>
+  </ol>
+
+  <!-- ===================== ステージ1 ===================== -->
+  <section class="stage" id="stage-1">
+    <h2><span class="step-badge">1</span>プロンプトを受け取る</h2>
+    <p class="sub">AIが「何を描けばいいか」を決める、いちばん最初の入り口</p>
+
+    <p>
+      あなたが打った文は、まずAIが扱える<strong>意味のかたまり</strong>に分解されます。
+      ここでは分かりやすさのために「主役」「色」「時間帯」の3つを取り出しました。
+      本物のモデルはこれをもっと細かく、文全体のニュアンスとして受け取ります。
+    </p>
+
+    <div class="canvas-row" id="parse-cards"></div>
+
+    <div class="note">
+      <span class="t">💡 ここが大事</span>
+      AIは日本語の文字そのものを見ているわけではありません。<b>「りんご」という言葉に対応する数字の並び</b>を持っていて、
+      学習中に「その数字の並びが付いていた画像はだいたい丸くて赤い」というパターンを覚えています。
+      だから知らない言葉を入れると、対応する数字が用意できず絵になりません。
+    </div>
+  </section>
+
+  <!-- ===================== ステージ2 ===================== -->
+  <section class="stage" id="stage-2">
+    <h2><span class="step-badge">2</span>言葉を数字に変える（テキストエンコーダー）</h2>
+    <p class="sub">CLIPなどの「言葉担当のAI」が、文章を数値のリストに翻訳する</p>
+
+    <p>
+      文章はまず<strong>トークン</strong>という細かい単位に切られ、それぞれに番号が振られます。
+      その番号が<strong>ベクトル（数字の並び）</strong>に変換されたものが、絵を描く担当のAIに渡される
+      「指示書」＝<strong>conditioning（条件付け）</strong>です。
+    </p>
+
+    <div class="tok-list" id="tok-list"></div>
+    <p class="caption">図：トークンごとの番号と、その意味を表すベクトル（棒の高さ）。青く光っているのが、絵を大きく左右するキーワードです。</p>
+
+    <h3>指示書ぜんたいの姿</h3>
+    <div class="canvas-row">
+      <div class="cv-card">
+        <div class="cv-title">プロンプトあり（conditioning）</div>
+        <canvas id="cond-map" width="77" height="16" class="pixelated"></canvas>
+        <div class="cv-sub">横＝トークンの位置、縦＝ベクトルの成分。色の濃淡が数値の大小です。<br>うすいグレーは、使われていない空き枠（残りのトークン）。</div>
+      </div>
+      <div class="cv-card">
+        <div class="cv-title">プロンプトなし（negative / uncond）</div>
+        <canvas id="uncond-map" width="77" height="16" class="pixelated"></canvas>
+        <div class="cv-sub">空文字を入れた場合。実はこちらも同時に計算され、<br>ステージ4のCFGで使われます。</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="t">📏 本物のサイズ感</span>
+      Stable Diffusion 1.5系では、この指示書は<code>77トークン × 768次元</code>の数値表です。
+      上の図は見やすいよう縦を16成分に間引いています。「トークン上限77」はここから来ていて、
+      長すぎるプロンプトの後ろが効かなくなるのはこの枠に収まりきらないためです。
+    </div>
+  </section>
+
+  <!-- ===================== ステージ3 ===================== -->
+  <section class="stage" id="stage-3">
+    <h2><span class="step-badge">3</span>砂嵐（ノイズ）を用意する</h2>
+    <p class="sub">絵は白紙からではなく、ランダムな砂嵐から始まる</p>
+
+    <p>
+      画像生成AIは白いキャンバスからではなく、<strong>完全なランダムノイズ</strong>から描き始めます。
+      しかもそのノイズは、いきなり画像サイズではありません。<strong>latent（潜在空間）</strong>という、
+      縦横が1/8に圧縮された小さな数字の板の上に置かれます。
+    </p>
+
+    <div class="canvas-row">
+      <div class="cv-card">
+        <div class="cv-title">最初のlatent（色として表示）</div>
+        <canvas id="noise-view" width="40" height="40" class="pixelated"></canvas>
+        <div class="cv-sub">シードの数字が決まれば、この柄は毎回まったく同じになります。</div>
+      </div>
+      <div class="cv-card">
+        <div class="cv-title">4つのチャンネルの中身</div>
+        <div class="chan-grid" id="noise-chans"></div>
+        <div class="cv-sub">latentは「1枚の絵」ではなく、意味の違う板が4枚重なったものです。</div>
+      </div>
+    </div>
+
+    <h3>なぜわざわざ小さくするの？</h3>
+    <div class="tbl-wrap"><table class="tbl">
+      <tr><th></th><th>ピクセル空間（見えている画像）</th><th>latent空間（AIが作業する場所）</th></tr>
+      <tr><td>大きさ</td><td id="px-size">320 × 320 × 3色</td><td id="lat-size">40 × 40 × 4チャンネル</td></tr>
+      <tr><td>数字の個数</td><td id="px-count">307,200個</td><td id="lat-count">6,400個</td></tr>
+      <tr><td>ひとこと</td><td>そのまま扱うと重すぎる</td><td>約48分の1。だから家庭用GPUでも動く</td></tr>
+    </table></div>
+    <p class="caption">
+      この「1/8に縮めて4チャンネルにする」係数は、Stable Diffusion 1.5やSDXLが実際に使っている値で、情報量は約48分の1になります。
+    </p>
+
+    <div class="note">
+      <span class="t">🎲 シードの正体</span>
+      シードは乱数の初期値です。<b>同じシード＋同じプロンプト＋同じ設定なら、何回やっても完全に同じ絵</b>が出ます。
+      「ガチャを引き直す」というのは、この砂嵐の柄を取り替えているだけ。上のシードスライダーを動かして、
+      柄が変わる様子を見てみてください。
+    </div>
+  </section>
+
+  <!-- ===================== ステージ4 ===================== -->
+  <section class="stage" id="stage-4">
+    <h2><span class="step-badge">4</span>ノイズを少しずつ取り除く（拡散）</h2>
+    <p class="sub">この工程がいちばんの本体。「ノイズを予測して引く」をひたすら繰り返す</p>
+
+    <p>
+      ここからが画像生成AIの心臓部です。AIは1ステップごとに、こう考えます。
+    </p>
+    <p style="text-align:center;font-weight:700;font-size:15px;">
+      「いまのノイズだらけの板を見るに、<br>このうちどれがノイズで、どれが“りんご”だろう？」
+    </p>
+    <p>
+      AIが出す答えは<strong>「ノイズはこれだと思う」</strong>という予測です。それを少しだけ引き算すると、板はほんの少しだけ
+      りんごに近づきます。これを何十回も繰り返すと、砂嵐からりんごが浮かび上がってきます。
+      下の3枚は、その1ステップの中身を分解したものです。スライダーを動かして、変化を追ってみてください。
+    </p>
+
+    <div class="canvas-row">
+      <div class="cv-card">
+        <div class="cv-title">① いまのlatent</div>
+        <canvas id="dif-x" width="40" height="40" class="pixelated"></canvas>
+        <div class="cv-sub">まだノイズが乗っている作業中の板</div>
+      </div>
+      <div class="cv-card">
+        <div class="cv-title">② AIが「ノイズだ」と予測した分</div>
+        <canvas id="dif-eps" width="40" height="40" class="pixelated"></canvas>
+        <div class="cv-sub">これを引く。りんごの形が薄く写り込んでいるのがポイント</div>
+      </div>
+      <div class="cv-card">
+        <div class="cv-title">③ AIの「完成予想図」</div>
+        <canvas id="dif-x0" width="320" height="320"></canvas>
+        <div class="cv-sub">①からノイズを全部引いたらこうなる、という現時点の見込み</div>
+      </div>
+    </div>
+
+    <div class="transport">
+      <button class="btn small" id="dif-play">▶ 再生</button>
+      <input id="dif-slider" type="range" min="0" max="24" value="0" step="1">
+      <button class="btn small ghost" id="dif-first">⏮</button>
+      <button class="btn small ghost" id="dif-last">⏭</button>
+    </div>
+    <div class="readout" id="dif-readout"></div>
+
+    <div class="strip" id="dif-strip"></div>
+    <p class="caption">図：完成予想図（③）が、ステップが進むにつれてぼんやり→はっきりへ変わっていく様子。</p>
+
+    <div class="note">
+      <span class="t">👀 注目ポイント</span>
+      序盤の「完成予想図」は、ぼんやりした色の塊にしか見えません。これはAIがまだ<b>大まかな配置しか分からない</b>状態だからです。
+      ステップが進んでノイズが減るほど、AIは細かい部分まで見えるようになり、輪郭や質感が決まっていきます。
+      <b>大きい構図が先、細部は後</b>——これが拡散モデルの基本的な進み方です。
+    </div>
+
+    <div class="note">
+      <span class="t">🎚️ CFGスケールって何をしてるの？</span>
+      実はAIは毎ステップ<b>2回</b>予測しています。「りんごと言われた場合の予測」と「何も言われなかった場合の予測」です。
+      その差分が<b>「りんごらしさの方向」</b>で、CFGスケールはその方向にどれだけ強く引っ張るかの倍率です。
+      0なら何も言われていないのと同じ、7前後が標準、上げすぎると引っ張りすぎて色が飽和し、こってりした崩れた絵になります。
+      パネルのCFGを0や20にして、生成し直してみてください。
+    </div>
+  </section>
+
+  <!-- ===================== ステージ5 ===================== -->
+  <section class="stage" id="stage-5">
+    <h2><span class="step-badge">5</span>latentを画像に戻す（VAEデコード）</h2>
+    <p class="sub">小さな数字の板を、目に見える絵に翻訳する最後の仕上げ</p>
+
+    <p>
+      ステップが終わっても、手元にあるのはまだ<strong>小さな数字の板</strong>です。
+      これを人間が見られる画像に戻すのが<strong>VAEデコーダー</strong>の仕事。縦横を8倍に広げながら、
+      4チャンネルを赤・緑・青の3色に翻訳します。
+    </p>
+
+    <div class="canvas-row">
+      <div class="cv-card">
+        <div class="cv-title">デコード前（latent 40×40）</div>
+        <canvas id="vae-lat" width="40" height="40" class="pixelated"></canvas>
+        <div class="cv-sub">4チャンネルのうち色に関わる3枚を、そのまま拡大表示したもの</div>
+      </div>
+      <div class="cv-card">
+        <div class="cv-title">デコード後（完成画像）</div>
+        <canvas id="vae-out" width="320" height="320"></canvas>
+        <div class="cv-sub">VAEデコーダーが8倍に広げ、輪郭を作り直したもの</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="t">🩹 「顔や文字だけ崩れる」の理由</span>
+      latentは情報を約48分の1に圧縮しているので、<b>細かすぎるものは最初から入りきりません</b>。
+      小さな顔や看板の文字がつぶれやすいのは、拡散の失敗というより、この圧縮の限界に当たっているケースが多いです。
+      Stable Diffusion 3やFLUXがlatentのチャンネルを4から16へ増やしたのは、まさにこの取りこぼしを減らすためでした。
+    </div>
+  </section>
+
+  <!-- ===================== おまけ：学習側 ===================== -->
+  <section class="stage" id="stage-train">
+    <h2><span class="step-badge">📚</span>そもそも、なぜノイズを引けるの？</h2>
+    <p class="sub">逆再生を学ぶ、という学習のしかけ</p>
+
+    <p>
+      「ノイズを予測する」なんて芸当が、なぜできるのでしょうか。答えは学習のやり方にあります。
+      学習では、まず<strong>お手本の画像にわざとノイズを足していきます</strong>。足した量は当然こちらが知っているので、
+      「ノイズまみれの画像」と「正解のノイズ」のペアが好きなだけ作れます。
+    </p>
+    <p>
+      あとはAIに「この画像に乗っているノイズを当てて」と延々と練習させるだけ。
+      これを何億回も繰り返したものが、いま動かしているモデルです。
+      <strong>下のスライダーは、その練習問題の作り方（＝ノイズを足す向き）を再現したもの</strong>です。
+      右に動かすほど問題が難しくなり、いちばん右がステージ3のスタート地点になります。
+    </p>
+
+    <div class="canvas-row">
+      <div class="cv-card">
+        <div class="cv-title">お手本にノイズを足していく</div>
+        <canvas id="fw-canvas" width="40" height="40" class="pixelated"></canvas>
+        <div class="cv-sub" id="fw-label">ノイズ量：0%</div>
+      </div>
+    </div>
+    <div class="transport">
+      <input id="fw-slider" type="range" min="0" max="100" value="0" step="1">
+    </div>
+    <p class="caption">
+      生成のときは、この矢印をちょうど逆向きにたどっています。だから「拡散モデル（diffusion model）」と呼ばれます。
+    </p>
+  </section>
+
+  <!-- ===================== おまけ：実験室 ===================== -->
+  <section class="stage" id="stage-lab">
+    <h2><span class="step-badge">🧪</span>実験室：設定を変えると何が変わる？</h2>
+    <p class="sub">3つのつまみの効き方を、並べて見比べる</p>
+
+    <h3>① CFGスケール — 言うことを聞かせる強さ</h3>
+    <div class="lab-grid" id="lab-cfg"></div>
+    <p class="caption">
+      左端はプロンプトの効きがゼロの状態。色も形も決まらず、ぼんやりした塊にしかなりません。
+      右へ行くほど指示に忠実になり、輪郭と色がはっきりしていきますが、行きすぎると色が飽和して不自然になります。
+    </p>
+
+    <h3>② ステップ数 — 何回に分けて削るか</h3>
+    <div class="lab-grid" id="lab-steps"></div>
+    <p class="caption">
+      少ないステップは一気に削ろうとするので、削り残しやざらつき、輪郭のあまさが出ます。
+      ある程度から先は増やしてもほとんど変わらず、時間だけ増えていきます。
+    </p>
+
+    <h3>③ シード — 最初の砂嵐の柄</h3>
+    <div class="lab-grid" id="lab-seed"></div>
+    <p class="caption">
+      プロンプトも設定もまったく同じで、変えたのは乱数の初期値だけ。それでも構図や色の出方が変わります。
+      「同じ呪文なのに毎回違う絵が出る」のは、ここが変わっているからです。
+    </p>
+    <div class="run-row">
+      <button class="btn ghost" id="lab-run">🔁 いまのプロンプトで実験しなおす</button>
+    </div>
+  </section>
+
+  <!-- ===================== 用語 ===================== -->
+  <section class="stage" id="stage-words">
+    <h2><span class="step-badge">📖</span>ここまでに出てきた言葉</h2>
+    <p class="sub">生成AIの記事で見かけたら、この表に戻ってきてください</p>
+    <div class="tbl-wrap"><table class="tbl">
+      <tr><th>言葉</th><th>このアプリでいうと</th><th>ざっくり言うと</th></tr>
+      <tr><td>プロンプト</td><td>ステージ1の入力欄</td><td>描いてほしい内容を書いた文章</td></tr>
+      <tr><td>トークン</td><td>ステージ2の四角いチップ</td><td>文章を切り分けた最小単位。上限は77個</td></tr>
+      <tr><td>テキストエンコーダー / CLIP</td><td>ステージ2の変換</td><td>言葉を数字のベクトルに翻訳する担当</td></tr>
+      <tr><td>conditioning</td><td>ステージ2の指示書の図</td><td>絵を描く側に渡される、数値化された指示</td></tr>
+      <tr><td>latent（潜在空間）</td><td>ステージ3の小さな板</td><td>縦横1/8に圧縮された作業場所。約48分の1の情報量</td></tr>
+      <tr><td>シード</td><td>ステージ3の砂嵐の柄</td><td>乱数の初期値。同じなら同じ絵になる</td></tr>
+      <tr><td>U-Net / DiT</td><td>ステージ4の「ノイズ予測」</td><td>ノイズを予測する本体のニューラルネット</td></tr>
+      <tr><td>ステップ / サンプラー</td><td>ステージ4のスライダー</td><td>何回に分けてノイズを削るか、その削り方の手順</td></tr>
+      <tr><td>CFGスケール</td><td>ステージ4の引っ張る強さ</td><td>プロンプトにどれだけ忠実にするかの倍率</td></tr>
+      <tr><td>ネガティブプロンプト</td><td>ステージ2の右側の図</td><td>「こうならないで」を指定する側の指示書</td></tr>
+      <tr><td>VAE</td><td>ステージ5の翻訳</td><td>latentと画像を行き来する圧縮・復元の担当</td></tr>
+    </table></div>
+  </section>
+
+  <!-- ===================== 免責 ===================== -->
+  <section class="stage" id="stage-honest">
+    <h2><span class="step-badge">⚠️</span>このアプリと本物の違い</h2>
+    <p class="sub">分かりやすさのために、意図的に簡単にしているところ</p>
+    <p>
+      工程の順番・latentの形・CFGの計算式・ノイズの減り方といった<strong>骨組みは本物と同じ</strong>ですが、
+      次の点は再現ではなく「見立て」です。
+    </p>
+    <div class="tbl-wrap"><table class="tbl">
+      <tr><th>項目</th><th>このアプリ</th><th>本物（Stable Diffusionなど）</th></tr>
+      <tr><td>ノイズを予測する部分</td><td>あらかじめ用意した絵に向かってぼかしを弱めていく簡易ルール</td><td>数十億個のパラメータを持つニューラルネット（U-Net / DiT）</td></tr>
+      <tr><td>描けるもの</td><td>用意した数種類だけ</td><td>学習データにあった、ほぼ何でも</td></tr>
+      <tr><td>チャンネルの意味</td><td>明るさ・赤緑・黄青・輪郭と決め打ち</td><td>学習で自動的に決まるため、人間には直接読めない</td></tr>
+      <tr><td>latentの解像度</td><td>40×40×4（画像は320px）</td><td>SD1.5は64×64×4（画像は512px）。倍率1/8とチャンネル4は同じ</td></tr>
+      <tr><td>テキストエンコーダー</td><td>キーワード照合と、番号から作った見せかけのベクトル</td><td>CLIPやT5など、言語を学習済みの大きなモデル</td></tr>
+    </table></div>
+    <p>
+      逆に言えば、<strong>この骨組みさえ掴んでいれば、実際のツールのパラメータはだいたい読める</strong>ようになります。
+      ComfyUIやAUTOMATIC1111の画面に並ぶ「Steps」「CFG」「Seed」「Sampler」「VAE」は、すべてこのページで触った場所です。
+    </p>
+  </section>
+
+  <p class="footer-note">すべての計算はブラウザ内で行われます。画像やプロンプトが外部に送られることはありません。</p>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
