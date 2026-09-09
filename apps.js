@@ -88,6 +88,13 @@ const APPS = [
     category: "mini-apps",
   },
   {
+    name: "procstack",
+    description: "Houdiniのモディファイアスタックのような、縦一列のノードスタックでモデリングするスマホ向けプロシージャルモデラー。Box→Transformなどのノードを積んで操作します。",
+    path: "apps/procstack/dist/",
+    icon: "🧊",
+    category: "mini-apps",
+  },
+  {
     name: "8ビット シューティングゲーム",
     description: "懐かしのドット絵スタイル。敵を撃ってスコアを稼ぎましょう。矢印キーで移動、スペースで射撃。",
     path: "apps/8bit-shooting-game/",
