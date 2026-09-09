@@ -359,23 +359,6 @@ code {
   border-radius: 7px; background: #999;
 }
 
-.metric {
-  display: grid; gap: 8px; margin: 14px 0 4px;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-}
-.metric div {
-  background: var(--surface-alt); border: 1px solid var(--border);
-  border-radius: 10px; padding: 11px 13px; text-align: center;
-}
-.metric .k { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
-.metric .v {
-  font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums;
-  margin-top: 3px;
-}
-.metric .ref .v { color: var(--vae); }
-.metric .good .v { color: var(--accent); }
-.metric .bad .v { color: var(--warn); }
-
 .frame-strip {
   display: grid; grid-template-columns: repeat(6, 1fr);
   gap: 5px; margin-top: 10px;
@@ -397,3 +380,20 @@ code {
 .busy { font-size: 12.5px; color: var(--text-muted); }
 
 .dim { color: var(--text-muted); font-size: 11.5px; font-weight: 400; }
+
+.stack-label {
+  font-size: 10.5px; color: var(--text-muted);
+  text-align: center; margin: 6px 0 3px;
+}
+.stack-arrow {
+  font-size: 11px; color: var(--vae);
+  text-align: center; margin: 5px 0 1px; font-weight: 600;
+}
+
+.tbl td.num {
+  text-align: right; font-variant-numeric: tabular-nums;
+  font-weight: 700; font-size: 15px;
+}
+.tbl td.num.ref { color: var(--vae); }
+.tbl td.num.good { color: var(--accent); }
+.tbl td.num.bad { color: var(--warn); }
