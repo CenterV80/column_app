@@ -7,6 +7,7 @@ import { applyCamState, attachOrbitControls, createCamState, type CamState } fro
 interface ViewportState {
   mesh: THREE.Mesh;
   wire: THREE.LineSegments;
+  points: THREE.Points;
   cam: CamState;
   applyCam: () => void;
 }
@@ -61,6 +62,16 @@ export function Viewport({ geo, frameKey }: ViewportProps) {
     const wire = new THREE.LineSegments(new THREE.BufferGeometry(), wireMat);
     scene.add(wire);
 
+    // scatter等、indicesが空の点群Geo用の描画パス
+    const pointsMat = new THREE.PointsMaterial({
+      color: new THREE.Color(C.accent),
+      size: 0.06,
+      sizeAttenuation: true,
+    });
+    const points = new THREE.Points(new THREE.BufferGeometry(), pointsMat);
+    points.visible = false;
+    scene.add(points);
+
     const cam = createCamState();
     const applyCam = () => applyCamState(camera, cam);
 
@@ -89,7 +100,7 @@ export function Viewport({ geo, frameKey }: ViewportProps) {
     };
     loop();
 
-    state.current = { mesh, wire, cam, applyCam };
+    state.current = { mesh, wire, points, cam, applyCam };
 
     return () => {
       cancelAnimationFrame(raf);
@@ -97,37 +108,54 @@ export function Viewport({ geo, frameKey }: ViewportProps) {
       detachControls();
       mesh.geometry.dispose();
       wire.geometry.dispose();
+      points.geometry.dispose();
       mat.dispose();
       wireMat.dispose();
+      pointsMat.dispose();
       renderer.dispose();
       host.removeChild(el);
     };
   }, []);
 
-  // Geo -> BufferGeometry
+  // Geo -> BufferGeometry (indicesが空なら点群としてTHREE.Pointsで描画する)
   useEffect(() => {
     const s = state.current;
     if (!s) return;
-    const bg = new THREE.BufferGeometry();
-    if (geo && geo.points.length) {
-      bg.setAttribute("position", new THREE.BufferAttribute(geo.points, 3));
-      const n = geo.attribs.point.N;
-      if (n) bg.setAttribute("normal", new THREE.BufferAttribute(n as Float32Array, 3));
-      bg.setIndex(new THREE.BufferAttribute(geo.indices, 1));
-      if (!n) bg.computeVertexNormals();
-      bg.computeBoundingSphere();
+    const isPointCloud = !!geo && geo.points.length > 0 && geo.indices.length === 0;
+
+    s.mesh.visible = !isPointCloud;
+    s.wire.visible = !isPointCloud;
+    s.points.visible = isPointCloud;
+
+    if (isPointCloud && geo) {
+      const pbg = new THREE.BufferGeometry();
+      pbg.setAttribute("position", new THREE.BufferAttribute(geo.points, 3));
+      pbg.computeBoundingSphere();
+      s.points.geometry.dispose();
+      s.points.geometry = pbg;
+    } else {
+      const bg = new THREE.BufferGeometry();
+      if (geo && geo.points.length) {
+        bg.setAttribute("position", new THREE.BufferAttribute(geo.points, 3));
+        const n = geo.attribs.point.N;
+        if (n) bg.setAttribute("normal", new THREE.BufferAttribute(n as Float32Array, 3));
+        bg.setIndex(new THREE.BufferAttribute(geo.indices, 1));
+        if (!n) bg.computeVertexNormals();
+        bg.computeBoundingSphere();
+      }
+      s.mesh.geometry.dispose();
+      s.mesh.geometry = bg;
+      s.wire.geometry.dispose();
+      s.wire.geometry = geo && geo.points.length ? new THREE.WireframeGeometry(bg) : new THREE.BufferGeometry();
     }
-    s.mesh.geometry.dispose();
-    s.mesh.geometry = bg;
-    s.wire.geometry.dispose();
-    s.wire.geometry = geo && geo.points.length ? new THREE.WireframeGeometry(bg) : new THREE.BufferGeometry();
   }, [geo]);
 
   // フレーム
   useEffect(() => {
     const s = state.current;
     if (!s || !geo || !geo.points.length) return;
-    const bs = s.mesh.geometry.boundingSphere;
+    const activeGeom = geo.indices.length === 0 ? s.points.geometry : s.mesh.geometry;
+    const bs = activeGeom.boundingSphere;
     if (!bs) return;
     s.cam.target.copy(bs.center);
     s.cam.radius = Math.max(0.5, bs.radius * 2.8);
