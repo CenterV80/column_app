@@ -283,4 +283,11 @@ const APPS = [
     icon: "🍎",
     category: "ai-basics",
   },
+  {
+    name: "動画生成AI ラボ",
+    description: "画像生成AIに「時間」の軸を足すと何が変わるのか。時間つきlatent・フレーム間の結合・ちらつきの正体を、実際に動かして確かめられる実験室です。",
+    path: "apps/video-diffusion-lab/",
+    icon: "🎬",
+    category: "ltx",
+  },
 ];
