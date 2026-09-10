@@ -1,5 +1,10 @@
 ## 2026年9月
 
+### ComfyUI-MiniMaxH3-PrefixStream - ギャラリー管理とマスク保護で長尺動画を段階生成
+[GitHub - knoic/ComfyUI-MiniMaxH3-PrefixStream](https://github.com/knoic/ComfyUI-MiniMaxH3-PrefixStream)
+
+MiniMax-H3で長時間の動画を作るためのComfyUIノードスイート。短いセグメントを段階的に生成し、直前のセグメントを次の生成の文脈として再利用していく方式で、重複部分の自動トリムと音声同期の維持にも対応する。技術面での特徴は「**Native Masked AV**」と呼ばれる仕組みで、ComfyUI標準のマスク機能をそのまま使って前セグメントの映像・音声コンテキストを保護する形を取っており、独自のマスク実装を持ち込まない「低侵襲的な設計」を掲げている。既存のH3ワークフローを大きく作り替えず、続き書き用のノードを追加するだけで導入できる点も同様の思想によるもの。生成済みのセグメントはギャラリー形式で一覧表示され、評点やタグを付けてフィルタリングしながら、履歴の中から任意のショットを選んでそこから続きを生成し直せる。インストールは`custom_nodes`にクローンして`requirements.txt`をインストールするだけで、再起動後は`MiniMaxH3/PrefixStream`カテゴリにノードが追加される。MITライセンスで公開。
+
 ### MiniMax H3 Max Director - 最長2分の文脈継続で「終わらない配信」を可能にするモード
 [fal - MiniMax H3 Max Director](https://fal.ai/models/minimax/h3-max/director)
 
