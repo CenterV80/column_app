@@ -133,6 +133,31 @@
             color: #1e4e79;
         }
 
+        .note.danger {
+            background: #fdecea;
+            border-left-color: #c53030;
+            color: #822727;
+        }
+
+        .source {
+            margin-bottom: 14px;
+            padding: 14px 18px;
+            border-radius: 4px;
+            border-left: 4px solid #2f855a;
+            background: #f1f8f3;
+        }
+
+        .source h3 {
+            font-size: 1.05em;
+            margin-bottom: 6px;
+            color: #22543d;
+        }
+
+        .source p {
+            color: #444;
+            font-size: 0.95em;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -486,6 +511,81 @@ description: HoudiniのノードネットワークをHDA(Digital Asset)化する
                 </div>
             </div>
 
+            <div class="section" id="skill-security">
+                <h2 class="section-title">🛡️ 他人のスキルを入れる前に</h2>
+                <div class="cmd-description">
+                    スキルは共通仕様なので配布・流用がしやすい反面、<strong>中身は手順書とスクリプトの詰め合わせ</strong>です。
+                    入れた瞬間からエージェントがその指示に従うため、拾いものをそのまま置くのはリスクがあります。
+                    「これなら100%安全」と保証されたスキル集はありませんが、
+                    <strong>比較的信頼できるのは公式や大手が管理しているもの</strong>です。
+                </div>
+
+                <div class="source">
+                    <h3><a href="https://github.com/anthropics/skills">anthropics/skills</a></h3>
+                    <p>Anthropic公式の参考スキル集。VS Codeの公式ドキュメントからもリファレンスとして案内されています。</p>
+                </div>
+
+                <div class="source">
+                    <h3><a href="https://github.com/github/awesome-copilot">github/awesome-copilot</a></h3>
+                    <p>GitHubが管理しているコミュニティ集。スキルのほかカスタムエージェント・指示ファイル・プロンプトもまとまっているので、Copilot向けならまずここ。</p>
+                </div>
+
+                <div class="source">
+                    <h3><a href="https://github.com/NVIDIA/skills">NVIDIA-Verified Agent Skills</a></h3>
+                    <p>
+                        NVIDIAが2026年5月22日に始めた、検証済みスキルのしくみ。
+                        スキャン → 署名 → <strong>スキルカード</strong>（所有者・依存関係・既知の制限・検証状況を機械可読で記載）まで通した
+                        カタログを公開しています。公開時点で16製品ファミリー・162スキル。
+                        裏で使われているスキャナーが、後述の <a href="https://github.com/NVIDIA/SkillSpector">SkillSpector</a> です。
+                    </p>
+                </div>
+
+                <div class="note danger">
+                    <strong>逆に、誰でも投稿できる大規模マーケットは要注意です。</strong>
+                    Snykが行った「<strong>ToxicSkills</strong>」調査（2026年2月5日時点、ClawHubとskills.shのスキル<strong>3,984件</strong>が対象）では、
+                    <strong>36.82%（1,467件）に何らかのセキュリティ上の欠陥</strong>が見つかり、
+                    うち<strong>13.4%（534件）はクリティカル級</strong>（マルウェア配布、プロンプトインジェクション、シークレットの露出など）。
+                    さらに<strong>76件は、認証情報の窃取・バックドア設置・データの持ち出しを行う悪意あるペイロード</strong>として確認されました
+                    （公開時点で8件はまだ公開されたままだったとのこと）。
+                    投稿に必要なのは<strong>作成から1週間以上経ったGitHubアカウントだけ</strong>で、審査の工程はありません。
+                </div>
+
+                <div class="cmd">
+                    <h3>入れる前の自衛策</h3>
+                    <ul class="tips">
+                        <li>
+                            <strong><code>SKILL.md</code> と同梱スクリプトを必ず自分で読む。</strong>
+                            外部への通信、<code>~/.ssh</code> や認証情報へのアクセス、
+                            「ユーザーには言うな」「確認を求めるな」系の指示があれば即アウトです。
+                        </li>
+                        <li>
+                            <strong>スキャナーにかける。</strong>どちらも無料で使えます。
+                            <div class="code-block"># Snyk Agent Scan（旧 Invariant Labs の MCP-Scan）
+uvx snyk-agent-scan@latest --skills            # 入っているスキルをまとめて検査
+uvx snyk-agent-scan@latest ~/.claude/skills    # フォルダーを指定して検査
+
+# NVIDIA SkillSpector（71パターン / 17カテゴリ）
+uv tool install git+https://github.com/NVIDIA/skillspector.git
+skillspector scan ./houdini-hda/
+skillspector scan https://github.com/user/some-skill</div>
+                            <div class="note info">
+                                Snyk Agent Scanの実行にはSnykアカウント（<code>SNYK_TOKEN</code>）が必要です。
+                                SkillSpectorはローカルフォルダー・zip・<code>SKILL.md</code>単体・GitHubのURLのいずれも検査でき、
+                                静的解析に加えて任意でLLMによる意味的なチェックも走らせられます。
+                            </div>
+                        </li>
+                        <li>
+                            <strong>エージェントモードでのコマンド自動承認はオフにしておく。</strong>
+                            スキャナーをすり抜けた指示があっても、実行前に一度自分の目で止められます。
+                        </li>
+                    </ul>
+                    <div class="note">
+                        そもそもの話として、<strong>HDA化スキルのように「自分の作業ルール」を書くものは、他人のものを使うより自作が一番安全で確実</strong>です。
+                        他人のスキルは「書き方の参考」として読むくらいの使い方をおすすめします。
+                    </div>
+                </div>
+            </div>
+
             <div class="section">
                 <h2 class="section-title">📌 補足：instructionsとの使い分け</h2>
                 <div class="cmd">
@@ -522,9 +622,8 @@ description: HoudiniのノードネットワークをHDA(Digital Asset)化する
                     <div class="note info">
                         スキルは <a href="https://agentskills.io">agentskills.io</a> のオープン仕様に沿っているため、
                         同じフォルダーをGitHub Copilot・Copilot CLI・Claude Codeなどで共有できます。
-                        既製のスキルは <a href="https://github.com/github/awesome-copilot">github/awesome-copilot</a> や
-                        <a href="https://github.com/anthropics/skills">anthropics/skills</a> にまとまっています
-                        （中身を確認してから使うこと）。
+                        既製のスキルの入手先と、入れる前の確認については上の
+                        「<a href="#skill-security">🛡️ 他人のスキルを入れる前に</a>」を参照してください。
                     </div>
                 </div>
             </div>
