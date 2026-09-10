@@ -413,7 +413,21 @@ description: HoudiniのノードネットワークをHDA(Digital Asset)化する
                             <h3>チャットを「エージェント」モードにする</h3>
                             <div class="cmd-description">
                                 Copilot Chatの入力欄の下にあるモード切り替えで「Agent」を選びます。
-                                実際に手を動かしてもらう用途ならこのモードが前提です。
+                            </div>
+                            <div class="note info">
+                                <strong>スキルはエージェントモード専用ではありません。</strong>
+                                公式ドキュメントでも「chat and agent mode」で使えるとされていて、通常のチャットでも読み込まれます。
+                                ただし<strong>「読み込まれる」ことと「最後までやってもらえる」ことは別</strong>で、
+                                命名規則や設計ルールのような<strong>知識・手順を参照するだけ</strong>のスキルはチャットでもそのまま効きますが、
+                                ファイルの編集やコマンド実行まで書いてあるスキルは、ツールを実際に動かせるエージェントモードでないと途中で止まります。
+                                下の <code>houdini-hda</code> のように「こう作れ」と指示するタイプは後者なので、Agentを選んでおくのが確実です。
+                            </div>
+                            <div class="note">
+                                なお、1.108より後のVS Codeでは、公式ドキュメントから Ask / Edit / Agent というモード切り替えの説明自体がなくなり、
+                                「チャットビューはエージェントと会話するもの」という前提で書き直されています。
+                                手元のVS Codeに切り替えが残っていればAgentを選ぶ、程度に考えておけば大丈夫です。
+                                また、フロントマターに <code>context: fork</code> を書いて専用のサブエージェントで動かすスキルだけは、
+                                別途 <code>github.copilot.chat.skillTool.enabled</code> の有効化が必要です。
                             </div>
                         </div>
                     </div>
