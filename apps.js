@@ -186,6 +186,13 @@ const APPS = [
     category: "houdini",
   },
   {
+    name: "GitHub Copilot Chatでスキル(Agent Skills)を使う手順",
+    description: "自作の作業手順をCopilotに読み込ませるAgent Skillsのセットアップを7ステップで解説。フォルダーの置き場所・SKILL.mdの書き方・読み込まれないときの確認ポイントまでまとめました。",
+    path: "apps/copilot-chat-skills-setup.html",
+    icon: "🧩",
+    category: "ai-coding",
+  },
+  {
     name: "セッションログ運用ワークフロー(GitHub Copilot向け)",
     description: "LLMとの作業で得た気づき・躓いた点と対処法を蓄積し、次回セッションで再利用するための運用ルールをテンプレ付きでまとめました。",
     path: "apps/session-log-workflow-guide.html",
