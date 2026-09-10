@@ -1,5 +1,10 @@
 ## 2026年9月
 
+### ComfyUI-MiniMax-H3-W4A4-VSA - RTX 4070狙い撃ちのW4A4量子化＋疎注意で高速化
+[GitHub - sepiablue-ai/ComfyUI-MiniMax-H3-W4A4-VSA](https://github.com/sepiablue-ai/ComfyUI-MiniMax-H3-W4A4-VSA)
+
+NVIDIA RTX 4070というミドルクラスGPUをピンポイントで狙って最適化された、MiniMax-H3向けの高速化カスタムノード。FC1層を重み・活性化とも4bitまで落とす**W4A4量子化**で加速しつつ、「ストリーミングVSA」と呼ばれる疎（スパース）なアテンション機構を実装しているのが特徴。さらに、あらかじめ計算しておいたINT8ゲートの値や、固定的なpadding判定結果をキャッシュしておくことで、推論のたびに発生する計算を削減し、処理時間を短縮している。開発元の計測では、832×1408解像度・124フレーム・4ステップの生成が約149.7秒で完了し、従来手法と比べて約11%の高速化を確認したという。使い方は3段階で、①カスタムノードと必要モデルをインストール、②`convert.py`スクリプトを一度だけ実行してFC1層（全50層）を事前量子化、③ComfyUIのGUIでワークフローを読み込み、参照画像を指定して生成、という流れ。動作環境はWindows 11・Python 3.13・PyTorch 2.13.0+cu130を前提としている。GPL-3.0ライセンスで公開。
+
 ### ComfyUI-Minimax-H3-Extender - 短い動画クリップを継ぎ目なく延長するノード
 [GitHub - pmhaidn/ComfyUI-Minimax-H3-Extender](https://github.com/pmhaidn/ComfyUI-Minimax-H3-Extender)
 
