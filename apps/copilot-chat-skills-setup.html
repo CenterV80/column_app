@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Copilot Chatでスキル（Agent Skills）を使う手順</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #24292e 0%, #6e5494 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #24292e 0%, #40337a 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.1em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.05em;
+            opacity: 0.95;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin: 20px 0 0 30px;
+            color: #40337a;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            padding: 20px 30px 40px;
+        }
+
+        .section {
+            margin-bottom: 45px;
+        }
+
+        .section-title {
+            font-size: 1.6em;
+            color: #40337a;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #40337a;
+            font-weight: 700;
+        }
+
+        .lead {
+            background: #f4f2fa;
+            border-left: 4px solid #6e5494;
+            padding: 14px 18px;
+            border-radius: 4px;
+            color: #444;
+        }
+
+        .cmd {
+            margin-bottom: 20px;
+            padding: 18px 20px;
+            background: #f6f6f8;
+            border-left: 4px solid #40337a;
+            border-radius: 4px;
+        }
+
+        .cmd h3 {
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .cmd-description {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 14px 16px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.88em;
+            overflow-x: auto;
+            margin: 8px 0;
+            line-height: 1.6;
+            white-space: pre;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.95em;
+            color: #856404;
+        }
+
+        .note.info {
+            background: #e8f1fb;
+            border-left-color: #2b6cb0;
+            color: #1e4e79;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+            font-size: 0.95em;
+        }
+
+        th {
+            background: #40337a;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f6f6f8;
+        }
+
+        code {
+            background: #eef0f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        ul.tips {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        ul.tips li {
+            margin-bottom: 8px;
+        }
+
+        .steps {
+            counter-reset: step;
+            margin-top: 10px;
+        }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 26px;
+        }
+
+        .step-num {
+            flex: 0 0 auto;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #40337a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.05em;
+        }
+
+        .step-body {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .step-body h3 {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .trouble {
+            margin-bottom: 16px;
+            padding: 16px 20px;
+            border-radius: 4px;
+            border-left: 4px solid #d97706;
+            background: #fdf7ef;
+        }
+
+        .trouble h3 {
+            font-size: 1.05em;
+            margin-bottom: 6px;
+            color: #8a5a12;
+        }
+
+        footer {
+            background: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.25em;
+            }
+
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            th {
+                display: none;
+            }
+
+            td {
+                border: none;
+                border-bottom: 1px solid #e0e0e0;
+                padding: 6px 0;
+            }
+
+            td:before {
+                content: attr(data-label) "： ";
+                font-weight: 600;
+                color: #40337a;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="back-link" href="../categories/ai-coding/index.html">← AIコーディングに戻る</a>
+        <header>
+            <h1>🤖 Copilot Chatでスキルを使う手順</h1>
+            <p>VS CodeのGitHub Copilot Chatに「Agent Skills」を読み込ませて、自作の作業手順を呼び出せるようにする</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <div class="lead">
+                    <strong>スキル（Agent Skills）</strong>は、手順書やスクリプトをフォルダーにまとめておくと、
+                    Copilotが必要になったタイミングだけ読み込んでくれるしくみです。
+                    <code>copilot-instructions.md</code> のように常に読まれるものと違い、
+                    <strong>関係のある話題のときだけ読み込まれる</strong>ので、コンテキストを無駄に消費しません。
+                    ここでは例として、Houdiniのネットワークを HDA 化する手順をまとめた
+                    <code>houdini-hda</code> というスキルを作る流れで説明します。
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🚀 セットアップの7ステップ</h2>
+                <div class="steps">
+
+                    <div class="step">
+                        <div class="step-num">1</div>
+                        <div class="step-body">
+                            <h3>VS Codeを最新版に更新する</h3>
+                            <div class="cmd-description">
+                                スキル機能が入ったのは<strong>バージョン1.108（2025年12月）</strong>から。
+                                「ヘルプ → 更新の確認」で最新にしておきます。
+                            </div>
+                            <div class="note info">
+                                1.108の時点では実験的な機能でしたが、<strong>1.109（2026年1月）で既定でオン</strong>になりました。
+                                新しめのVS Codeを使っているなら、次のステップ3は基本的に不要です。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-num">2</div>
+                        <div class="step-body">
+                            <h3>GitHub Copilot Chat拡張を入れてサインインする</h3>
+                            <div class="cmd-description">
+                                拡張機能ビューから「GitHub Copilot Chat」をインストールし、GitHubアカウントでログインします。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <div class="step-body">
+                            <h3>スキル機能をオンにする（必要な場合のみ）</h3>
+                            <div class="cmd-description">
+                                設定（<code>Ctrl + ,</code>）で <code>chat.useAgentSkills</code> を検索してチェックを入れます。
+                                すでにオンなら何もしなくてOKです。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-num">4</div>
+                        <div class="step-body">
+                            <h3>スキル用フォルダーを作る</h3>
+                            <div class="cmd-description">
+                                VS Codeで開いているフォルダーのいちばん上に、スキル名と同じ名前のフォルダーを作ります。
+                            </div>
+                            <div class="code-block">&lt;プロジェクトのルート&gt;/
+  .claude/
+    skills/
+      houdini-hda/
+        SKILL.md</div>
+                            <div class="cmd-description">
+                                置き場所は1か所ではなく、次のどれでも読み込まれます。
+                            </div>
+                            <table>
+                                <tr>
+                                    <th>種類</th>
+                                    <th>置き場所</th>
+                                </tr>
+                                <tr>
+                                    <td data-label="種類">プロジェクト用（リポジトリに入れて共有する）</td>
+                                    <td data-label="置き場所"><code>.github/skills/</code>、<code>.claude/skills/</code>、<code>.agents/skills/</code></td>
+                                </tr>
+                                <tr>
+                                    <td data-label="種類">個人用（全プロジェクト共通で使う）</td>
+                                    <td data-label="置き場所"><code>~/.copilot/skills/</code>、<code>~/.claude/skills/</code>、<code>~/.agents/skills/</code></td>
+                                </tr>
+                            </table>
+                            <div class="note info">
+                                <code>.github/skills/</code> がVS Code標準の置き場所で、<code>.claude/skills/</code> はClaude Codeのスキルをそのまま使えるようにサポートされている場所です。
+                                Claude Codeと共用したいなら <code>.claude/skills/</code>、Copilot専用なら <code>.github/skills/</code> と使い分けると迷いません。
+                            </div>
+                            <div class="note">
+                                <strong>全プロジェクト共通にしたい場合：</strong> 上の表の「個人用」の場所（ユーザーフォルダー側）に作ります。
+                                かつて任意のフォルダーを追加登録できた <code>chat.agentSkillsLocations</code> 設定は現在<strong>非推奨</strong>なので、
+                                新しく設定するなら決められた場所に置くのが確実です。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-num">5</div>
+                        <div class="step-body">
+                            <h3><code>SKILL.md</code> を作る</h3>
+                            <div class="cmd-description">
+                                先頭にYAMLの見出し（フロントマター）として <code>name</code> と <code>description</code> を書き、
+                                その下に手順やルールを普通のMarkdownで書きます。
+                            </div>
+                            <div class="code-block">---
+name: houdini-hda
+description: HoudiniのノードネットワークをHDA(Digital Asset)化する手順とルール。「HDAにして」「デジタルアセット化して」と頼まれたときや、HDAのパラメータ設計・保存先の相談を受けたときに使う。
+---
+
+# Houdini HDA 作成ルール
+
+## 前提
+
+- HDAはSOPレベルで作る。Objectレベルで作らない
+  （他のジオメトリと繋げられなくなるため）
+- 保存先は プロジェクト直下の `hda/` フォルダー
+- ファイル名は `&lt;名前空間&gt;_&lt;アセット名&gt;.hda`
+
+## 手順
+
+1. HDA化したいノード群を選択し、`Shift + C` でサブネット化する
+2. サブネットを右クリック →「Create Digital Asset」
+3. Operator Name / Label / Save to Library を設定する
+4. Type Properties でパラメータを整理する
+5. 内部パラメータへのリンクが切れていないか確認する
+
+## 注意
+
+- 完成後は必ずシーンを開き直して、ライブラリから読み込めるか確認する</div>
+                            <div class="note">
+                                <strong><code>name</code> はフォルダー名と完全に一致させること。</strong>
+                                使えるのは英小文字・数字・ハイフンだけで、スラッシュ・コロン・ドットは使えません。
+                                ここが合っていないと、<strong>エラーも出ないまま黙って読み込まれない</strong>ので要注意です。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-num">6</div>
+                        <div class="step-body">
+                            <h3>チャットを「エージェント」モードにする</h3>
+                            <div class="cmd-description">
+                                Copilot Chatの入力欄の下にあるモード切り替えで「Agent」を選びます。
+                                実際に手を動かしてもらう用途ならこのモードが前提です。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-num">7</div>
+                        <div class="step-body">
+                            <h3>読み込まれたか確認する</h3>
+                            <div class="cmd-description">
+                                チャット入力欄で <code>/</code> を打つと、使えるスキルとプロンプトの一覧が出ます。
+                                ここに <code>houdini-hda</code> が並んでいればOK。
+                                <code>/skills</code> と打てば、スキルの有効・無効を切り替える「Configure Skills」メニューが開きます。
+                            </div>
+                            <div class="cmd-description">
+                                呼び出し方は2通りあります。
+                            </div>
+                            <ul class="tips">
+                                <li><strong>自分で指名する：</strong> <code>/houdini-hda</code> と打つ。うしろに <code>/houdini-hda このサブネットを</code> のように補足を足してもOK</li>
+                                <li><strong>自動で使ってもらう：</strong> 「このノードをHDA化して」と普通に頼むだけ。<code>description</code> の内容と話題が合えば、Copilotが自分で読み込みます</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🔧 うまく反応しないときは</h2>
+
+                <div class="trouble">
+                    <h3><code>name</code> とフォルダー名が一致しているか</h3>
+                    <div class="cmd-description">
+                        <code>.claude/skills/houdini-hda/</code> なら <code>name: houdini-hda</code>。
+                        ここがズレていると読み込まれません。大文字やアンダースコア、
+                        <code>myorg/houdini-hda</code> のような接頭辞も無効です。
+                    </div>
+                </div>
+
+                <div class="trouble">
+                    <h3><code>description</code> に「いつ使うか」が書かれているか</h3>
+                    <div class="cmd-description">
+                        Copilotは <code>description</code> だけを見て「この話題に使うべきか」を判断します。
+                        「HDA化の手順」とだけ書くより、
+                        「<strong>〜と頼まれたときに使う</strong>」まで具体的に書いたほうが自動で拾われやすくなります。
+                        自動で拾ってほしくない場合は、あえて <code>/houdini-hda</code> で毎回指名する運用にもできます。
+                    </div>
+                </div>
+
+                <div class="trouble">
+                    <h3>一覧には出るのに中身が効いていない</h3>
+                    <div class="cmd-description">
+                        <code>SKILL.md</code> 以外のファイル（スクリプトやテンプレート）は、
+                        <strong><code>SKILL.md</code> の中からリンクされていないと読み込まれません</strong>。
+                        <code>[テンプレート](./template.hip)</code> のように、相対パスのMarkdownリンクで参照しておきます。
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">📌 補足：instructionsとの使い分け</h2>
+                <div class="cmd">
+                    <div class="cmd-description">
+                        どちらもCopilotの動きをカスタマイズするものですが、役割が違います。
+                    </div>
+                    <table>
+                        <tr>
+                            <th>　</th>
+                            <th>スキル（Agent Skills）</th>
+                            <th>カスタム指示（copilot-instructions.md）</th>
+                        </tr>
+                        <tr>
+                            <td data-label="目的">目的</td>
+                            <td data-label="スキル">特定の作業手順・専門的な進め方を教える</td>
+                            <td data-label="カスタム指示">コーディング規約や全体のルールを決める</td>
+                        </tr>
+                        <tr>
+                            <td data-label="読み込み">読み込み</td>
+                            <td data-label="スキル">関係するときだけ、必要な分だけ</td>
+                            <td data-label="カスタム指示">常に適用される</td>
+                        </tr>
+                        <tr>
+                            <td data-label="中身">中身</td>
+                            <td data-label="スキル">手順書＋スクリプトやサンプルなどのファイル一式</td>
+                            <td data-label="カスタム指示">指示文のみ</td>
+                        </tr>
+                        <tr>
+                            <td data-label="持ち運び">持ち運び</td>
+                            <td data-label="スキル">共通仕様なので他のAIツールでも使える</td>
+                            <td data-label="カスタム指示">VS Code / GitHub.com向け</td>
+                        </tr>
+                    </table>
+                    <div class="note info">
+                        スキルは <a href="https://agentskills.io">agentskills.io</a> のオープン仕様に沿っているため、
+                        同じフォルダーをGitHub Copilot・Copilot CLI・Claude Codeなどで共有できます。
+                        既製のスキルは <a href="https://github.com/github/awesome-copilot">github/awesome-copilot</a> や
+                        <a href="https://github.com/anthropics/skills">anthropics/skills</a> にまとまっています
+                        （中身を確認してから使うこと）。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>📅 最終更新：2026年9月10日</p>
+        </footer>
+    </div>
+</body>
+</html>
