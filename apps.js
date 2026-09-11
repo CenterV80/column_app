@@ -235,6 +235,13 @@ const APPS = [
     category: "minimax-h3",
   },
   {
+    name: "絵コンテ追従 動画生成機能 技術仕様書",
+    description: "絵コンテのコマから MiniMax H3 で動画を生成するための技術仕様書(v0.1ドラフト)を、そのままコピペできるMarkdownで置いています。Ref2V参照・AddGuide・Fun ControlNetの3系統と、2パスサンプリングによる追従強度の制御をまとめました。",
+    path: "minimax-h3-storyboard-video-spec.html",
+    icon: "📋",
+    category: "minimax-h3",
+  },
+  {
     name: "絵コンテ→動画の追従性を上げたい: MiniMax H3のControlNet活用を検討したログ",
     description: "絵コンテのラフな構図をR2V生成に反映させる方法を検討し、Alibaba PAI製のMiniMax-H3-Fun-Controlnet-Unionという前例にたどり着くまでのログです。",
     path: "minimax-h3-storyboard-control.html",
