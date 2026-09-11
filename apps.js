@@ -235,6 +235,13 @@ const APPS = [
     category: "minimax-h3",
   },
   {
+    name: "MiniMax H3で絵コンテに追従させたい：参照画像・AddGuide・ControlNetの使い分け",
+    description: "H3には画像の渡し方が3種類あり、効くものがそれぞれ違います。参照画像・AddGuide・Fun ControlNetの役割分担と、前半ステップだけControlNetを効かせて構図と動きを両立させる構成を、前提から解説しました。",
+    path: "minimax-h3-storyboard-follow.html",
+    icon: "🎞️",
+    category: "minimax-h3",
+  },
+  {
     name: "絵コンテ追従 動画生成機能 技術仕様書",
     description: "絵コンテのコマから MiniMax H3 で動画を生成するための技術仕様書(v0.2ドラフト)を、そのままコピペできるMarkdownで置いています。Ref2V参照・AddGuide・Fun ControlNetの3系統と、2パスサンプリングによる追従強度の制御をまとめました。",
     path: "minimax-h3-storyboard-video-spec.html",
