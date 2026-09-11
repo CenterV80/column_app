@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>絵コンテ追従 動画生成機能 技術仕様書</title>
+<link rel="stylesheet" href="hub.css">
+<style>
+  #hub {
+    max-width: 860px;
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+  }
+
+  .btn {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: #6d5bd0;
+    border: 1px solid #6d5bd0;
+    border-radius: 8px;
+    padding: 9px 16px;
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    background: #5b4bc4;
+  }
+
+  .btn.secondary {
+    color: #6d5bd0;
+    background: #fff;
+  }
+
+  .btn.secondary[aria-pressed="true"] {
+    color: #fff;
+    background: #6d5bd0;
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .toggle-group {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .status {
+    font-size: 13px;
+    color: #4a9d5b;
+  }
+
+  .status.error {
+    color: #c0392b;
+  }
+
+  .hint {
+    font-size: 13px;
+    color: #777;
+    line-height: 1.8;
+    margin: 0 0 18px;
+  }
+
+  .raw {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 16px;
+    padding: 24px 26px;
+    margin: 0;
+    max-height: 70vh;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: #333;
+    tab-size: 2;
+  }
+
+  .article {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 16px;
+    padding: 36px 40px;
+  }
+
+  .article h1 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 24px;
+  }
+
+  .article h2 {
+    font-size: 19px;
+    font-weight: 700;
+    color: #6d5bd0;
+    border-bottom: 2px solid #efecfb;
+    padding-bottom: 8px;
+    margin: 36px 0 16px;
+  }
+
+  .article h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 24px 0 10px;
+  }
+
+  .article p {
+    font-size: 14.5px;
+    line-height: 1.9;
+    color: #333;
+    margin: 0 0 14px;
+  }
+
+  .article ul, .article ol {
+    font-size: 14.5px;
+    line-height: 1.9;
+    color: #333;
+    margin: 0 0 14px;
+    padding-left: 24px;
+  }
+
+  .article li {
+    margin-bottom: 4px;
+  }
+
+  .article li > p {
+    margin: 0;
+  }
+
+  .article code {
+    background: #f3f1fb;
+    color: #5b4bc4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+  }
+
+  .article pre {
+    background: #2d2d2d;
+    color: #f8f8f2;
+    padding: 16px 18px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 0 0 16px;
+    line-height: 1.6;
+  }
+
+  .article pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: 0.85em;
+  }
+
+  .article table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 16px;
+    font-size: 14px;
+  }
+
+  .article th, .article td {
+    border: 1px solid #e2e2e2;
+    padding: 10px 14px;
+    text-align: left;
+  }
+
+  .article th {
+    background: #f7f6fc;
+    color: #6d5bd0;
+    font-weight: 700;
+  }
+
+  .article strong {
+    color: #222;
+  }
+
+  .article a {
+    color: #6d5bd0;
+  }
+
+  .article hr {
+    border: none;
+    border-top: 1px solid #ececec;
+    margin: 28px 0;
+  }
+
+  .loading {
+    color: #999;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div id="hub">
+  <a class="back-link" href="categories/minimax-h3/index.html">← MiniMax H3に戻る</a>
+  <header>
+    <h1>絵コンテ追従 動画生成機能 技術仕様書</h1>
+    <p>MiniMax H3 / ComfyUI WebUI（v0.2 ドラフト）</p>
+  </header>
+  <p class="hint">
+    仕様書の本文をMarkdownのまま置いてあります。「マークダウンをコピー」でソース全文をクリップボードに取り込めるので、
+    そのままエディタやIssue、Confluenceなどに貼り付けられます。表示は「プレビュー」で整形済みに切り替えられます。
+  </p>
+  <div class="toolbar">
+    <button type="button" id="copy-btn" class="btn">マークダウンをコピー</button>
+    <span id="copy-status" class="status"></span>
+    <div class="toggle-group">
+      <button type="button" id="view-raw" class="btn secondary" aria-pressed="true">マークダウン</button>
+      <button type="button" id="view-preview" class="btn secondary" aria-pressed="false">プレビュー</button>
+    </div>
+  </div>
+  <pre id="raw" class="raw loading">読み込み中…</pre>
+  <div id="preview" hidden></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
+<script>
+  const raw = document.getElementById("raw");
+  const preview = document.getElementById("preview");
+  const copyBtn = document.getElementById("copy-btn");
+  const copyStatus = document.getElementById("copy-status");
+  const viewRawBtn = document.getElementById("view-raw");
+  const viewPreviewBtn = document.getElementById("view-preview");
+  let markdownSource = "";
+
+  fetch("minimax-h3-storyboard-video-spec.md")
+    .then((res) => res.text())
+    .then((markdown) => {
+      markdownSource = markdown;
+      raw.classList.remove("loading");
+      raw.textContent = markdown;
+      renderPreview(markdown);
+    })
+    .catch(() => {
+      raw.classList.remove("loading");
+      raw.textContent = "仕様書を読み込めませんでした。";
+    });
+
+  // プレビューは外部の marked に依存するため、読み込めなくてもコピー用の
+  // マークダウン表示だけは生き残るように、描画を分けて失敗を閉じ込める。
+  function renderPreview(markdown) {
+    try {
+      preview.innerHTML = '<div class="article">' + marked.parse(markdown) + "</div>";
+    } catch (e) {
+      viewPreviewBtn.disabled = true;
+      viewPreviewBtn.title = "プレビュー用のライブラリを読み込めませんでした。";
+    }
+  }
+
+  copyBtn.addEventListener("click", async () => {
+    if (!markdownSource) {
+      copyStatus.textContent = "まだ読み込めていません。";
+      copyStatus.classList.add("error");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(markdownSource);
+      copyStatus.textContent = "コピーしました。";
+      copyStatus.classList.remove("error");
+    } catch (e) {
+      copyStatus.textContent = "コピーに失敗しました。本文を選択してコピーしてください。";
+      copyStatus.classList.add("error");
+    }
+  });
+
+  function setView(showRaw) {
+    raw.hidden = !showRaw;
+    preview.hidden = showRaw;
+    viewRawBtn.setAttribute("aria-pressed", String(showRaw));
+    viewPreviewBtn.setAttribute("aria-pressed", String(!showRaw));
+  }
+
+  viewRawBtn.addEventListener("click", () => setView(true));
+  viewPreviewBtn.addEventListener("click", () => setView(false));
+</script>
+</body>
+</html>
