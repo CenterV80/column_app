@@ -385,7 +385,7 @@ LoadImage → 前処理 → RepeatImageBatch(amount = n_i) → ImageBatch で順
 | ControlNet 適用ノード | クラス名・入力名 | 公式テンプレートから取得 |
 | Ref2V ＋ AddGuide の併用 | 異なる種類の conditioning の同時投入になり、結果が変わる可能性がある | E2 / E6 |
 | AV latent の2パス受け渡し | ネスト構造 latent の後半パスへの入力 | 最小構成で動作確認 |
-| 2パス時の画質 | マルチステップサンプラーの履歴リセット | E3（splitStep = 20 と 1パスを比較） |
+| 2パス時の画質 | マルチステップサンプラーの履歴リセット | E3（splitStep = 8 と 1パスを比較） |
 | AddGuide の時間粒度 | 1フレーム単位か、数フレーム単位に丸められるか | E4 |
 | filler の解釈 | 無信号か、制約として働くか | E5 |
 | VRAM | ControlNet パッチ追加分と、15秒生成時の負荷 | 実測 |
