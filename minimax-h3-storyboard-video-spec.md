@@ -3,7 +3,7 @@ MiniMax H3 / ComfyUI WebUI
 
 | 項目 | 内容 |
 |---|---|
-| 版 | v0.1（ドラフト） |
+| 版 | v0.2（ドラフト）：DiT int8 pruned 採用、既定8ステップに変更 |
 | 作成日 | 2026-09-11 |
 | ステータス | 検証前。「要検証」「要確認」の項目は検証計画（14章）の結果で確定させる |
 
@@ -49,12 +49,14 @@ latent への直接書き込みは行わず、conditioning 側（AddGuide）と 
 
 | 種別 | ファイル | 配置先 |
 |---|---|---|
-| Diffusion | `minimax_h3_ref2va_pruned_*`（参照あり時）/ `minimax_h3_fl2va_pruned_*`（参照なし時） | `models/diffusion_models/` |
-| ControlNet パッチ | `minimax_h3_fun_controlnet_union_pruned_*` | `models/model_patches/` |
+| Diffusion | `minimax_h3_ref2va_pruned_int8_convrot`（参照あり時）/ `minimax_h3_fl2va_pruned_int8_convrot`（参照なし時） | `models/diffusion_models/` |
+| ControlNet パッチ | `minimax_h3_fun_controlnet_union_pruned_int8_convrot` | `models/model_patches/` |
 | Text Encoder | `qwen3vl_32b_minimax_h3_*`（CLIPLoader の type は `minimax`） | `models/text_encoders/` |
 | VAE | `minimax_h3_video_vae_fp16` / `minimax_h3_audio_vae_fp32` | `models/vae/` |
 
 fl2va と ref2va は別学習のチェックポイントで互換性がないため、参照画像の有無でどちらを使うかを切り替える。
+
+DiT は int8 pruned 版を標準とする。pruned 版の DiT と、オリジナル（非 pruned）の Fun ControlNet は重みの形式が異なり組み合わせられないため、ControlNet も必ず pruned 版を使う。この組み合わせ（ref2va pruned int8 ＋ ControlNet pruned int8）は公式テンプレートと同一。
 
 ## 4. 方式概要
 
@@ -91,7 +93,7 @@ CLIPLoader ─→ ReferenceToVideo ─┬→ positive → AddGuide(1) → AddGui
 | VAE 圧縮 | 空間16倍・時間4倍・24ch（f16t4d24） | 17k+5 グリッドと単純な4倍の関係は未解明 |
 | 推奨解像度 | 短辺768px（テンプレート既定） | |
 | 参照上限 | 画像9枚、動画3本（計15秒以内）、音声3本、合計12ファイル | MiniMax モデルカード準拠 |
-| サンプラー | `res_multistep` / `simple` / 約20ステップ / BasicGuider（CFGなし） | 参照が多い場合は `beta` / `normal` も候補 |
+| サンプラー | `res_multistep` / `simple` / 8ステップ / BasicGuider（CFGなし） | 8ステップまで落として品質を確認済み。参照が多い場合は `beta` / `normal` も候補 |
 
 **AddGuide の制約**（公式ドキュメントより）
 - `image` か `audio` のどちらかが必須。`image` 接続時は `vae` が必須
@@ -124,7 +126,7 @@ interface GenerationSettings {
   width: number;
   height: number;
   seed: number;
-  steps: number;                // 既定 20
+  steps: number;                // 既定 8
   sampler: string;              // 既定 "res_multistep"
   scheduler: string;            // 既定 "simple"
   control: ControlSettings;
@@ -277,7 +279,8 @@ guides.forEach((kf, i) => {
 - `BasicScheduler` → `SplitSigmas(step = splitStep)` で `high_sigmas` / `low_sigmas` を得る
 - 前半パスは `RandomNoise(seed)`、後半パスは `DisableNoise` を使い、前半の出力 latent をそのまま入力する
 - ControlNet パッチは model を clone して登録する想定のため、素の model と適用 model で重みの二重ロードは起きない見込み（要検証：VRAM 使用量で確認）
-- `res_multistep` はマルチステップ法のため、パス分割で履歴がリセットされる。1パス時との画質差を E3 で確認する
+- `res_multistep` はマルチステップ法のため、パス分割で履歴がリセットされる。8ステップでは1ステップの比重が大きく影響が出やすいため、1パス時との画質差を E3 で確認する
+- 8ステップでは切替位置の選択肢が 1〜7 しかなく、1ステップ動かすだけで効き方が大きく変わる。構図が決まる序盤（1〜4）を中心に1刻みで検証する
 - H3 の AV latent（ネスト構造）が SamplerCustomAdvanced の出力から次のパスへ正しく受け渡せるか要検証
 
 ## 10. コントロール動画の組み立て
@@ -329,7 +332,7 @@ LoadImage → 前処理 → RepeatImageBatch(amount = n_i) → ImageBatch で順
 - ルーラーは秒とフレームを切り替え可能。尺の終端は `snapLength` 後の値で表示する
 
 **制御パネル**
-- 「構図の追従」スライダー：splitStep（0〜steps）に対応。表示は「なし / 弱 / 中 / 強 / 最大」とし、内部値はステップ数
+- 「構図の追従」スライダー：splitStep（0〜steps、既定では 0〜8）に対応。表示は「なし / 弱 / 中 / 強 / 最大」とし、内部値はステップ数。各段階に割り当てるステップ数は E3 の結果で決める
 - ControlNet strength、前処理、モードの選択
 - 各系統（参照／ガイド／コントロール）の ON/OFF を個別に切り替え可能にする（検証の比較用）
 
@@ -354,14 +357,14 @@ LoadImage → 前処理 → RepeatImageBatch(amount = n_i) → ImageBatch で順
 
 ## 14. 検証計画
 
-条件はすべて同一（5秒・同一シード・同一プロンプト・同一キャラ参照・短辺768）とし、1変数ずつ変える。
+条件はすべて同一（5秒・同一シード・同一プロンプト・同一キャラ参照・短辺768・8ステップ・DiT int8 pruned）とし、1変数ずつ変える。
 
 | ID | 目的 | 条件 |
 |---|---|---|
 | E0 | ベースライン | 現行（絵コンテを Ref2V 参照に入れる） |
 | E1 | AddGuide にラフを置いた場合の効き | ラフを useAsGuide、ControlNet なし |
 | E2 | 追従の弱さがラフの分布ズレによるものか | 清書したキーフレームを useAsGuide、ControlNet なし |
-| E3 | ControlNet の適用範囲と動きのトレードオフ | hold モード、splitStep = 5 / 8 / 12 / 20 |
+| E3 | ControlNet の適用範囲と動きのトレードオフ | hold モード、steps = 8、splitStep = 1 / 2 / 3 / 4 / 6 / 8。splitStep = 8（2パス）と ControlNet 適用の1パスも比較 |
 | E4 | AddGuide の実効時間粒度 | 同一画像の frame_idx を 1 フレームずつずらして比較 |
 | E5 | window モードの filler の解釈 | windowFrames = 2 / 6、filler = black / white |
 | E6 | 併用効果 | E2 の最良条件 ＋ E3 の最良条件 |
