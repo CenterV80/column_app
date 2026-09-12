@@ -52,6 +52,7 @@
     autoFace: true, // 動かしたら、その進む向きに体も向ける
     view: "editor", // "editor" | "camera"
     mode: "move", // "move" | "lift" | "yaw" | "head"
+    camMode: "look", // カメラ視点での操作: "look"=ふる / "shift"=上下左右にずらす
     objects: [],
     selectedId: null,
     nextId: 1,
@@ -735,6 +736,28 @@
     return ownerOf((keep || near[0]).object);
   }
 
+  // カメラから被写体（キャラの真ん中あたり）までの距離。
+  // ずらす量をこれに合わせると、指の動きと画の動きが噛み合う。
+  function subjectDist(camObj) {
+    const chars = state.objects.filter((o) => o.type === "char");
+    if (!chars.length) return 4;
+    const c = new THREE.Vector3();
+    chars.forEach((o) => c.add(o.root.position));
+    c.divideScalar(chars.length);
+    c.y += 0.9;
+    return Math.max(1, camObj.root.position.distanceTo(c));
+  }
+
+  // カメラを画面と平行にずらす（水平＝カメラの真横、垂直＝ワールドの上下）
+  function shiftCamera(camObj, dx, dy, ref) {
+    const cam = camObj.root;
+    const h = viewRect ? viewRect.h : host.clientHeight || 1;
+    const k = (2 * Math.tan((cam.fov * Math.PI) / 180 / 2) * ref) / h;
+    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion);
+    cam.position.addScaledVector(right, dx * k);
+    cam.position.y = Math.max(0.05, cam.position.y - dy * k);
+  }
+
   function pointerCenter() {
     const p = Array.from(pointers.values());
     return {
@@ -748,7 +771,11 @@
     // pointerup を取りこぼして古い指が残ると、次の操作がいきなり2本指扱いになってしまう。
     // 新しい操作の始まりでは必ず掃除する。
     if (ev.isPrimary) pointers.clear();
-    renderer.domElement.setPointerCapture(ev.pointerId);
+    try {
+      renderer.domElement.setPointerCapture(ev.pointerId);
+    } catch (e) {
+      /* 掴み損ねても操作自体は続けられるので、ここで止めない */
+    }
     pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
     closePop();
 
@@ -765,7 +792,14 @@
       if (camObj) {
         select(camObj.id);
         setPlaying(false);
-        drag = { kind: "camlook", obj: camObj, x: ev.clientX, y: ev.clientY };
+        drag = {
+          kind: "camlook",
+          obj: camObj,
+          x: ev.clientX,
+          y: ev.clientY,
+          mode: ev.shiftKey || ev.button === 2 ? "shift" : state.camMode,
+          ref: subjectDist(camObj),
+        };
       }
       return;
     }
@@ -805,8 +839,9 @@
       const c = pointerCenter();
       if (state.view === "camera") {
         const camObj = theCamera();
-        if (camObj && c.d > 0) {
-          dollyCamera(camObj, (c.d - gesture.d) * 0.012);
+        if (camObj) {
+          if (c.d > 0) dollyCamera(camObj, (c.d - gesture.d) * 0.012);
+          shiftCamera(camObj, c.x - gesture.x, c.y - gesture.y, subjectDist(camObj));
           autoKey(camObj);
         }
       } else {
@@ -839,9 +874,13 @@
       orbit.target.addScaledVector(right, -dx * k).addScaledVector(up, dy * k);
       updateEditorCam();
     } else if (drag.kind === "camlook") {
-      const cam = drag.obj.root;
-      cam.rotation.y -= dx * 0.004;
-      cam.rotation.x = Math.max(-1.4, Math.min(1.4, cam.rotation.x - dy * 0.004));
+      if (drag.mode === "shift") {
+        shiftCamera(drag.obj, dx, dy, drag.ref);
+      } else {
+        const cam = drag.obj.root;
+        cam.rotation.y -= dx * 0.004;
+        cam.rotation.x = Math.max(-1.4, Math.min(1.4, cam.rotation.x - dy * 0.004));
+      }
       autoKey(drag.obj);
     } else if (drag.kind === "object") {
       applyObjectDrag(drag, ev, dx, dy);
@@ -1368,7 +1407,7 @@
         li("i-turn", "向きだけ変えたいとき", "道具の「体のむき」で向きだけ直せます。動かしても向きを変えたくないときは、設定の「進む向きを向く」を切ってください。") +
         li("i-add", "色は 赤→青→緑→黄 の順", "追加した順に色が決まり、5人目からまた赤に戻ります。") +
         li("i-play", "時間をあわせてから動かす", "下のバーで時間を選んでから動かすと、その時間に自動で記録されます。記録した点は左右にドラッグでずらせます。") +
-        li("i-cam", "カメラからのぞく", "画面をドラッグするとカメラが振れて、ホイールや2本指で前後に動きます。") +
+        li("i-cam", "カメラからのぞく", "右の道具で「ふる」と「上下左右にずらす」を切り替えられます。前後はホイールか2本指でひろげる操作、2本指を滑らせると上下左右にずれます。") +
         "</ul>" +
         (canHover
           ? "<h3>キーボード</h3><p><kbd>Space</kbd> 再生／とめる　<kbd>←</kbd><kbd>→</kbd> こま送り　" +
@@ -1437,6 +1476,7 @@
       setTip($("viewBtn"), cam ? "ぜんたいを見る" : "カメラからのぞく");
       $("framing").hidden = !cam;
       $("tools").hidden = cam;
+      $("camTools").hidden = !cam;
       if (cam) {
         const c = theCamera();
         if (c) select(c.id);
@@ -1462,6 +1502,14 @@
       if (!btn) return;
       state.mode = btn.dataset.mode;
       $("tools").querySelectorAll(".ib").forEach((b) => b.classList.toggle("is-active", b === btn));
+      if (!canHover) showToast(btn.getAttribute("data-tip"));
+    });
+
+    $("camTools").addEventListener("click", (ev) => {
+      const btn = ev.target.closest(".ib");
+      if (!btn) return;
+      state.camMode = btn.dataset.cam;
+      $("camTools").querySelectorAll(".ib").forEach((b) => b.classList.toggle("is-active", b === btn));
       if (!canHover) showToast(btn.getAttribute("data-tip"));
     });
 
@@ -1564,7 +1612,8 @@
         closeSheet();
         closePop();
       } else if (["1", "2", "3", "4"].indexOf(ev.key) >= 0) {
-        const btn = $("tools").querySelectorAll(".ib")[+ev.key - 1];
+        const bar = state.view === "camera" ? $("camTools") : $("tools");
+        const btn = bar.querySelectorAll(".ib")[+ev.key - 1];
         if (btn) btn.click();
       }
     });
