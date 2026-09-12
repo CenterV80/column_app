@@ -208,6 +208,9 @@ input[type="range"]::-moz-range-thumb {
   position: absolute;
   left: 50%;
   top: 50%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   transform: translate(-50%, -50%);
   background: rgba(12, 14, 20, 0.88);
   border: 1px solid var(--edge);
@@ -222,6 +225,29 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .toast.is-on { opacity: 1; }
+
+/* 取り消しが押せるときだけ、指が届く位置に出してタップも受ける */
+.toast.has-action {
+  pointer-events: auto;
+  top: auto;
+  bottom: calc(var(--dock-h, 120px) + 62px);
+  transform: translate(-50%, 0);
+}
+
+.toast-btn {
+  appearance: none;
+  border: 0;
+  background: var(--hot);
+  color: #20130f;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toast-btn:hover { background: #ff8d73; }
 
 /* ---------------------------------------------------------- 設定 */
 
@@ -417,6 +443,18 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .key.is-current { box-shadow: 0 0 0 2px #fff, 0 1px 4px rgba(0, 0, 0, 0.5); }
+
+/* 離せば消える状態。手が滑っただけなら戻せるよう、見た目で予告する */
+.key.is-discard {
+  opacity: 0.3;
+  transform: rotate(45deg) scale(0.5);
+  box-shadow: none;
+}
+
+.tl-track.is-dropping {
+  background: rgba(255, 122, 92, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 122, 92, 0.5);
+}
 
 .tl-playhead {
   position: absolute;
