@@ -1183,16 +1183,55 @@
   }
 
   let toastTimer = null;
-  function showToast(text) {
+
+  // undo を渡すと「もどす」付きで、少し長めに出る
+  function showToast(text, undo) {
     const el = $("toast");
-    el.textContent = text;
+    const btn = $("toastAction");
+    $("toastText").textContent = text;
+    el.classList.toggle("has-action", !!undo);
+    btn.hidden = !undo;
+    if (undo) {
+      btn.textContent = "もどす";
+      btn.onclick = () => {
+        hideToast();
+        undo();
+      };
+    }
     el.hidden = false;
     requestAnimationFrame(() => el.classList.add("is-on"));
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-      el.classList.remove("is-on");
-      setTimeout(() => (el.hidden = true), 220);
-    }, 1100);
+    toastTimer = setTimeout(hideToast, undo ? 5000 : 1100);
+  }
+
+  function hideToast() {
+    clearTimeout(toastTimer);
+    const el = $("toast");
+    el.classList.remove("is-on");
+    setTimeout(() => {
+      el.hidden = true;
+      el.classList.remove("has-action");
+      $("toastAction").hidden = true;
+    }, 220);
+  }
+
+  // キーを消す。消したものは「もどす」で戻せるようにしておく。
+  function dropKey(obj, frame) {
+    if (obj.keys.length <= 1) {
+      showToast("最後のひとつは消せません");
+      return false;
+    }
+    const gone = obj.keys.find((k) => k.f === frame);
+    if (!gone || !deleteKeyAt(obj, frame)) return false;
+    applyFrame(state.current);
+    showToast("キーをけしました", () => {
+      obj.keys.push(gone);
+      obj.keys.sort((a, b) => a.f - b.f);
+      markDirty();
+      setFrame(gone.f);
+      select(obj.id);
+    });
+    return true;
   }
 
   // ---------------------------------------------------------------- タイムライン
@@ -1227,16 +1266,20 @@
     let tracks = "";
     state.objects.forEach((obj) => {
       const sel = obj.id === state.selectedId ? " is-selected" : "";
+      const dropRow = tlDrag && tlDrag.kind === "key" && tlDrag.discard && tlDrag.obj.id === obj.id ? " is-dropping" : "";
       dots +=
         '<div class="tl-dot' + sel + '" data-obj="' + obj.id + '" title="' + escapeHtml(obj.name) +
         '"><span style="background:' + obj.css + '"></span></div>';
       let keys = "";
       obj.keys.forEach((k) => {
+        const dropping =
+          tlDrag && tlDrag.kind === "key" && tlDrag.discard && tlDrag.obj.id === obj.id && tlDrag.frame === k.f;
         keys +=
-          '<div class="key' + (k.f === state.current ? " is-current" : "") + '" data-obj="' + obj.id +
+          '<div class="key' + (k.f === state.current ? " is-current" : "") + (dropping ? " is-discard" : "") +
+          '" data-obj="' + obj.id +
           '" data-frame="' + k.f + '" style="left:' + frameToX(k.f) + "px;background:" + obj.css + '"></div>';
       });
-      tracks += '<div class="tl-track' + sel + '" data-obj="' + obj.id + '">' + keys + "</div>";
+      tracks += '<div class="tl-track' + sel + dropRow + '" data-obj="' + obj.id + '">' + keys + "</div>";
     });
     tlDots.innerHTML = dots;
     tlTracks.innerHTML = tracks;
@@ -1260,6 +1303,7 @@
   }
 
   let tlDrag = null;
+  let hintedDrop = false; // はらって消せることは、最初の1回だけ教える
 
   function tlPointerDown(ev) {
     const keyEl = ev.target.closest ? ev.target.closest(".key") : null;
@@ -1271,7 +1315,11 @@
       const frame = +keyEl.dataset.frame;
       select(obj.id);
       setFrame(frame);
-      tlDrag = { kind: "key", obj: obj, frame: frame };
+      tlDrag = { kind: "key", obj: obj, frame: frame, sy: ev.clientY, discard: false };
+      if (!hintedDrop) {
+        hintedDrop = true;
+        showToast("上か下にはらうと消せます");
+      }
     } else {
       const trackEl = ev.target.closest ? ev.target.closest(".tl-track") : null;
       if (trackEl) select(+trackEl.dataset.obj);
@@ -1289,21 +1337,37 @@
 
     if (tlDrag.kind === "scrub") {
       setFrame(f);
-    } else if (tlDrag.kind === "key" && f !== tlDrag.frame) {
-      const obj = tlDrag.obj;
-      const k = obj.keys.find((x) => x.f === tlDrag.frame);
-      if (!k) return;
-      const clash = obj.keys.find((x) => x.f === f && x !== k);
-      if (clash) obj.keys.splice(obj.keys.indexOf(clash), 1);
-      k.f = f;
-      obj.keys.sort((a, b) => a.f - b.f);
-      tlDrag.frame = f;
-      markDirty();
-      setFrame(f);
+    } else if (tlDrag.kind === "key") {
+      // レーンから大きく外したら「離せば消える」状態に入る。
+      // 横にずらす操作と混ざらないよう、しきい値はレーンの高さより大きくとる。
+      const want = Math.abs(ev.clientY - tlDrag.sy) > 34;
+      if (want !== tlDrag.discard) {
+        tlDrag.discard = want;
+        tlDirty = true;
+      }
+      if (!tlDrag.discard && f !== tlDrag.frame) {
+        const obj = tlDrag.obj;
+        const k = obj.keys.find((x) => x.f === tlDrag.frame);
+        if (!k) return;
+        const clash = obj.keys.find((x) => x.f === f && x !== k);
+        if (clash) obj.keys.splice(obj.keys.indexOf(clash), 1);
+        k.f = f;
+        obj.keys.sort((a, b) => a.f - b.f);
+        tlDrag.frame = f;
+        markDirty();
+        setFrame(f);
+      }
     }
   }
 
-  const tlPointerUp = () => (tlDrag = null);
+  function tlPointerUp() {
+    const d = tlDrag;
+    tlDrag = null;
+    if (d && d.kind === "key" && d.discard) {
+      tlDirty = true;
+      dropKey(d.obj, d.frame);
+    }
+  }
 
   // ---------------------------------------------------------------- 書き出し
 
@@ -1592,6 +1656,7 @@
         li("i-turn", "向きだけ変えたいとき", "道具の「体のむき」で向きだけ直せます。動かしても向きを変えたくないときは、設定の「進む向きを向く」を切ってください。") +
         li("i-add", "色は 赤→青→緑→黄 の順", "追加した順に色が決まり、5人目からまた赤に戻ります。") +
         li("i-play", "時間をあわせてから動かす", "下のバーで時間を選んでから動かすと、その時間に自動で記録されます。記録した点は左右にドラッグでずらせます。") +
+        li("i-trash", "記録した点を消す", "点をつまんで上か下にはらうと消えます。薄くなったところで指を離すと確定。消した直後に出る「もどす」で戻せます。") +
         li("i-look", "見たい人を画面でタップ", "カメラ視点でキャラをタップすると、その人を見続けます。あとはドラッグするだけで、その人を画面に収めたままぐるっと回り込めます。もう一度タップするか、何もない所をタップで解除。") +
         li("i-cam", "カメラからのぞく", "誰も見ていないときは、右の道具で「ふる」と「上下左右にずらす」を切り替えられます。前後はホイールか2本指でひろげる操作です。") +
         "</ul>" +
@@ -1707,9 +1772,25 @@
     $("selDelete").onclick = () => {
       const obj = selected();
       if (!obj || obj.type === "camera") return;
+      // 戻せるように、消す前の姿を控えておく
+      const at = state.objects.indexOf(obj);
+      const snap = { name: obj.name, colorIndex: obj.colorIndex, keys: JSON.parse(JSON.stringify(obj.keys)) };
+      const camObj = theCamera();
+      const wasLook = !!(camObj && camObj.lookAt === obj.id);
       removeObject(obj);
       select(state.objects.length ? state.objects[0].id : null);
       markDirty();
+      showToast(snap.name + "をけしました", () => {
+        const o = addCharacter(snap);
+        state.charCount--; // 元からいた分なので色の順番は進めない
+        state.objects.splice(state.objects.indexOf(o), 1);
+        state.objects.splice(at, 0, o);
+        const c = theCamera();
+        if (wasLook && c) c.lookAt = o.id;
+        applyFrame(state.current);
+        select(o.id);
+        markDirty();
+      });
     };
 
     $("selLens").addEventListener("input", () => {
@@ -1798,7 +1879,7 @@
         setFrame(state.current + (ev.shiftKey ? 10 : 1));
       } else if (ev.key === "Delete" || ev.key === "Backspace") {
         const obj = selected();
-        if (obj && deleteKeyAt(obj, state.current)) applyFrame(state.current);
+        if (obj) dropKey(obj, state.current);
       } else if (ev.key === "Escape") {
         closeSheet();
         closePop();
