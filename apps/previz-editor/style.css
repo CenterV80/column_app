@@ -158,7 +158,12 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   gap: 8px;
   padding: 4px 6px 4px 14px;
   max-width: calc(100% - 20px);
+  /* 名前の表示でしかない部分がキャラへのタップを食わないようにする */
+  pointer-events: none;
 }
+
+.sel .ib,
+.sel input[type="range"] { pointer-events: auto; }
 
 .sel-dot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
 

@@ -191,11 +191,15 @@
     cone.castShadow = true;
     headPivot.add(cone);
 
-    // 指でつかみやすいように、見えない大きめの当たり判定を足す（揺れの外side）
-    root.add(hitProxy(0.86, 1.85, 0.86, 0.92));
+    // 指でつかみやすいように、見えない当たり判定を足す（揺れの外側に置いて的が動かないようにする）。
+    // 隣のキャラ（1.15m間隔）と重ならない幅に留める。
+    const proxy = hitProxy(0.7, 1.75, 0.7, 0.88);
+    root.add(proxy);
 
     root.userData.headPivot = headPivot;
     root.userData.fx = fx;
+    root.userData.solids = [body, neck, head, cone]; // 実際に見えている面
+    root.userData.proxy = proxy;
     return root;
   }
 
@@ -229,7 +233,10 @@
     rig.add(frustum);
     rig.userData.frustum = frustum;
 
-    rig.add(hitProxy(0.8, 0.8, 0.9, 0));
+    const proxy = hitProxy(0.62, 0.62, 0.8, 0);
+    rig.add(proxy);
+    rig.userData.solids = [box, lensMesh];
+    rig.userData.proxy = proxy;
 
     camera.add(rig);
     camera.userData.rig = rig;
@@ -471,6 +478,7 @@
 
   let trailsDirty = true;
   let tlDirty = true;
+  let lastTlRender = 0;
 
   function markDirty() {
     trailsDirty = true;
@@ -618,7 +626,11 @@
 
     updateFx(dt);
     if (trailsDirty) rebuildTrails();
-    if (tlDirty) renderTimeline();
+    // ドラッグ中は毎フレーム自動キーが入るので、タイムラインの作り直しは間引く
+    if (tlDirty && (!drag || clock.elapsedTime - lastTlRender > 0.12)) {
+      lastTlRender = clock.elapsedTime;
+      renderTimeline();
+    }
 
     const camObj = theCamera();
     const useCamView = state.view === "camera" && camObj;
@@ -687,18 +699,39 @@
     );
   }
 
-  function pickObject(ev) {
-    raycaster.setFromCamera(ndc(ev), editorCam);
-    const targets = state.objects.map((o) => (o.type === "camera" ? o.root.userData.rig : o.root));
-    const hits = raycaster.intersectObjects(targets, true);
-    for (const hit of hits) {
-      let n = hit.object;
-      while (n) {
-        if (n.userData && n.userData.objId != null) return objById(n.userData.objId);
-        n = n.parent;
-      }
+  function ownerOf(node) {
+    let n = node;
+    while (n) {
+      if (n.userData && n.userData.objId != null) return objById(n.userData.objId);
+      n = n.parent;
     }
     return null;
+  }
+
+  // 見えている面を最優先で拾い、どれにも当たらなかったときだけ当たり判定に頼る。
+  // 当たり判定だけで判断すると、手前のキャラの見えない箱が奥のキャラを隠してしまう。
+  function pickObject(ev) {
+    raycaster.setFromCamera(ndc(ev), editorCam);
+
+    const solids = [];
+    const proxies = [];
+    state.objects.forEach((o) => {
+      const holder = o.type === "camera" ? o.root.userData.rig : o.root;
+      if (holder.userData.solids) solids.push.apply(solids, holder.userData.solids);
+      if (holder.userData.proxy) proxies.push(holder.userData.proxy);
+    });
+
+    const seen = raycaster.intersectObjects(solids, false);
+    if (seen.length) return ownerOf(seen[0].object);
+
+    const near = raycaster.intersectObjects(proxies, false);
+    if (!near.length) return null;
+    // 指が少しずれただけなら、いま選んでいるものを優先して外れないようにする
+    const keep = near.find((h) => {
+      const o = ownerOf(h.object);
+      return o && o.id === state.selectedId;
+    });
+    return ownerOf((keep || near[0]).object);
   }
 
   function pointerCenter() {
@@ -711,6 +744,9 @@
   }
 
   function onPointerDown(ev) {
+    // pointerup を取りこぼして古い指が残ると、次の操作がいきなり2本指扱いになってしまう。
+    // 新しい操作の始まりでは必ず掃除する。
+    if (ev.isPrimary) pointers.clear();
     renderer.domElement.setPointerCapture(ev.pointerId);
     pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
     closePop();
