@@ -388,7 +388,9 @@
     return new THREE.Vector3(t.root.position.x, t.root.position.y + LOOK_H, t.root.position.z);
   }
 
-  // 注視中なら、カメラの向きは相手の位置から毎回決める（キーの回転より優先）
+  // 注視中の「操作のとき」だけ、カメラを相手に向ける。
+  // 再生やスクラブでは呼ばない。呼ぶとキーの回転を無視して全時間の見え方が変わり、
+  // 注視を入り切りするたびにカット全体が変わってしまうため。
   function aimCamera() {
     const camObj = theCamera();
     if (!camObj || camObj.lookAt == null) return;
@@ -399,25 +401,6 @@
     }
     const f = lookPoint(t);
     camObj.root.lookAt(f);
-  }
-
-  // 注視をやめるとき、今まで見ていた向きを各キーに焼き込んで、見た目が飛ばないようにする
-  function bakeLook(camObj) {
-    const t = objById(camObj.lookAt);
-    if (!t) return;
-    const cam = camObj.root;
-    const keepP = cam.position.clone();
-    const keepR = cam.rotation.clone();
-    camObj.keys.forEach((k) => {
-      const ts = sample(t, k.f);
-      cam.position.set(k.p.x, k.p.y, k.p.z);
-      cam.lookAt(ts.p.x, ts.p.y + LOOK_H, ts.p.z);
-      k.r.x = cam.rotation.x;
-      k.r.y = cam.rotation.y;
-      k.r.z = cam.rotation.z;
-    });
-    cam.position.copy(keepP);
-    cam.rotation.copy(keepR);
   }
 
   // 相手を中心にした球面座標。注視中はこの上をすべらせて動かす。
@@ -453,10 +436,12 @@
     const camObj = theCamera();
     if (!camObj) return;
     const next = camObj.lookAt === id ? null : id;
-    if (next == null && camObj.lookAt != null) bakeLook(camObj);
     camObj.lookAt = next;
-    aimCamera();
-    if (next != null) autoKey(camObj);
+    // 向けるのも記録するのも「いまの時間」だけ。他のキーには触らない。
+    if (next != null) {
+      aimCamera();
+      autoKey(camObj);
+    }
     updateLookUi();
     markDirty();
     showToast(next != null ? objById(next).name + "を見ながら動きます" : "見るのをやめました");
@@ -583,7 +568,6 @@
         }
       }
     });
-    aimCamera(); // 全員の位置が決まってから向ける
     updateSelRing();
   }
 
@@ -1657,7 +1641,7 @@
         li("i-add", "色は 赤→青→緑→黄 の順", "追加した順に色が決まり、5人目からまた赤に戻ります。") +
         li("i-play", "時間をあわせてから動かす", "下のバーで時間を選んでから動かすと、その時間に自動で記録されます。記録した点は左右にドラッグでずらせます。") +
         li("i-trash", "記録した点を消す", "点をつまんで上か下にはらうと消えます。薄くなったところで指を離すと確定。消した直後に出る「もどす」で戻せます。") +
-        li("i-look", "見たい人を画面でタップ", "カメラ視点でキャラをタップすると、その人を見続けます。あとはドラッグするだけで、その人を画面に収めたままぐるっと回り込めます。もう一度タップするか、何もない所をタップで解除。") +
+        li("i-look", "見たい人を画面でタップ", "カメラ視点でキャラをタップすると、その人を中心にドラッグで回り込めます。記録されるのはいまの時間のカメラだけで、他の時間の動きは変わりません。もう一度タップするか、何もない所をタップで解除。") +
         li("i-cam", "カメラからのぞく", "誰も見ていないときは、右の道具で「ふる」と「上下左右にずらす」を切り替えられます。前後はホイールか2本指でひろげる操作です。") +
         "</ul>" +
         (canHover
