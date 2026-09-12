@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#12141b">
+<title>プレビズエディタ | column_app</title>
+<link rel="stylesheet" href="style.css">
+<!-- three.js は同梱（CDN 依存だとオフラインや回線制限で真っ黒になるため） -->
+<script src="vendor/three.min.js"></script>
+</head>
+<body>
+
+<!-- アイコンはすべてここのシンボルを使い回す -->
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-add" viewBox="0 0 24 24"><circle cx="9" cy="7.5" r="3"/><path d="M3.5 19.5c0-3 2.4-5 5.5-5s5.5 2 5.5 5M18.5 9v6M15.5 12h6"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><rect x="2.5" y="7.5" width="12" height="9" rx="2"/><path d="M14.5 11l6-3.5v9l-6-3.5z"/></symbol>
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM12 12l8-4.5M12 12v9M12 12L4 7.5"/></symbol>
+  <symbol id="i-tune" viewBox="0 0 24 24"><path d="M3 7h5M13 7h8M3 12h11M19 12h2M3 17h3M11 17h10"/><circle cx="10.5" cy="7" r="2"/><circle cx="16.5" cy="12" r="2"/><circle cx="8.5" cy="17" r="2"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3.5v11M8 11l4 4 4-4M4.5 19.5h15"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .9-1 1.6v.3M12 17.2h.01"/></symbol>
+  <symbol id="i-move" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-2.6 2.8M12 3l2.6 2.8M12 21l-2.6-2.8M12 21l2.6-2.8M3 12l2.8-2.6M3 12l2.8 2.6M21 12l-2.8-2.6M21 12l-2.8 2.6"/></symbol>
+  <symbol id="i-lift" viewBox="0 0 24 24"><path d="M12 3.5v17M12 3.5L8.5 7M12 3.5L15.5 7M12 20.5L8.5 17M12 20.5l3.5-3.5"/></symbol>
+  <symbol id="i-turn" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7M20.5 3v4.2h-4.2"/></symbol>
+  <symbol id="i-head" viewBox="0 0 24 24"><circle cx="10" cy="12" r="4.4"/><path d="M14.4 12l6-3.4v6.8l-6-3.4z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.2l11 6.8-11 6.8z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9.5 5v14M14.5 5v14"/></symbol>
+  <symbol id="i-start" viewBox="0 0 24 24"><path d="M6 5v14M19 5.5L8.5 12 19 18.5z"/></symbol>
+  <symbol id="i-end" viewBox="0 0 24 24"><path d="M18 5v14M5 5.5L15.5 12 5 18.5z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.8h5V7M6.5 7l1 12.2h9L17.5 7"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15.5V6a2 2 0 0 1 2-2h8.5"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16.5l4.5-4.5 3.5 3.5 3-3 7 7"/><circle cx="8.5" cy="9.5" r="1.2"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4.5h11l3 3v12h-14zM8.5 4.5v5.5h7V4.5M8.5 19.5v-6h7v6"/></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><path d="M3 19V6a1 1 0 0 1 1-1h5l2 2.2h8a1 1 0 0 1 1 1V19z"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+</svg>
+
+<div class="stage" id="stage">
+  <div class="canvas-host" id="canvasHost"></div>
+
+  <!-- カメラ視点のフレーミングガイド -->
+  <div class="framing" id="framing" hidden>
+    <div class="frame-box" id="frameBox"><div class="thirds"></div></div>
+  </div>
+
+  <div class="hud-top">
+    <div class="pill">
+      <a class="ib tip-b" href="../../categories/mini-apps/" data-tip="もどる" aria-label="もどる"><svg><use href="#i-back"/></svg></a>
+      <span class="app-name">プレビズ</span>
+    </div>
+    <div class="pill">
+      <button class="ib tip-b" id="addBtn" data-tip="キャラをふやす" aria-label="キャラをふやす"><svg><use href="#i-add"/></svg></button>
+      <button class="ib tip-b" id="viewBtn" data-tip="カメラからのぞく" aria-label="カメラからのぞく"><svg id="viewIcon"><use href="#i-cam"/></svg></button>
+      <button class="ib tip-b" id="tuneBtn" data-tip="設定" aria-label="設定"><svg><use href="#i-tune"/></svg></button>
+      <button class="ib tip-b" id="shareBtn" data-tip="書き出す" aria-label="書き出す"><svg><use href="#i-share"/></svg></button>
+      <button class="ib tip-b" id="helpBtn" data-tip="つかいかた" aria-label="つかいかた"><svg><use href="#i-help"/></svg></button>
+    </div>
+  </div>
+
+  <div class="pill tools" id="tools">
+    <button class="ib tip-l is-active" data-mode="move" data-tip="うごかす" aria-label="うごかす"><svg><use href="#i-move"/></svg></button>
+    <button class="ib tip-l" data-mode="lift" data-tip="たかさ" aria-label="たかさ"><svg><use href="#i-lift"/></svg></button>
+    <button class="ib tip-l" data-mode="yaw" data-tip="体のむき" aria-label="体のむき"><svg><use href="#i-turn"/></svg></button>
+    <button class="ib tip-l" data-mode="head" data-tip="頭のむき" aria-label="頭のむき"><svg><use href="#i-head"/></svg></button>
+  </div>
+
+  <div class="pill sel" id="sel" hidden>
+    <span class="sel-dot" id="selDot"></span>
+    <span class="sel-name" id="selName"></span>
+    <span class="sel-lens" id="selLensWrap" hidden>
+      <input type="range" id="selLens" min="14" max="120" step="1" aria-label="レンズ">
+      <b id="selLensOut">35mm</b>
+    </span>
+    <button class="ib ib-sm tip-t" id="selDelete" data-tip="けす" aria-label="けす"><svg><use href="#i-trash"/></svg></button>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- 設定（ふだんは隠しておく） -->
+  <div class="pop" id="pop" hidden>
+    <label class="pop-row">
+      <span class="pop-label">ながさ</span>
+      <input type="range" id="pDur" min="1" max="15" step="0.5">
+      <b id="pDurOut">5.0秒</b>
+    </label>
+    <div class="pop-row">
+      <span class="pop-label">なめらかさ</span>
+      <div class="seg" id="pEase">
+        <button data-v="smooth">ふんわり</button>
+        <button data-v="linear">まっすぐ</button>
+      </div>
+    </div>
+    <div class="pop-row">
+      <span class="pop-label">こまかさ</span>
+      <div class="seg" id="pFps">
+        <button data-v="12">12</button>
+        <button data-v="24">24</button>
+        <button data-v="30">30</button>
+      </div>
+    </div>
+    <label class="pop-row"><span class="pop-label">くりかえす</span><span class="sw"><input type="checkbox" id="pLoop" checked><i></i></span></label>
+    <label class="pop-row"><span class="pop-label">通り道をみせる</span><span class="sw"><input type="checkbox" id="pTrails" checked><i></i></span></label>
+    <label class="pop-row"><span class="pop-label">床のマス目</span><span class="sw"><input type="checkbox" id="pGrid" checked><i></i></span></label>
+  </div>
+</div>
+
+<div class="dock" id="dock">
+  <div class="dock-bar">
+    <button class="ib tip-t" id="startBtn" data-tip="さいしょへ" aria-label="さいしょへ"><svg><use href="#i-start"/></svg></button>
+    <button class="ib ib-play" id="playBtn" aria-label="再生"><svg id="playIcon"><use href="#i-play"/></svg></button>
+    <button class="ib tip-t" id="endBtn" data-tip="さいごへ" aria-label="さいごへ"><svg><use href="#i-end"/></svg></button>
+    <span class="time" id="timeRead">0.0<i>/5.0s</i></span>
+    <span class="grow"></span>
+    <span class="autokey tip-t" data-tip="動かすと、その時間に自動で記録されます">
+      <i></i>じどう記録
+    </span>
+  </div>
+  <div class="dock-tl">
+    <div class="tl-dots" id="tlDots"></div>
+    <div class="tl-lanes" id="tlLanes">
+      <div class="tl-ruler" id="tlRuler"></div>
+      <div class="tl-tracks" id="tlTracks"></div>
+      <div class="tl-playhead" id="tlPlayhead"></div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-box">
+    <div class="sheet-head">
+      <h2 id="sheetTitle"></h2>
+      <button class="ib" id="sheetClose" aria-label="とじる"><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
