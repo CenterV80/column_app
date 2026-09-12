@@ -30,6 +30,7 @@
   const CAM_CSS = "#cfd6e4";
 
   const STORAGE_KEY = "previz-editor.scene.v1";
+  const LOOK_H = 1.2; // キャラのどのあたりを見るか（胸から頭の間）
 
   const lensToFov = (mm) => 2 * Math.atan(SENSOR_H / 2 / mm) * (180 / Math.PI);
   const fovToLens = (fov) => SENSOR_H / 2 / Math.tan((fov * Math.PI) / 180 / 2);
@@ -129,6 +130,23 @@
 
   const trailGroup = new THREE.Group();
   scene.add(trailGroup);
+
+  // 見ている相手を示す印。カメラ視点で注視中だけ出す。
+  const reticle = new THREE.Mesh(
+    new THREE.RingGeometry(0.44, 0.5, 48),
+    new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.55,
+      side: THREE.DoubleSide,
+      // 相手の体の中に埋まって見えなくなるので、奥行きを見ずに手前へ描く
+      depthTest: false,
+      depthWrite: false,
+    })
+  );
+  reticle.renderOrder = 999;
+  reticle.visible = false;
+  scene.add(reticle);
 
   // 選択ハイライト（足元のリング）
   const selRing = new THREE.Mesh(
@@ -332,6 +350,7 @@
       root: cam,
       keys: [],
       fx: { amp: 0, t: 0, spawn: 0 },
+      lookAt: null, // 見続ける相手（キャラのid）
     };
     state.objects.push(obj);
 
@@ -357,11 +376,102 @@
     });
     state.objects = state.objects.filter((o) => o !== obj);
     if (state.selectedId === obj.id) state.selectedId = null;
+    const camObj = theCamera();
+    if (camObj && camObj.lookAt === obj.id) camObj.lookAt = null;
   }
 
   const objById = (id) => state.objects.find((o) => o.id === id) || null;
   const selected = () => objById(state.selectedId);
   const theCamera = () => state.objects.find((o) => o.type === "camera") || null;
+
+  function lookPoint(t) {
+    return new THREE.Vector3(t.root.position.x, t.root.position.y + LOOK_H, t.root.position.z);
+  }
+
+  // 注視中なら、カメラの向きは相手の位置から毎回決める（キーの回転より優先）
+  function aimCamera() {
+    const camObj = theCamera();
+    if (!camObj || camObj.lookAt == null) return;
+    const t = objById(camObj.lookAt);
+    if (!t) {
+      camObj.lookAt = null;
+      return;
+    }
+    const f = lookPoint(t);
+    camObj.root.lookAt(f);
+  }
+
+  // 注視をやめるとき、今まで見ていた向きを各キーに焼き込んで、見た目が飛ばないようにする
+  function bakeLook(camObj) {
+    const t = objById(camObj.lookAt);
+    if (!t) return;
+    const cam = camObj.root;
+    const keepP = cam.position.clone();
+    const keepR = cam.rotation.clone();
+    camObj.keys.forEach((k) => {
+      const ts = sample(t, k.f);
+      cam.position.set(k.p.x, k.p.y, k.p.z);
+      cam.lookAt(ts.p.x, ts.p.y + LOOK_H, ts.p.z);
+      k.r.x = cam.rotation.x;
+      k.r.y = cam.rotation.y;
+      k.r.z = cam.rotation.z;
+    });
+    cam.position.copy(keepP);
+    cam.rotation.copy(keepR);
+  }
+
+  // 相手を中心にした球面座標。注視中はこの上をすべらせて動かす。
+  function orbitStateOf(camObj) {
+    const t = objById(camObj.lookAt);
+    if (!t) return null;
+    const f = lookPoint(t);
+    const off = camObj.root.position.clone().sub(f);
+    const r = Math.max(0.5, off.length());
+    return { f: f, r: r, theta: Math.atan2(off.x, off.z), phi: Math.acos(Math.max(-1, Math.min(1, off.y / r))) };
+  }
+
+  // 床にめり込まない範囲に上下の回り込みを収める。
+  // 高さ側で切ると相手との距離が変わってしまうので、角度の側で止める。
+  function clampPhi(o, phi) {
+    const lo = 0.12;
+    const hi = Math.max(lo, Math.min(Math.PI - 0.12, Math.acos(Math.max(-1, Math.min(1, (0.15 - o.f.y) / o.r)))));
+    return Math.max(lo, Math.min(hi, phi));
+  }
+
+  function applyOrbit(camObj, o) {
+    const s = Math.sin(o.phi);
+    camObj.root.position.set(
+      o.f.x + o.r * s * Math.sin(o.theta),
+      Math.max(0.05, o.f.y + o.r * Math.cos(o.phi)),
+      o.f.z + o.r * s * Math.cos(o.theta)
+    );
+    aimCamera();
+  }
+
+  // 注視の入り切り。同じ相手をもう一度指すと解除。
+  function setLookAt(id) {
+    const camObj = theCamera();
+    if (!camObj) return;
+    const next = camObj.lookAt === id ? null : id;
+    if (next == null && camObj.lookAt != null) bakeLook(camObj);
+    camObj.lookAt = next;
+    aimCamera();
+    if (next != null) autoKey(camObj);
+    updateLookUi();
+    markDirty();
+    showToast(next != null ? objById(next).name + "を見ながら動きます" : "見るのをやめました");
+  }
+
+  function updateLookUi() {
+    const camObj = theCamera();
+    const locked = camObj && camObj.lookAt != null;
+    // 注視中は迷う操作がないので、カメラ視点の道具バーは引っ込める
+    $("camTools").hidden = state.view !== "camera" || locked;
+    const sel = selected();
+    const btn = $("selLook");
+    btn.hidden = !sel || sel.type !== "char";
+    btn.classList.toggle("is-active", !!(locked && sel && camObj.lookAt === sel.id));
+  }
 
   // 既存のキャラと重ならない立ち位置を、横一列→奥の列の順で探す
   function freeSpot() {
@@ -473,6 +583,7 @@
         }
       }
     });
+    aimCamera(); // 全員の位置が決まってから向ける
     updateSelRing();
   }
 
@@ -527,7 +638,9 @@
   // ---------------------------------------------------------------- プルプル
 
   // つかんでいる間はキャラクターが嫌がって震える。離すとバネのように数回ゆれて止まる。
-  function updateFx(dt) {
+  // dt は描画用に上限を付けてあるので、収まるまでの時間が描画の速さで変わらないよう、
+  // 揺れの減衰だけは実時間(wall)で進める。
+  function updateFx(dt, wall) {
     state.objects.forEach((obj) => {
       if (obj.type !== "char") return;
       const fx = obj.fx;
@@ -544,7 +657,8 @@
       const held = drag && drag.kind === "object" && drag.obj === obj;
       const target = held ? 1 : 0;
       // つかんだ瞬間は素早く、離したあとはゆっくり減衰させる
-      fx.amp += (target - fx.amp) * Math.min(1, dt * (target > fx.amp ? 18 : 5));
+      const step = Math.min(0.25, wall);
+      fx.amp += (target - fx.amp) * Math.min(1, step * (target > fx.amp ? 18 : 5));
       if (fx.amp < 0.0015 && !held) fx.amp = 0;
 
       const a = fx.amp;
@@ -608,7 +722,8 @@
 
   function tick() {
     requestAnimationFrame(tick);
-    const dt = Math.min(0.05, clock.getDelta());
+    const wall = clock.getDelta();
+    const dt = Math.min(0.05, wall);
 
     if (state.playing) {
       frameAcc += dt * state.fps;
@@ -626,7 +741,7 @@
       }
     }
 
-    updateFx(dt);
+    updateFx(dt, wall);
     if (trailsDirty) rebuildTrails();
     // ドラッグ中は毎フレーム自動キーが入るので、タイムラインの作り直しは間引く
     if (tlDirty && (!drag || clock.elapsedTime - lastTlRender > 0.12)) {
@@ -637,6 +752,16 @@
     const camObj = theCamera();
     const useCamView = state.view === "camera" && camObj;
     if (camObj) camObj.root.userData.rig.visible = !useCamView;
+
+    const lookT = camObj && camObj.lookAt != null ? objById(camObj.lookAt) : null;
+    reticle.visible = !!(useCamView && lookT);
+    if (reticle.visible) {
+      const f = lookPoint(lookT);
+      reticle.position.copy(f);
+      reticle.quaternion.copy(camObj.root.quaternion); // いつもカメラを向く
+      const sc = Math.max(0.3, camObj.root.position.distanceTo(f) * 0.09);
+      reticle.scale.set(sc, sc, sc);
+    }
     grid.visible = state.grid;
     trailGroup.visible = state.trails && !useCamView;
     if (useCamView) selRing.visible = false;
@@ -712,6 +837,26 @@
 
   // 見えている面を最優先で拾い、どれにも当たらなかったときだけ当たり判定に頼る。
   // 当たり判定だけで判断すると、手前のキャラの見えない箱が奥のキャラを隠してしまう。
+  function ndcInFrame(ev) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    const x = ev.clientX - rect.left - viewRect.x;
+    const y = ev.clientY - rect.top - viewRect.y;
+    return new THREE.Vector2((x / viewRect.w) * 2 - 1, -(y / viewRect.h) * 2 + 1);
+  }
+
+  // カメラ視点で画の中のキャラを指す
+  function pickInFrame(ev) {
+    const camObj = theCamera();
+    if (!camObj || !viewRect) return null;
+    raycaster.setFromCamera(ndcInFrame(ev), camObj.root);
+    const solids = [];
+    state.objects.forEach((o) => {
+      if (o.type === "char" && o.root.userData.solids) solids.push.apply(solids, o.root.userData.solids);
+    });
+    const hit = raycaster.intersectObjects(solids, false)[0];
+    return hit ? ownerOf(hit.object) : null;
+  }
+
   function pickObject(ev) {
     raycaster.setFromCamera(ndc(ev), editorCam);
 
@@ -797,8 +942,12 @@
           obj: camObj,
           x: ev.clientX,
           y: ev.clientY,
+          sx: ev.clientX,
+          sy: ev.clientY,
+          tap: true, // 動かさずに離したら「その人を見る／やめる」
           mode: ev.shiftKey || ev.button === 2 ? "shift" : state.camMode,
           ref: subjectDist(camObj),
+          orb: camObj.lookAt != null ? orbitStateOf(camObj) : null,
         };
       }
       return;
@@ -839,7 +988,14 @@
       const c = pointerCenter();
       if (state.view === "camera") {
         const camObj = theCamera();
-        if (camObj) {
+        if (camObj && camObj.lookAt != null) {
+          const o = orbitStateOf(camObj);
+          if (c.d > 0) o.r = Math.max(0.6, Math.min(60, o.r * (gesture.d / c.d)));
+          o.theta -= (c.x - gesture.x) * 0.006;
+          o.phi = clampPhi(o, o.phi - (c.y - gesture.y) * 0.006);
+          applyOrbit(camObj, o);
+          autoKey(camObj);
+        } else if (camObj) {
           if (c.d > 0) dollyCamera(camObj, (c.d - gesture.d) * 0.012);
           shiftCamera(camObj, c.x - gesture.x, c.y - gesture.y, subjectDist(camObj));
           autoKey(camObj);
@@ -874,16 +1030,23 @@
       orbit.target.addScaledVector(right, -dx * k).addScaledVector(up, dy * k);
       updateEditorCam();
     } else if (drag.kind === "camlook") {
-      if (drag.mode === "shift") {
+      if (drag.tap && Math.hypot(ev.clientX - drag.sx, ev.clientY - drag.sy) > 6) drag.tap = false;
+      if (drag.orb) {
+        // 注視中は、相手を中心にぐるっと回り込む
+        drag.orb.theta -= dx * 0.006;
+        drag.orb.phi = clampPhi(drag.orb, drag.orb.phi - dy * 0.006);
+        applyOrbit(drag.obj, drag.orb);
+      } else if (drag.mode === "shift") {
         shiftCamera(drag.obj, dx, dy, drag.ref);
       } else {
         const cam = drag.obj.root;
         cam.rotation.y -= dx * 0.004;
         cam.rotation.x = Math.max(-1.4, Math.min(1.4, cam.rotation.x - dy * 0.004));
       }
-      autoKey(drag.obj);
+      if (!drag.tap) autoKey(drag.obj);
     } else if (drag.kind === "object") {
       applyObjectDrag(drag, ev, dx, dy);
+      if (drag.obj.type === "camera") aimCamera();
       autoKey(drag.obj);
       updateSelRing();
     }
@@ -941,6 +1104,11 @@
     // 追従の途中で指を離しても、最後は進んだ向きに合わせて記録し直す
     const d = drag;
     drag = null;
+    if (d && d.kind === "camlook" && d.tap) {
+      const t = pickInFrame(ev);
+      setLookAt(t ? t.id : null);
+      return;
+    }
     if (d && d.kind === "object" && d.mode === "move" && d.obj.type === "char" && state.autoFace) {
       if (d.faced && Math.abs(d.obj.root.rotation.y - d.yawTarget) > 1e-4) {
         d.obj.root.rotation.y = d.yawTarget;
@@ -961,7 +1129,13 @@
     if (state.view === "camera") {
       const camObj = theCamera();
       if (!camObj) return;
-      dollyCamera(camObj, -ev.deltaY * 0.004);
+      if (camObj.lookAt != null) {
+        const o = orbitStateOf(camObj);
+        o.r = Math.max(0.6, Math.min(60, o.r * Math.exp(ev.deltaY * 0.001)));
+        applyOrbit(camObj, o);
+      } else {
+        dollyCamera(camObj, -ev.deltaY * 0.004);
+      }
       autoKey(camObj);
     } else {
       orbit.radius = Math.max(1.2, Math.min(60, orbit.radius * Math.exp(ev.deltaY * 0.001)));
@@ -991,6 +1165,7 @@
       setTip($("tools").querySelector('[data-mode="head"]'), isCam ? "カメラの上下" : "頭のむき");
     }
     tlDirty = true;
+    updateLookUi();
     updateSelRing();
   }
 
@@ -1224,6 +1399,12 @@
       duration: state.duration,
       ease: state.ease,
       autoFace: state.autoFace,
+      lookAt: (function () {
+        const c = theCamera();
+        if (!c || c.lookAt == null) return null;
+        const i = state.objects.findIndex((o) => o.id === c.lookAt);
+        return i < 0 ? null : i;
+      })(),
       objects: state.objects.map((o) => ({
         type: o.type,
         name: o.name,
@@ -1250,6 +1431,10 @@
       else addCharacter({ name: o.name, colorIndex: o.colorIndex, keys: o.keys });
     });
     if (!theCamera()) addCamera({});
+    if (typeof data.lookAt === "number" && state.objects[data.lookAt]) {
+      const c = theCamera();
+      if (c) c.lookAt = state.objects[data.lookAt].id;
+    }
 
     syncSettings();
     const cam = theCamera();
@@ -1407,7 +1592,8 @@
         li("i-turn", "向きだけ変えたいとき", "道具の「体のむき」で向きだけ直せます。動かしても向きを変えたくないときは、設定の「進む向きを向く」を切ってください。") +
         li("i-add", "色は 赤→青→緑→黄 の順", "追加した順に色が決まり、5人目からまた赤に戻ります。") +
         li("i-play", "時間をあわせてから動かす", "下のバーで時間を選んでから動かすと、その時間に自動で記録されます。記録した点は左右にドラッグでずらせます。") +
-        li("i-cam", "カメラからのぞく", "右の道具で「ふる」と「上下左右にずらす」を切り替えられます。前後はホイールか2本指でひろげる操作、2本指を滑らせると上下左右にずれます。") +
+        li("i-look", "見たい人を画面でタップ", "カメラ視点でキャラをタップすると、その人を見続けます。あとはドラッグするだけで、その人を画面に収めたままぐるっと回り込めます。もう一度タップするか、何もない所をタップで解除。") +
+        li("i-cam", "カメラからのぞく", "誰も見ていないときは、右の道具で「ふる」と「上下左右にずらす」を切り替えられます。前後はホイールか2本指でひろげる操作です。") +
         "</ul>" +
         (canHover
           ? "<h3>キーボード</h3><p><kbd>Space</kbd> 再生／とめる　<kbd>←</kbd><kbd>→</kbd> こま送り　" +
@@ -1476,7 +1662,7 @@
       setTip($("viewBtn"), cam ? "ぜんたいを見る" : "カメラからのぞく");
       $("framing").hidden = !cam;
       $("tools").hidden = cam;
-      $("camTools").hidden = !cam;
+      updateLookUi();
       if (cam) {
         const c = theCamera();
         if (c) select(c.id);
@@ -1512,6 +1698,11 @@
       $("camTools").querySelectorAll(".ib").forEach((b) => b.classList.toggle("is-active", b === btn));
       if (!canHover) showToast(btn.getAttribute("data-tip"));
     });
+
+    $("selLook").onclick = () => {
+      const obj = selected();
+      if (obj && obj.type === "char") setLookAt(obj.id);
+    };
 
     $("selDelete").onclick = () => {
       const obj = selected();
