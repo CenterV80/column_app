@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>プレビズエディタ | column_app</title>
+<link rel="stylesheet" href="style.css">
+<!-- three.js は同梱（CDN 依存だとオフラインや回線制限で真っ黒になるため） -->
+<script src="vendor/three.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <a class="back-link" href="../../categories/mini-apps/">←</a>
+      <h1>プレビズエディタ</h1>
+      <span class="tagline">生成動画AI用のカット設計</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn" id="addCharBtn">＋ キャラ追加</button>
+      <div class="seg" id="viewSeg">
+        <button class="seg-btn is-active" data-view="editor">エディタ視点</button>
+        <button class="seg-btn" data-view="camera">カメラ視点</button>
+      </div>
+      <button class="btn btn-ghost" id="exportBtn">書き出し</button>
+      <button class="btn btn-ghost" id="helpBtn">?</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <main class="viewport" id="viewport">
+      <div class="canvas-host" id="canvasHost"></div>
+
+      <!-- カメラ視点のときだけ出るフレーミングガイド -->
+      <div class="framing" id="framing" hidden>
+        <div class="letterbox letterbox-top"></div>
+        <div class="letterbox letterbox-bottom"></div>
+        <div class="safe-area" id="safeArea">
+          <div class="thirds"></div>
+          <div class="safe-title"></div>
+        </div>
+      </div>
+
+      <div class="viewport-hud">
+        <span class="hud-chip" id="hudFrame">F 0</span>
+        <span class="hud-chip" id="hudTime">0.00s</span>
+        <span class="hud-chip hud-autokey">AUTO KEY</span>
+      </div>
+
+      <div class="tool-strip" id="toolStrip">
+        <button class="tool-btn is-active" data-mode="move" title="移動">✥<span>移動</span></button>
+        <button class="tool-btn" data-mode="lift" title="高さ">↕<span>高さ</span></button>
+        <button class="tool-btn" data-mode="yaw" title="体の向き">⟳<span id="toolYawLabel">体の向き</span></button>
+        <button class="tool-btn" data-mode="head" title="頭の向き">◔<span id="toolHeadLabel">頭の向き</span></button>
+      </div>
+
+      <div class="viewport-hint" id="viewportHint">クリックで選択 / オブジェクトをドラッグで操作 / 何もない所をドラッグで視点回転</div>
+    </main>
+
+    <aside class="inspector" id="inspector">
+      <div class="insp-head">
+        <span class="insp-chip" id="inspChip"></span>
+        <input class="insp-name" id="inspName" type="text" maxlength="24" placeholder="名前">
+      </div>
+
+      <div class="insp-body" id="inspBody">
+        <p class="insp-empty" id="inspEmpty">オブジェクトを選択してください。</p>
+
+        <div class="insp-fields" id="inspFields" hidden>
+          <div class="field-row">
+            <label>X</label><input type="number" id="fX" step="0.1">
+            <label>Y</label><input type="number" id="fY" step="0.1">
+            <label>Z</label><input type="number" id="fZ" step="0.1">
+          </div>
+          <div class="field-row">
+            <label id="labRotY">体の向き</label><input type="number" id="fRotY" step="5">
+            <label id="labRotX">頭の向き</label><input type="number" id="fRotX" step="5">
+          </div>
+          <div class="field-row" id="fovRow" hidden>
+            <label>画角(mm)</label>
+            <input type="range" id="fLens" min="12" max="135" step="1">
+            <output id="fLensOut">35</output>
+          </div>
+          <div class="insp-actions">
+            <button class="btn btn-ghost" id="keyBtn">キーを打つ</button>
+            <button class="btn btn-ghost" id="delKeyBtn">このキーを削除</button>
+            <button class="btn btn-danger" id="delObjBtn">オブジェクト削除</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="insp-scene">
+        <h2>シーン設定</h2>
+        <div class="field-row">
+          <label>長さ(F)</label><input type="number" id="sDuration" min="2" max="600" step="1">
+          <label>fps</label>
+          <select id="sFps">
+            <option value="12">12</option>
+            <option value="24">24</option>
+            <option value="25">25</option>
+            <option value="30">30</option>
+            <option value="60">60</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <label>補間</label>
+          <select id="sEase">
+            <option value="linear">リニア</option>
+            <option value="smooth">スムーズ</option>
+          </select>
+          <label class="check"><input type="checkbox" id="sLoop" checked>ループ</label>
+        </div>
+        <div class="field-row">
+          <label class="check"><input type="checkbox" id="sTrails" checked>移動ライン</label>
+          <label class="check"><input type="checkbox" id="sGrid" checked>グリッド</label>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="timeline" id="timeline">
+    <div class="transport">
+      <button class="tbtn" id="toStartBtn" title="先頭へ">⏮</button>
+      <button class="tbtn" id="prevKeyBtn" title="前のキー">◀|</button>
+      <button class="tbtn tbtn-play" id="playBtn" title="再生/停止">▶</button>
+      <button class="tbtn" id="nextKeyBtn" title="次のキー">|▶</button>
+      <button class="tbtn" id="toEndBtn" title="末尾へ">⏭</button>
+      <div class="frame-box">
+        <input type="number" id="frameInput" min="0" step="1">
+        <span class="frame-total" id="frameTotal">/ 120</span>
+      </div>
+      <span class="transport-spacer"></span>
+      <span class="autokey-badge">● AUTO KEY ON</span>
+    </div>
+
+    <div class="tl-scroll" id="tlScroll">
+      <div class="tl-grid">
+        <div class="tl-labels" id="tlLabels"></div>
+        <div class="tl-lanes" id="tlLanes">
+          <div class="tl-ruler" id="tlRuler"></div>
+          <div class="tl-tracks" id="tlTracks"></div>
+          <div class="tl-playhead" id="tlPlayhead"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="modalTitle">書き出し</h2>
+      <button class="btn btn-ghost" id="modalClose">閉じる</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
