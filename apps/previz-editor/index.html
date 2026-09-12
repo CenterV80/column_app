@@ -34,6 +34,7 @@
   <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4.5h11l3 3v12h-14zM8.5 4.5v5.5h7V4.5M8.5 19.5v-6h7v6"/></symbol>
   <symbol id="i-open" viewBox="0 0 24 24"><path d="M3 19V6a1 1 0 0 1 1-1h5l2 2.2h8a1 1 0 0 1 1 1V19z"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-look" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2"/><circle cx="12" cy="12" r="1.6"/><path d="M12 1.9v2.9M12 19.2v2.9M1.9 12h2.9M19.2 12h2.9"/></symbol>
 </svg>
 
 <div class="stage" id="stage">
@@ -77,6 +78,7 @@
       <input type="range" id="selLens" min="14" max="120" step="1" aria-label="レンズ">
       <b id="selLensOut">35mm</b>
     </span>
+    <button class="ib ib-sm tip-t" id="selLook" data-tip="この人を見ながら動く" aria-label="この人を見ながら動く"><svg><use href="#i-look"/></svg></button>
     <button class="ib ib-sm tip-t" id="selDelete" data-tip="けす" aria-label="けす"><svg><use href="#i-trash"/></svg></button>
   </div>
 
