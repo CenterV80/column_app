@@ -4,6 +4,13 @@
 // categories.js so the item shows up on the right category page.
 const APPS = [
   {
+    name: "プレビズエディタ",
+    description: "生成動画AIに渡すカットを、箱のキャラクターとカメラで先に組み立てるプレビズツール。動かすとタイムラインに自動でキーフレームが打たれ、ショット記述や静止画として書き出せます。",
+    path: "apps/previz-editor/",
+    icon: "🎥",
+    category: "mini-apps",
+  },
+  {
     name: "MD → Confluence 変換窓口",
     description: "Markdownや既存ページを、Confluenceにレイアウトごと貼り付けられる形に変換します。「書式付きでコピー」なら見出し・表・コードブロックが本来の形で入ります。サーバー通信なしでその場で完結。",
     path: "apps/md2confluence.html",
