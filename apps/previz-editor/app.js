@@ -49,6 +49,7 @@
     ease: "smooth",
     trails: true,
     grid: true,
+    autoFace: true, // 動かしたら、その進む向きに体も向ける
     view: "editor", // "editor" | "camera"
     mode: "move", // "move" | "lift" | "yaw" | "head"
     objects: [],
@@ -788,6 +789,11 @@
       d.offset = raycaster.ray.intersectPlane(d.plane, hitP)
         ? obj.root.position.clone().sub(hitP)
         : new THREE.Vector3();
+      // 進んだ向きに体を向けるための基準点
+      d.faceStart = obj.root.position.clone();
+      d.faceFrom = obj.root.position.clone();
+      d.yawTarget = obj.root.rotation.y;
+      d.faced = false;
     }
     return d;
   }
@@ -856,6 +862,22 @@
         root.position.x = next.x;
         root.position.z = next.z;
       }
+      // 歩いた向きに体も向ける（道具を切り替えずに配置と向きが決まるように）。
+      if (obj.type === "char" && state.autoFace) {
+        const sx = root.position.x - d.faceStart.x;
+        const sz = root.position.z - d.faceStart.z;
+        // 立ち位置をちょっと直しただけのときは回さない
+        if (Math.hypot(sx, sz) > 0.25) {
+          const ax = root.position.x - d.faceFrom.x;
+          const az = root.position.z - d.faceFrom.z;
+          if (Math.hypot(ax, az) > 0.15) {
+            d.yawTarget = Math.atan2(ax, az); // 正面は +Z
+            d.faceFrom.copy(root.position);
+            d.faced = true;
+          }
+          if (d.faced) root.rotation.y = lerpAngle(root.rotation.y, d.yawTarget, 0.25);
+        }
+      }
     } else if (d.mode === "lift") {
       const dist = editorCam.position.distanceTo(root.position);
       const k = (dist * Math.tan((editorCam.fov * Math.PI) / 180 / 2) * 2) / (host.clientHeight || 1);
@@ -876,7 +898,16 @@
   function onPointerUp(ev) {
     pointers.delete(ev.pointerId);
     if (pointers.size < 2) gesture = null;
+
+    // 追従の途中で指を離しても、最後は進んだ向きに合わせて記録し直す
+    const d = drag;
     drag = null;
+    if (d && d.kind === "object" && d.mode === "move" && d.obj.type === "char" && state.autoFace) {
+      if (d.faced && Math.abs(d.obj.root.rotation.y - d.yawTarget) > 1e-4) {
+        d.obj.root.rotation.y = d.yawTarget;
+        autoKey(d.obj);
+      }
+    }
   }
 
   function dollyCamera(camObj, amount) {
@@ -1153,6 +1184,7 @@
       fps: state.fps,
       duration: state.duration,
       ease: state.ease,
+      autoFace: state.autoFace,
       objects: state.objects.map((o) => ({
         type: o.type,
         name: o.name,
@@ -1172,6 +1204,7 @@
     state.fps = +data.fps || 24;
     state.duration = Math.max(2, +data.duration || 120);
     state.ease = data.ease === "linear" ? "linear" : "smooth";
+    state.autoFace = data.autoFace !== false;
 
     data.objects.forEach((o) => {
       if (o.type === "camera") addCamera({ keys: o.keys });
@@ -1330,9 +1363,10 @@
       "つかいかた",
       "<p>箱の人とカメラでカットの動きだけ先に決めて、そのまま生成動画AIへの指示に使うための道具です。</p>" +
         '<ul class="howto">' +
-        li("i-move", "指でドラッグして動かす", "つかんでいる間、キャラは嫌がってプルプルします。何もない所をドラッグすると視点がまわり、2本指でひろげると寄り引きできます。") +
+        li("i-move", "指でドラッグして動かす", "歩いた向きに体も自動で向くので、道具を切り替えずに配置と向きが決まります。つかんでいる間、キャラは嫌がってプルプルします。何もない所をドラッグすると視点がまわり、2本指でひろげると寄り引きできます。") +
         li("i-head", "白い四角錐は頭の向き", "体とは別に向きを変えられるので、歩きながら横を見る芝居も作れます。") +
-        li("i-turn", "色は 赤→青→緑→黄 の順", "追加した順に色が決まり、5人目からまた赤に戻ります。") +
+        li("i-turn", "向きだけ変えたいとき", "道具の「体のむき」で向きだけ直せます。動かしても向きを変えたくないときは、設定の「進む向きを向く」を切ってください。") +
+        li("i-add", "色は 赤→青→緑→黄 の順", "追加した順に色が決まり、5人目からまた赤に戻ります。") +
         li("i-play", "時間をあわせてから動かす", "下のバーで時間を選んでから動かすと、その時間に自動で記録されます。記録した点は左右にドラッグでずらせます。") +
         li("i-cam", "カメラからのぞく", "画面をドラッグするとカメラが振れて、ホイールや2本指で前後に動きます。") +
         "</ul>" +
@@ -1349,6 +1383,7 @@
     $("pDur").value = Math.min(15, Math.max(1, +secs(state.duration).toFixed(1)));
     $("pDurOut").textContent = secs(state.duration).toFixed(1) + "秒";
     $("pLoop").checked = state.loop;
+    $("pFace").checked = state.autoFace;
     $("pTrails").checked = state.trails;
     $("pGrid").checked = state.grid;
     segSync($("pEase"), state.ease);
@@ -1483,6 +1518,10 @@
     });
 
     $("pLoop").onchange = () => (state.loop = $("pLoop").checked);
+    $("pFace").onchange = () => {
+      state.autoFace = $("pFace").checked;
+      markDirty();
+    };
     $("pTrails").onchange = () => {
       state.trails = $("pTrails").checked;
       trailsDirty = true;
