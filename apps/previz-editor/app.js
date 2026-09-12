@@ -1,7 +1,8 @@
 /*
  * プレビズエディタ
- * 生成動画AIに渡すカットを、箱人間とカメラで先に組み立てるための簡易プレビズツール。
+ * 生成動画AIに渡すカットを、箱のキャラクターとカメラで先に組み立てるための簡易プレビズツール。
  * キャラクターは「体＝ボックス」「頭＝ボックス」「白い四角錐＝頭の向き」で構成する。
+ * スマホでの指ドラッグを主な操作にしていて、つかんでいる間はキャラクターが嫌がってプルプル震える。
  * トランスフォームを触ると、その時点の再生フレームに自動でキーフレームが打たれる。
  */
 (function () {
@@ -26,11 +27,16 @@
 
   const SENSOR_H = 20.25; // フルサイズ36mm幅を16:9で切り出したときの高さ(mm)
   const ASPECT = 16 / 9;
-  const CAM_COLOR = "#cfd6e4";
+  const CAM_CSS = "#cfd6e4";
 
   const STORAGE_KEY = "previz-editor.scene.v1";
 
   const lensToFov = (mm) => 2 * Math.atan(SENSOR_H / 2 / mm) * (180 / Math.PI);
+  const fovToLens = (fov) => SENSOR_H / 2 / Math.tan((fov * Math.PI) / 180 / 2);
+
+  const $ = (id) => document.getElementById(id);
+  const col = (c) => new THREE.Color(c).convertSRGBToLinear();
+  const canHover = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
   // ---------------------------------------------------------------- 状態
 
@@ -40,7 +46,7 @@
     current: 0,
     playing: false,
     loop: true,
-    ease: "linear",
+    ease: "smooth",
     trails: true,
     grid: true,
     view: "editor", // "editor" | "camera"
@@ -51,28 +57,26 @@
     charCount: 0,
   };
 
-  const $ = (id) => document.getElementById(id);
-
   // ---------------------------------------------------------------- three 基本
 
   const host = $("canvasHost");
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
-    preserveDrawingBuffer: true, // PNG書き出しのため
+    preserveDrawingBuffer: true, // 画像書き出しのため
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.setClearColor(0x0f1116, 1);
+  renderer.setClearColor(0x12141b, 1);
   host.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0f1116);
-  scene.fog = new THREE.Fog(0x0f1116, 22, 60);
+  scene.background = new THREE.Color(0x12141b);
+  scene.fog = new THREE.Fog(col(0x12141b), 9, 32);
 
   const editorCam = new THREE.PerspectiveCamera(45, 1, 0.1, 400);
-  const orbit = { target: new THREE.Vector3(0, 0.9, 0), radius: 9, theta: 0.6, phi: 1.15 };
+  const orbit = { target: new THREE.Vector3(0, 0.95, 0), radius: 7.8, theta: 0.55, phi: 1.22 };
 
   function updateEditorCam() {
     const s = Math.sin(orbit.phi);
@@ -85,8 +89,8 @@
   }
   updateEditorCam();
 
-  scene.add(new THREE.HemisphereLight(0x9fb4d8, 0x2a2d36, 0.85));
-  const keyLight = new THREE.DirectionalLight(0xffffff, 0.95);
+  scene.add(new THREE.HemisphereLight(0x9db2d2, 0x2a2f3a, 0.75));
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
   keyLight.position.set(5, 9, 6);
   keyLight.castShadow = true;
   keyLight.shadow.mapSize.set(1024, 1024);
@@ -94,20 +98,30 @@
   keyLight.shadow.camera.right = 12;
   keyLight.shadow.camera.top = 12;
   keyLight.shadow.camera.bottom = -12;
+  keyLight.shadow.radius = 2;
   scene.add(keyLight);
-  const fill = new THREE.DirectionalLight(0x8fa6d0, 0.3);
+  const fill = new THREE.DirectionalLight(0x93a9d2, 0.4);
   fill.position.set(-6, 4, -5);
   scene.add(fill);
 
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(120, 120),
-    new THREE.MeshStandardMaterial({ color: 0x1a1d24, roughness: 1, metalness: 0 })
+    new THREE.MeshStandardMaterial({ color: col(0x2c3340), roughness: 1, metalness: 0 })
   );
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
   scene.add(floor);
 
-  const grid = new THREE.GridHelper(40, 40, 0x5b657d, 0x343a48);
+  const grid = new THREE.GridHelper(24, 24, 0x6b768f, 0x424b5e);
+  // GridHelper は頂点カラーなので、こちらも個別にリニアへ寄せる
+  (function () {
+    const a = grid.geometry.attributes.color;
+    const c = new THREE.Color();
+    for (let i = 0; i < a.count; i++) {
+      c.setRGB(a.getX(i), a.getY(i), a.getZ(i)).convertSRGBToLinear();
+      a.setXYZ(i, c.r, c.g, c.b);
+    }
+  })();
   grid.position.y = 0.006; // 床と同じ高さだとZファイティングで消えるので少し浮かせる
   scene.add(grid);
 
@@ -116,7 +130,7 @@
 
   // 選択ハイライト（足元のリング）
   const selRing = new THREE.Mesh(
-    new THREE.RingGeometry(0.42, 0.5, 40),
+    new THREE.RingGeometry(0.44, 0.51, 44),
     new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
   );
   selRing.rotation.x = -Math.PI / 2;
@@ -130,10 +144,15 @@
     const color = COLORS[colorIndex % COLORS.length];
     const root = new THREE.Group();
 
-    const mat = new THREE.MeshStandardMaterial({ color: color.hex, roughness: 0.68, metalness: 0.04 });
+    // 揺れ用のグループ。キーフレームは root 側にしか書かないので、
+    // ここをどれだけ揺らしてもアニメーションデータは汚れない。
+    const fx = new THREE.Group();
+    root.add(fx);
+
+    const mat = new THREE.MeshStandardMaterial({ color: col(color.hex), roughness: 0.68, metalness: 0.04 });
     // 頭は体と地続きに見えないよう、少し明るい色にして首で間を空ける
     const headMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(color.hex).lerp(new THREE.Color(0xffffff), 0.22),
+      color: col(color.hex).lerp(col(0xffffff), 0.1),
       roughness: 0.66,
       metalness: 0.04,
     });
@@ -142,19 +161,19 @@
     body.position.y = BODY_H / 2;
     body.castShadow = true;
     body.receiveShadow = true;
-    root.add(body);
+    fx.add(body);
 
     const neck = new THREE.Mesh(
       new THREE.BoxGeometry(0.14, NECK_H + 0.02, 0.14),
-      new THREE.MeshStandardMaterial({ color: 0x3a3f4a, roughness: 0.8 })
+      new THREE.MeshStandardMaterial({ color: col(0x3a3f4a), roughness: 0.8 })
     );
     neck.position.y = BODY_H + NECK_H / 2;
-    root.add(neck);
+    fx.add(neck);
 
     // 頭は体とは別に回せるようにピボットを挟む
     const headPivot = new THREE.Group();
     headPivot.position.y = HEAD_Y;
-    root.add(headPivot);
+    fx.add(headPivot);
 
     const head = new THREE.Mesh(new THREE.BoxGeometry(HEAD, HEAD, HEAD), headMat);
     head.castShadow = true;
@@ -167,19 +186,33 @@
     coneGeo.translate(0, 0, HEAD / 2 + 0.22);
     const cone = new THREE.Mesh(
       coneGeo,
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.45, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: col(0xffffff), roughness: 0.45, metalness: 0 })
     );
     cone.castShadow = true;
     headPivot.add(cone);
 
+    // 指でつかみやすいように、見えない大きめの当たり判定を足す（揺れの外side）
+    root.add(hitProxy(0.86, 1.85, 0.86, 0.92));
+
     root.userData.headPivot = headPivot;
+    root.userData.fx = fx;
     return root;
+  }
+
+  // material.visible=false は描画されないが、レイキャストには引っかかる
+  function hitProxy(w, h, d, y) {
+    const proxy = new THREE.Mesh(
+      new THREE.BoxGeometry(w, h, d),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    proxy.position.y = y;
+    return proxy;
   }
 
   function buildCamRig(camera) {
     const rig = new THREE.Group();
 
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x9fa8ba, roughness: 0.5, metalness: 0.2 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: col(0xa7b0c2), roughness: 0.5, metalness: 0.2 });
     const box = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.24, 0.46), bodyMat);
     box.castShadow = true;
     rig.add(box);
@@ -191,10 +224,12 @@
 
     const frustum = new THREE.LineSegments(
       new THREE.BufferGeometry(),
-      new THREE.LineBasicMaterial({ color: 0x9fd0ff, transparent: true, opacity: 0.75 })
+      new THREE.LineBasicMaterial({ color: col(0xa8d3ff), transparent: true, opacity: 0.7 })
     );
     rig.add(frustum);
     rig.userData.frustum = frustum;
+
+    rig.add(hitProxy(0.8, 0.8, 0.9, 0));
 
     camera.add(rig);
     camera.userData.rig = rig;
@@ -230,6 +265,13 @@
 
   // ---------------------------------------------------------------- オブジェクト管理
 
+  // 名前は色そのもの。同じ色が複数いるときだけ番号を足す。
+  function nameForColor(colorIndex) {
+    const label = COLORS[colorIndex % COLORS.length].label;
+    const same = state.objects.filter((o) => o.type === "char" && o.colorIndex % COLORS.length === colorIndex % COLORS.length);
+    return same.length ? label + (same.length + 1) : label;
+  }
+
   function addCharacter(opts) {
     const o = opts || {};
     const colorIndex = o.colorIndex != null ? o.colorIndex : state.charCount;
@@ -240,11 +282,12 @@
     const obj = {
       id: state.nextId++,
       type: "char",
-      name: o.name || "キャラ" + (state.charCount + 1),
+      name: o.name || nameForColor(colorIndex),
       colorIndex: colorIndex,
       css: color.css,
       root: root,
       keys: [],
+      fx: { amp: 0, t: Math.random() * 10, spawn: o.pop ? 1 : 0 },
     };
     state.charCount++;
     scene.add(root);
@@ -254,9 +297,8 @@
       obj.keys = o.keys.map(normalizeKey);
     } else {
       const p = o.pos || { x: 0, y: 0, z: 0 };
-      const ry = o.ry != null ? o.ry : 0;
       root.position.set(p.x, p.y, p.z);
-      root.rotation.y = ry;
+      root.rotation.y = o.ry != null ? o.ry : 0;
       root.userData.headPivot.rotation.y = 0;
       obj.keys = [readKey(obj, o.frame != null ? o.frame : 0)];
     }
@@ -275,18 +317,19 @@
     const obj = {
       id: state.nextId++,
       type: "camera",
-      name: o.name || "カメラ",
+      name: "カメラ",
       colorIndex: -1,
-      css: CAM_COLOR,
+      css: CAM_CSS,
       root: cam,
       keys: [],
+      fx: { amp: 0, t: 0, spawn: 0 },
     };
     state.objects.push(obj);
 
     if (o.keys && o.keys.length) {
       obj.keys = o.keys.map(normalizeKey);
     } else {
-      const p = o.pos || { x: 0, y: 1.55, z: 5.4 };
+      const p = o.pos || { x: 0, y: 1.5, z: 5.6 };
       cam.position.set(p.x, p.y, p.z);
       cam.rotation.set(o.rx || 0, o.ry || 0, 0);
       obj.keys = [readKey(obj, 0)];
@@ -309,6 +352,22 @@
 
   const objById = (id) => state.objects.find((o) => o.id === id) || null;
   const selected = () => objById(state.selectedId);
+  const theCamera = () => state.objects.find((o) => o.type === "camera") || null;
+
+  // 既存のキャラと重ならない立ち位置を、横一列→奥の列の順で探す
+  function freeSpot() {
+    const taken = state.objects
+      .filter((o) => o.type === "char")
+      .map((o) => ({ x: o.root.position.x, z: o.root.position.z }));
+    for (let row = 0; row < 6; row++) {
+      for (let col = 0; col < 4; col++) {
+        const x = (col - 1.5) * 1.15;
+        const z = -row * 1.4;
+        if (!taken.some((p) => Math.hypot(p.x - x, p.z - z) < 0.8)) return { x: x, y: 0, z: z };
+      }
+    }
+    return { x: (Math.random() - 0.5) * 4, y: 0, z: -8 };
+  }
 
   // ---------------------------------------------------------------- キーフレーム
 
@@ -333,8 +392,6 @@
       lens: obj.type === "camera" ? fovToLens(r.fov) : 35,
     };
   }
-
-  const fovToLens = (fov) => SENSOR_H / 2 / Math.tan((fov * Math.PI) / 180 / 2);
 
   // 自動キーフレーム：トランスフォームを触ったら、その場で現在フレームに打つ
   function autoKey(obj) {
@@ -385,11 +442,7 @@
     return {
       f: frame,
       p: { x: lerp(a.p.x, b.p.x, t), y: lerp(a.p.y, b.p.y, t), z: lerp(a.p.z, b.p.z, t) },
-      r: {
-        x: lerpAngle(a.r.x, b.r.x, t),
-        y: lerpAngle(a.r.y, b.r.y, t),
-        z: lerpAngle(a.r.z, b.r.z, t),
-      },
+      r: { x: lerpAngle(a.r.x, b.r.x, t), y: lerpAngle(a.r.y, b.r.y, t), z: lerpAngle(a.r.z, b.r.z, t) },
       h: lerpAngle(a.h, b.h, t),
       lens: lerp(a.lens, b.lens, t),
     };
@@ -414,12 +467,14 @@
     updateSelRing();
   }
 
-  // ---------------------------------------------------------------- 軌跡ライン
+  // ---------------------------------------------------------------- 更新フラグ
 
   let trailsDirty = true;
+  let tlDirty = true;
+
   function markDirty() {
     trailsDirty = true;
-    renderTimeline();
+    tlDirty = true;
     saveSoon();
   }
 
@@ -441,14 +496,9 @@
         const s = sample(obj, f);
         pts.push(new THREE.Vector3(s.p.x, obj.type === "camera" ? s.p.y : 0.03, s.p.z));
       }
-      const geo = new THREE.BufferGeometry().setFromPoints(pts);
       const line = new THREE.Line(
-        geo,
-        new THREE.LineBasicMaterial({
-          color: new THREE.Color(obj.css),
-          transparent: true,
-          opacity: 0.55,
-        })
+        new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineBasicMaterial({ color: col(obj.css), transparent: true, opacity: 0.75 })
       );
       trailGroup.add(line);
     });
@@ -464,9 +514,52 @@
     selRing.position.set(obj.root.position.x, obj.root.position.y + 0.012, obj.root.position.z);
   }
 
-  // ---------------------------------------------------------------- 描画ループ
+  // ---------------------------------------------------------------- プルプル
 
-  let viewRect = null; // カメラ視点でのレターボックス内側（CSS px）
+  // つかんでいる間はキャラクターが嫌がって震える。離すとバネのように数回ゆれて止まる。
+  function updateFx(dt) {
+    state.objects.forEach((obj) => {
+      if (obj.type !== "char") return;
+      const fx = obj.fx;
+      const g = obj.root.userData.fx;
+
+      // 追加された直後のポンッと出る動き
+      let pop = 1;
+      if (fx.spawn > 0) {
+        fx.spawn = Math.max(0, fx.spawn - dt / 0.42);
+        const k = 1 - fx.spawn;
+        pop = 0.35 + 0.65 * (1 - Math.pow(1 - k, 3)) + Math.sin(k * Math.PI) * 0.14;
+      }
+
+      const held = drag && drag.kind === "object" && drag.obj === obj;
+      const target = held ? 1 : 0;
+      // つかんだ瞬間は素早く、離したあとはゆっくり減衰させる
+      fx.amp += (target - fx.amp) * Math.min(1, dt * (target > fx.amp ? 18 : 5));
+      if (fx.amp < 0.0015 && !held) fx.amp = 0;
+
+      const a = fx.amp;
+      if (a === 0 && pop === 1) {
+        if (g.rotation.z !== 0 || g.scale.y !== 1 || g.position.y !== 0) {
+          g.rotation.set(0, 0, 0);
+          g.position.y = 0;
+          g.scale.set(1, 1, 1);
+        }
+        return;
+      }
+
+      fx.t += dt;
+      const w = fx.t * 34;
+      g.rotation.z = Math.sin(w) * 0.14 * a;
+      g.rotation.x = Math.sin(w * 0.77 + 0.9) * 0.07 * a;
+      g.position.y = Math.abs(Math.sin(w * 0.5)) * 0.04 * a;
+      const sq = Math.sin(w * 0.5) * 0.05 * a;
+      g.scale.set(pop * (1 - sq), pop * (1 + sq), pop * (1 - sq));
+    });
+  }
+
+  // ---------------------------------------------------------------- 画面レイアウト
+
+  let viewRect = null; // カメラ視点で実際に描く16:9の範囲（CSS px）
 
   function layout() {
     const w = host.clientWidth || 1;
@@ -475,34 +568,37 @@
     editorCam.aspect = w / h;
     editorCam.updateProjectionMatrix();
 
-    // カメラ視点は16:9の内側だけを描く
-    let rw = w;
-    let rh = w / ASPECT;
-    if (rh > h) {
-      rh = h;
-      rw = h * ASPECT;
+    // 上のバーと下のタイムラインに隠れない範囲に16:9を収める
+    const dockH = $("dock").offsetHeight || 0;
+    document.documentElement.style.setProperty("--dock-h", dockH + "px");
+    const pad = { top: 64, bottom: dockH + 22, x: 16 };
+    const availW = Math.max(80, w - pad.x * 2);
+    const availH = Math.max(60, h - pad.top - pad.bottom);
+    let rw = availW;
+    let rh = rw / ASPECT;
+    if (rh > availH) {
+      rh = availH;
+      rw = rh * ASPECT;
     }
-    viewRect = { x: (w - rw) / 2, y: (h - rh) / 2, w: rw, h: rh };
+    viewRect = { x: (w - rw) / 2, y: pad.top + (availH - rh) / 2, w: rw, h: rh };
 
-    const framing = $("framing");
-    const bar = viewRect.y;
-    framing.querySelector(".letterbox-top").style.height = bar + "px";
-    framing.querySelector(".letterbox-bottom").style.height = bar + "px";
-    const safe = $("safeArea");
-    safe.style.left = viewRect.x + "px";
-    safe.style.top = viewRect.y + "px";
-    safe.style.width = viewRect.w + "px";
-    safe.style.height = viewRect.h + "px";
+    const box = $("frameBox");
+    box.style.left = viewRect.x + "px";
+    box.style.top = viewRect.y + "px";
+    box.style.width = viewRect.w + "px";
+    box.style.height = viewRect.h + "px";
 
-    renderTimeline();
+    tlDirty = true;
   }
+
+  // ---------------------------------------------------------------- 描画ループ
 
   const clock = new THREE.Clock();
   let frameAcc = 0;
 
   function tick() {
     requestAnimationFrame(tick);
-    const dt = clock.getDelta();
+    const dt = Math.min(0.05, clock.getDelta());
 
     if (state.playing) {
       frameAcc += dt * state.fps;
@@ -516,13 +612,15 @@
             setPlaying(false);
           }
         }
-        setFrame(f, true);
+        setFrame(f);
       }
     }
 
+    updateFx(dt);
     if (trailsDirty) rebuildTrails();
+    if (tlDirty) renderTimeline();
 
-    const camObj = state.objects.find((o) => o.type === "camera");
+    const camObj = theCamera();
     const useCamView = state.view === "camera" && camObj;
     if (camObj) camObj.root.userData.rig.visible = !useCamView;
     grid.visible = state.grid;
@@ -547,33 +645,31 @@
     }
   }
 
-  // ---------------------------------------------------------------- 再生・フレーム操作
+  // ---------------------------------------------------------------- 再生・時間
 
-  function setFrame(f, silent) {
-    const nf = Math.max(0, Math.min(state.duration, Math.round(f)));
-    state.current = nf;
-    applyFrame(nf);
-    $("frameInput").value = nf;
-    $("hudFrame").textContent = "F " + nf;
-    $("hudTime").textContent = (nf / state.fps).toFixed(2) + "s";
+  const secs = (f) => f / state.fps;
+
+  function setFrame(f) {
+    state.current = Math.max(0, Math.min(state.duration, Math.round(f)));
+    applyFrame(state.current);
+    $("timeRead").innerHTML =
+      secs(state.current).toFixed(1) + "<i>/" + secs(state.duration).toFixed(1) + "s</i>";
     updatePlayhead();
     updateKeyHighlight();
-    if (!silent) syncInspector();
-    else syncInspectorValues();
+    syncLens();
   }
 
   function setPlaying(on) {
     state.playing = on;
     frameAcc = 0;
-    $("playBtn").textContent = on ? "❚❚" : "▶";
+    useIcon($("playIcon"), on ? "#i-pause" : "#i-play");
+    $("playBtn").setAttribute("aria-label", on ? "とめる" : "再生");
   }
 
-  function allKeyFrames() {
-    const set = new Set();
-    const obj = selected();
-    const list = obj ? [obj] : state.objects;
-    list.forEach((o) => o.keys.forEach((k) => set.add(k.f)));
-    return Array.from(set).sort((a, b) => a - b);
+  function useIcon(svg, id) {
+    const use = svg.querySelector("use");
+    use.setAttribute("href", id);
+    use.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", id);
   }
 
   // ---------------------------------------------------------------- ビューポート操作
@@ -581,7 +677,7 @@
   const raycaster = new THREE.Raycaster();
   const pointers = new Map();
   let drag = null;
-  let pinchStart = null;
+  let gesture = null;
 
   function ndc(ev) {
     const rect = renderer.domElement.getBoundingClientRect();
@@ -593,66 +689,69 @@
 
   function pickObject(ev) {
     raycaster.setFromCamera(ndc(ev), editorCam);
-    const targets = [];
-    state.objects.forEach((o) => {
-      if (o.type === "camera") targets.push(o.root.userData.rig);
-      else targets.push(o.root);
-    });
+    const targets = state.objects.map((o) => (o.type === "camera" ? o.root.userData.rig : o.root));
     const hits = raycaster.intersectObjects(targets, true);
     for (const hit of hits) {
       let n = hit.object;
       while (n) {
-        if (n.userData && n.userData.objId != null) return { obj: objById(n.userData.objId), point: hit.point };
+        if (n.userData && n.userData.objId != null) return objById(n.userData.objId);
         n = n.parent;
       }
     }
     return null;
   }
 
+  function pointerCenter() {
+    const p = Array.from(pointers.values());
+    return {
+      x: (p[0].x + p[1].x) / 2,
+      y: (p[0].y + p[1].y) / 2,
+      d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y),
+    };
+  }
+
   function onPointerDown(ev) {
     renderer.domElement.setPointerCapture(ev.pointerId);
     pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    closePop();
 
+    // 2本指：まわす＋ひろげる
     if (pointers.size === 2) {
       drag = null;
-      const p = Array.from(pointers.values());
-      pinchStart = {
-        dist: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y),
-        radius: orbit.radius,
-      };
+      const c = pointerCenter();
+      gesture = { x: c.x, y: c.y, d: c.d, radius: orbit.radius };
       return;
     }
 
     if (state.view === "camera") {
-      const camObj = state.objects.find((o) => o.type === "camera");
+      const camObj = theCamera();
       if (camObj) {
         select(camObj.id);
+        setPlaying(false);
         drag = { kind: "camlook", obj: camObj, x: ev.clientX, y: ev.clientY };
       }
       return;
     }
 
-    const hit = pickObject(ev);
-    if (hit && hit.obj) {
-      select(hit.obj.id);
+    const obj = pickObject(ev);
+    if (obj) {
+      select(obj.id);
       setPlaying(false);
-      drag = startObjectDrag(hit.obj, ev, hit.point);
+      drag = startObjectDrag(obj, ev);
     } else {
       drag = { kind: ev.shiftKey || ev.button === 2 ? "pan" : "orbit", x: ev.clientX, y: ev.clientY };
     }
   }
 
-  function startObjectDrag(obj, ev, point) {
+  function startObjectDrag(obj, ev) {
     const d = { kind: "object", obj: obj, x: ev.clientX, y: ev.clientY, mode: state.mode };
     if (state.mode === "move") {
       d.plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -obj.root.position.y);
       const hitP = new THREE.Vector3();
       raycaster.setFromCamera(ndc(ev), editorCam);
-      if (raycaster.ray.intersectPlane(d.plane, hitP)) {
-        d.offset = obj.root.position.clone().sub(hitP);
-      } else {
-        d.offset = new THREE.Vector3();
-      }
+      d.offset = raycaster.ray.intersectPlane(d.plane, hitP)
+        ? obj.root.position.clone().sub(hitP)
+        : new THREE.Vector3();
     }
     return d;
   }
@@ -660,22 +759,24 @@
   function onPointerMove(ev) {
     if (pointers.has(ev.pointerId)) pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
 
-    if (pointers.size === 2 && pinchStart) {
-      const p = Array.from(pointers.values());
-      const dist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
-      if (dist > 0) {
-        if (state.view === "camera") {
-          const camObj = state.objects.find((o) => o.type === "camera");
-          if (camObj) {
-            dollyCamera(camObj, (dist - pinchStart.dist) * 0.01);
-            pinchStart.dist = dist;
-            autoKey(camObj);
-          }
-        } else {
-          orbit.radius = Math.max(1, Math.min(60, pinchStart.radius * (pinchStart.dist / dist)));
-          updateEditorCam();
+    if (pointers.size === 2 && gesture) {
+      const c = pointerCenter();
+      if (state.view === "camera") {
+        const camObj = theCamera();
+        if (camObj && c.d > 0) {
+          dollyCamera(camObj, (c.d - gesture.d) * 0.012);
+          autoKey(camObj);
         }
+      } else {
+        if (c.d > 0) orbit.radius = Math.max(1.2, Math.min(60, gesture.radius * (gesture.d / c.d)));
+        orbit.theta -= (c.x - gesture.x) * 0.006;
+        orbit.phi = Math.max(0.08, Math.min(Math.PI - 0.08, orbit.phi - (c.y - gesture.y) * 0.006));
+        updateEditorCam();
       }
+      gesture.x = c.x;
+      gesture.y = c.y;
+      gesture.d = c.d;
+      gesture.radius = orbit.radius;
       return;
     }
 
@@ -700,11 +801,9 @@
       cam.rotation.y -= dx * 0.004;
       cam.rotation.x = Math.max(-1.4, Math.min(1.4, cam.rotation.x - dy * 0.004));
       autoKey(drag.obj);
-      syncInspectorValues();
     } else if (drag.kind === "object") {
       applyObjectDrag(drag, ev, dx, dy);
       autoKey(drag.obj);
-      syncInspectorValues();
       updateSelRing();
     }
   }
@@ -740,7 +839,7 @@
 
   function onPointerUp(ev) {
     pointers.delete(ev.pointerId);
-    if (pointers.size < 2) pinchStart = null;
+    if (pointers.size < 2) gesture = null;
     drag = null;
   }
 
@@ -754,169 +853,112 @@
   function onWheel(ev) {
     ev.preventDefault();
     if (state.view === "camera") {
-      const camObj = state.objects.find((o) => o.type === "camera");
+      const camObj = theCamera();
       if (!camObj) return;
       dollyCamera(camObj, -ev.deltaY * 0.004);
       autoKey(camObj);
-      syncInspectorValues();
     } else {
-      orbit.radius = Math.max(1, Math.min(60, orbit.radius * Math.exp(ev.deltaY * 0.001)));
+      orbit.radius = Math.max(1.2, Math.min(60, orbit.radius * Math.exp(ev.deltaY * 0.001)));
       updateEditorCam();
     }
   }
 
-  // ---------------------------------------------------------------- 選択・インスペクタ
+  // ---------------------------------------------------------------- 選択バッジ
 
   function select(id) {
     state.selectedId = id;
-    syncInspector();
-    renderTimeline();
-    updateSelRing();
-  }
-
-  function syncInspector() {
-    const obj = selected();
-    const chip = $("inspChip");
-    const empty = $("inspEmpty");
-    const fields = $("inspFields");
+    const obj = objById(id);
+    const badge = $("sel");
 
     if (!obj) {
-      chip.style.background = "#3a3f4c";
-      $("inspName").value = "";
-      $("inspName").disabled = true;
-      empty.hidden = false;
-      fields.hidden = true;
-      return;
-    }
-    $("inspName").disabled = false;
-    $("inspName").value = obj.name;
-    chip.style.background = obj.css;
-    empty.hidden = true;
-    fields.hidden = false;
-
-    const isCam = obj.type === "camera";
-    $("labRotY").textContent = isCam ? "パン" : "体の向き";
-    $("labRotX").textContent = isCam ? "チルト" : "頭の向き";
-    $("fovRow").hidden = !isCam;
-    $("toolYawLabel").textContent = isCam ? "パン" : "体の向き";
-    $("toolHeadLabel").textContent = isCam ? "チルト" : "頭の向き";
-    $("delObjBtn").disabled = isCam;
-    $("delObjBtn").style.opacity = isCam ? 0.4 : 1;
-
-    syncInspectorValues();
-  }
-
-  let syncing = false;
-  function syncInspectorValues() {
-    const obj = selected();
-    if (!obj) return;
-    syncing = true;
-    const r = obj.root;
-    $("fX").value = r.position.x.toFixed(2);
-    $("fY").value = r.position.y.toFixed(2);
-    $("fZ").value = r.position.z.toFixed(2);
-    $("fRotY").value = Math.round((r.rotation.y * 180) / Math.PI);
-    if (obj.type === "camera") {
-      $("fRotX").value = Math.round((r.rotation.x * 180) / Math.PI);
-      const mm = Math.round(fovToLens(r.fov));
-      $("fLens").value = mm;
-      $("fLensOut").textContent = mm + "mm";
+      badge.hidden = true;
     } else {
-      $("fRotX").value = Math.round((r.userData.headPivot.rotation.y * 180) / Math.PI);
+      badge.hidden = false;
+      $("selDot").style.background = obj.css;
+      $("selName").textContent = obj.name;
+      const isCam = obj.type === "camera";
+      $("selLensWrap").hidden = !isCam;
+      $("selDelete").hidden = isCam;
+      syncLens();
+      // 道具の意味はカメラのときだけ言い換える
+      setTip($("tools").querySelector('[data-mode="yaw"]'), isCam ? "カメラをふる" : "体のむき");
+      setTip($("tools").querySelector('[data-mode="head"]'), isCam ? "カメラの上下" : "頭のむき");
     }
-    syncing = false;
-  }
-
-  function fromInspector() {
-    if (syncing) return;
-    const obj = selected();
-    if (!obj) return;
-    const r = obj.root;
-    r.position.set(+$("fX").value || 0, +$("fY").value || 0, +$("fZ").value || 0);
-    r.rotation.y = ((+$("fRotY").value || 0) * Math.PI) / 180;
-    if (obj.type === "camera") {
-      r.rotation.x = ((+$("fRotX").value || 0) * Math.PI) / 180;
-    } else {
-      r.userData.headPivot.rotation.y = ((+$("fRotX").value || 0) * Math.PI) / 180;
-    }
-    autoKey(obj);
+    tlDirty = true;
     updateSelRing();
+  }
+
+  function setTip(el, text) {
+    el.setAttribute("data-tip", text);
+    el.setAttribute("aria-label", text);
+  }
+
+  function syncLens() {
+    const obj = selected();
+    if (!obj || obj.type !== "camera") return;
+    const mm = Math.round(fovToLens(obj.root.fov));
+    $("selLens").value = mm;
+    $("selLensOut").textContent = mm + "mm";
+  }
+
+  let toastTimer = null;
+  function showToast(text) {
+    const el = $("toast");
+    el.textContent = text;
+    el.hidden = false;
+    requestAnimationFrame(() => el.classList.add("is-on"));
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      el.classList.remove("is-on");
+      setTimeout(() => (el.hidden = true), 220);
+    }, 1100);
   }
 
   // ---------------------------------------------------------------- タイムライン
 
-  const tlLabels = $("tlLabels");
+  const tlDots = $("tlDots");
   const tlTracks = $("tlTracks");
   const tlRuler = $("tlRuler");
   const tlLanes = $("tlLanes");
 
-  function laneWidth() {
-    return tlLanes.clientWidth || 1;
-  }
-
-  function frameToX(f) {
-    return (f / state.duration) * laneWidth();
-  }
-
-  function xToFrame(x) {
-    return Math.round((x / laneWidth()) * state.duration);
-  }
+  const laneWidth = () => tlLanes.clientWidth || 1;
+  const frameToX = (f) => (f / state.duration) * laneWidth();
+  const xToFrame = (x) => Math.round((x / laneWidth()) * state.duration);
 
   function renderTimeline() {
-    // ルーラー
+    tlDirty = false;
     const w = laneWidth();
-    const pxPerFrame = w / state.duration;
-    const major = state.fps; // 1秒ごと
-    let minor = Math.max(1, Math.round(state.fps / 4));
-    if (pxPerFrame * minor < 7) minor = major;
+    const pxPerSec = (w / state.duration) * state.fps;
 
+    // 目盛りは秒だけ。細かい数字は出さない。
+    let step = 1;
+    while (pxPerSec * step < 40) step++;
     let html = "";
-    for (let f = 0; f <= state.duration; f += minor) {
-      const isMajor = f % major === 0;
-      html += '<div class="tick' + (isMajor ? " major" : "") + '" style="left:' + frameToX(f) + 'px"></div>';
-      if (isMajor && pxPerFrame * major > 26) {
-        html += '<div class="tick-num" style="left:' + frameToX(f) + 'px">' + f + "</div>";
-      }
+    for (let s = 0; s * state.fps <= state.duration; s += step) {
+      const x = frameToX(s * state.fps);
+      html += '<div class="tick" style="left:' + x + 'px"></div>';
+      const cls = s === 0 ? " first" : x > w - 16 ? " last" : "";
+      html += '<div class="tick-num' + cls + '" style="left:' + x + 'px">' + s + "s</div>";
     }
     tlRuler.innerHTML = html;
 
-    // トラック
-    let labels = "";
+    let dots = "";
     let tracks = "";
     state.objects.forEach((obj) => {
       const sel = obj.id === state.selectedId ? " is-selected" : "";
-      labels +=
-        '<div class="tl-label' +
-        sel +
-        '" data-obj="' +
-        obj.id +
-        '"><span class="dot" style="background:' +
-        obj.css +
-        '"></span><span class="nm">' +
-        escapeHtml(obj.name) +
-        "</span></div>";
-
+      dots +=
+        '<div class="tl-dot' + sel + '" data-obj="' + obj.id + '" title="' + escapeHtml(obj.name) +
+        '"><span style="background:' + obj.css + '"></span></div>';
       let keys = "";
       obj.keys.forEach((k) => {
-        const cur = k.f === state.current ? " is-current" : "";
         keys +=
-          '<div class="key' +
-          cur +
-          '" data-obj="' +
-          obj.id +
-          '" data-frame="' +
-          k.f +
-          '" style="left:' +
-          frameToX(k.f) +
-          "px;background:" +
-          obj.css +
-          '"></div>';
+          '<div class="key' + (k.f === state.current ? " is-current" : "") + '" data-obj="' + obj.id +
+          '" data-frame="' + k.f + '" style="left:' + frameToX(k.f) + "px;background:" + obj.css + '"></div>';
       });
       tracks += '<div class="tl-track' + sel + '" data-obj="' + obj.id + '">' + keys + "</div>";
     });
-    tlLabels.innerHTML = labels;
+    tlDots.innerHTML = dots;
     tlTracks.innerHTML = tracks;
-    $("frameTotal").textContent = "/ " + state.duration;
     updatePlayhead();
   }
 
@@ -931,29 +973,27 @@
   }
 
   function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, (c) => {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
+    return String(s).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+    );
   }
 
-  // タイムライン上のポインタ操作（スクラブ／キーのドラッグ）
   let tlDrag = null;
 
   function tlPointerDown(ev) {
     const keyEl = ev.target.closest ? ev.target.closest(".key") : null;
     const laneRect = tlLanes.getBoundingClientRect();
+    setPlaying(false);
 
     if (keyEl) {
       const obj = objById(+keyEl.dataset.obj);
       const frame = +keyEl.dataset.frame;
       select(obj.id);
-      setPlaying(false);
       setFrame(frame);
-      tlDrag = { kind: "key", obj: obj, frame: frame, el: keyEl };
+      tlDrag = { kind: "key", obj: obj, frame: frame };
     } else {
       const trackEl = ev.target.closest ? ev.target.closest(".tl-track") : null;
       if (trackEl) select(+trackEl.dataset.obj);
-      setPlaying(false);
       tlDrag = { kind: "scrub" };
       setFrame(xToFrame(ev.clientX - laneRect.left));
     }
@@ -982,9 +1022,7 @@
     }
   }
 
-  function tlPointerUp() {
-    tlDrag = null;
-  }
+  const tlPointerUp = () => (tlDrag = null);
 
   // ---------------------------------------------------------------- 書き出し
 
@@ -998,19 +1036,20 @@
   }
 
   function shotText() {
-    const dur = (state.duration / state.fps).toFixed(2);
     const lines = [];
-    lines.push("【ショット設計】" + state.fps + "fps / " + state.duration + "F (" + dur + "秒) / 補間: " + (state.ease === "smooth" ? "スムーズ" : "リニア"));
+    lines.push(
+      "【ショット設計】" + state.fps + "fps / " + state.duration + "F (" +
+        secs(state.duration).toFixed(2) + "秒) / 補間: " + (state.ease === "smooth" ? "ふんわり" : "まっすぐ")
+    );
 
     state.objects.forEach((obj) => {
       const a = sample(obj, 0);
       const b = sample(obj, state.duration);
       const dist = Math.hypot(b.p.x - a.p.x, b.p.y - a.p.y, b.p.z - a.p.z);
       const pos = (s) => "(" + s.p.x.toFixed(2) + ", " + s.p.y.toFixed(2) + ", " + s.p.z.toFixed(2) + ")";
+      const parts = ["位置 " + pos(a) + " → " + pos(b)];
 
       if (obj.type === "camera") {
-        const parts = [];
-        parts.push("位置 " + pos(a) + " → " + pos(b));
         if (dist > 0.05) parts.push("移動 " + dist.toFixed(2) + "m");
         const pan = normDeg(deg(b.r.y) - deg(a.r.y));
         const tilt = normDeg(deg(b.r.x) - deg(a.r.x));
@@ -1019,20 +1058,15 @@
         const la = Math.round(a.lens);
         const lb = Math.round(b.lens);
         parts.push(la === lb ? "レンズ " + la + "mm" : "レンズ " + la + "mm → " + lb + "mm");
-        parts.push("キー " + obj.keys.length + "個");
-        lines.push("■ " + obj.name + ": " + parts.join(" / "));
       } else {
-        const parts = [];
-        parts.push("位置 " + pos(a) + " → " + pos(b));
         parts.push(dist > 0.05 ? "移動 " + dist.toFixed(2) + "m" : "その場");
         parts.push("体の向き " + deg(a.r.y) + "° → " + deg(b.r.y) + "°");
         const ha = deg(a.h);
         const hb = deg(b.h);
         parts.push(ha === hb ? "頭 体に対して " + ha + "°" : "頭 " + ha + "° → " + hb + "°");
-        parts.push("キー " + obj.keys.length + "個");
-        const color = COLORS[obj.colorIndex % COLORS.length];
-        lines.push("■ " + obj.name + "(" + color.label + "): " + parts.join(" / "));
       }
+      parts.push("キー " + obj.keys.length + "個");
+      lines.push("■ " + obj.name + ": " + parts.join(" / "));
     });
 
     lines.push("");
@@ -1042,7 +1076,7 @@
 
   // 動画生成AIに投げるときの英語プロンプトのたたき台
   function promptDraft() {
-    const camObj = state.objects.find((o) => o.type === "camera");
+    const camObj = theCamera();
     const bits = [];
     if (camObj) {
       const a = sample(camObj, 0);
@@ -1052,11 +1086,10 @@
       const right = new THREE.Vector3(1, 0, 0).applyEuler(new THREE.Euler(0, a.r.y, 0, "YXZ"));
       const along = move.dot(fwd);
       const side = move.dot(right);
-      const rise = move.y;
       const moves = [];
       if (Math.abs(along) > 0.3) moves.push(along > 0 ? "slow dolly in" : "slow dolly out");
       if (Math.abs(side) > 0.3) moves.push(side > 0 ? "truck right" : "truck left");
-      if (Math.abs(rise) > 0.2) moves.push(rise > 0 ? "crane up" : "crane down");
+      if (Math.abs(move.y) > 0.2) moves.push(move.y > 0 ? "crane up" : "crane down");
       const pan = normDeg(deg(b.r.y) - deg(a.r.y));
       if (Math.abs(pan) >= 4) moves.push(pan > 0 ? "pan left" : "pan right");
       const la = Math.round(a.lens);
@@ -1065,15 +1098,16 @@
       bits.push(moves.length ? moves.join(", ") : "locked-off camera");
       bits.push(la + "mm lens");
     }
-    const chars = state.objects.filter((o) => o.type === "char");
-    chars.forEach((o) => {
-      const a = sample(o, 0);
-      const b = sample(o, state.duration);
-      const d = Math.hypot(b.p.x - a.p.x, b.p.z - a.p.z);
-      const color = COLORS[o.colorIndex % COLORS.length].key;
-      bits.push(color + " subject " + (d > 0.3 ? "walking " + d.toFixed(1) + "m" : "standing still"));
-    });
-    bits.push((state.duration / state.fps).toFixed(1) + "s shot");
+    state.objects
+      .filter((o) => o.type === "char")
+      .forEach((o) => {
+        const a = sample(o, 0);
+        const b = sample(o, state.duration);
+        const d = Math.hypot(b.p.x - a.p.x, b.p.z - a.p.z);
+        const color = COLORS[o.colorIndex % COLORS.length].key;
+        bits.push(color + " subject " + (d > 0.3 ? "walking " + d.toFixed(1) + "m" : "standing still"));
+      });
+    bits.push(secs(state.duration).toFixed(1) + "s shot");
     return bits.join(", ") + ".";
   }
 
@@ -1099,21 +1133,19 @@
     state.charCount = 0;
     state.selectedId = null;
 
-    state.fps = data.fps || 24;
-    state.duration = Math.max(2, data.duration || 120);
-    state.ease = data.ease === "smooth" ? "smooth" : "linear";
+    state.fps = +data.fps || 24;
+    state.duration = Math.max(2, +data.duration || 120);
+    state.ease = data.ease === "linear" ? "linear" : "smooth";
 
     data.objects.forEach((o) => {
-      if (o.type === "camera") addCamera({ name: o.name, keys: o.keys });
+      if (o.type === "camera") addCamera({ keys: o.keys });
       else addCharacter({ name: o.name, colorIndex: o.colorIndex, keys: o.keys });
     });
-    if (!state.objects.some((o) => o.type === "camera")) addCamera({});
+    if (!theCamera()) addCamera({});
 
-    $("sFps").value = state.fps;
-    $("sDuration").value = state.duration;
-    $("sEase").value = state.ease;
-    const cam = state.objects.find((o) => o.type === "camera");
-    if (cam) select(cam.id);
+    syncSettings();
+    const cam = theCamera();
+    select(cam ? cam.id : null);
     setFrame(0);
     markDirty();
     return true;
@@ -1132,12 +1164,11 @@
   }
 
   function capturePng(frame) {
-    const camObj = state.objects.find((o) => o.type === "camera");
+    const camObj = theCamera();
     if (!camObj) return null;
     const keep = state.current;
     const w = host.clientWidth;
     const h = host.clientHeight;
-    const rigWasVisible = camObj.root.userData.rig.visible;
 
     applyFrame(frame);
     camObj.root.userData.rig.visible = false;
@@ -1150,107 +1181,106 @@
     const url = renderer.domElement.toDataURL("image/png");
 
     renderer.setSize(w, h, false);
-    camObj.root.userData.rig.visible = rigWasVisible;
     applyFrame(keep);
     layout();
     return url;
   }
 
-  function downloadDataUrl(url, filename) {
+  function saveFile(url, filename, revoke) {
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
+    if (revoke) setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
-  // ---------------------------------------------------------------- モーダル
-
-  function openModal(title, html) {
-    $("modalTitle").textContent = title;
-    $("modalBody").innerHTML = html;
-    $("modal").hidden = false;
+  function copyText(text, done) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, done);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      done();
+    }
   }
 
-  function closeModal() {
-    $("modal").hidden = true;
+  // ---------------------------------------------------------------- シート
+
+  function openSheet(title, html) {
+    $("sheetTitle").textContent = title;
+    $("sheetBody").innerHTML = html;
+    $("sheet").hidden = false;
   }
+
+  const closeSheet = () => ($("sheet").hidden = true);
+
+  const icon = (id) => '<svg><use href="#' + id + '"/></svg>';
 
   function openExport() {
-    openModal(
-      "書き出し",
-      '<h3>ショット記述（日本語）</h3>' +
-        '<textarea id="exShot" spellcheck="false" readonly></textarea>' +
-        '<div class="modal-actions"><button class="btn" id="copyShot">コピー</button></div>' +
-        "<h3>プロンプトのたたき台（英語）</h3>" +
-        '<textarea id="exPrompt" style="height:70px" spellcheck="false" readonly></textarea>' +
-        '<div class="modal-actions"><button class="btn" id="copyPrompt">コピー</button></div>' +
-        "<h3>静止画（1280×720 PNG）</h3>" +
-        '<p class="modal-note">first / last frame 条件付けに使う想定の書き出しです。</p>' +
-        '<div class="modal-actions">' +
-        '<button class="btn" id="pngFirst">先頭フレーム</button>' +
-        '<button class="btn" id="pngCurrent">現在フレーム</button>' +
-        '<button class="btn" id="pngLast">最終フレーム</button>' +
-        "</div>" +
-        "<h3>シーンデータ（JSON）</h3>" +
-        '<div class="modal-actions">' +
-        '<button class="btn" id="jsonSave">JSONで保存</button>' +
-        '<button class="btn" id="jsonLoad">JSONを読み込み</button>' +
-        '<input type="file" id="jsonFile" accept="application/json,.json" hidden>' +
-        "</div>"
+    closePop();
+    openSheet(
+      "書き出す",
+      '<button class="row-btn" id="bCopyShot">' + icon("i-copy") +
+        "<span>ショットの説明をコピー<small>カメラと人の動きを文章にします</small></span></button>" +
+        '<button class="row-btn" id="bCopyPrompt">' + icon("i-copy") +
+        "<span>英語プロンプトをコピー<small>生成AIに渡すたたき台</small></span></button>" +
+        "<h3>画像（1280×720）</h3>" +
+        '<div class="chips"><button class="chip" data-png="first">さいしょ</button>' +
+        '<button class="chip" data-png="current">いま</button>' +
+        '<button class="chip" data-png="last">さいご</button></div>' +
+        '<button class="row-btn" id="bSave">' + icon("i-save") +
+        "<span>このシーンを保存<small>あとで読み込めます</small></span></button>" +
+        '<button class="row-btn" id="bLoad">' + icon("i-open") +
+        "<span>シーンを読み込む</span></button>" +
+        '<input type="file" id="fJson" accept="application/json,.json" hidden>' +
+        '<textarea id="exText" spellcheck="false" readonly hidden></textarea>'
     );
 
-    $("exShot").value = shotText();
-    $("exPrompt").value = promptDraft();
+    const flash = (btn, msg) => {
+      const span = btn.querySelector("span");
+      const keep = span.innerHTML;
+      span.textContent = msg;
+      setTimeout(() => (span.innerHTML = keep), 1300);
+    };
 
-    const copy = (el, btn) => {
-      const text = $(el).value;
-      const done = () => {
-        btn.textContent = "コピーしました";
-        setTimeout(() => (btn.textContent = "コピー"), 1400);
+    // currentTarget はイベント終了後に null になるので、先に掴んでおく
+    const onCopy = (make) => (e) => {
+      const btn = e.currentTarget;
+      copyText(make(), () => flash(btn, "コピーしました"));
+    };
+    $("bCopyShot").onclick = onCopy(shotText);
+    $("bCopyPrompt").onclick = onCopy(promptDraft);
+
+    $("sheetBody").querySelectorAll("[data-png]").forEach((btn) => {
+      btn.onclick = () => {
+        const which = btn.dataset.png;
+        const f = which === "first" ? 0 : which === "last" ? state.duration : state.current;
+        const url = capturePng(f);
+        if (url) saveFile(url, "previz_" + which + "_f" + f + ".png");
       };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, () => {
-          $(el).select();
-          document.execCommand("copy");
-          done();
-        });
-      } else {
-        $(el).select();
-        document.execCommand("copy");
-        done();
-      }
-    };
+    });
 
-    $("copyShot").onclick = (e) => copy("exShot", e.currentTarget);
-    $("copyPrompt").onclick = (e) => copy("exPrompt", e.currentTarget);
-
-    const png = (frame, tag) => {
-      const url = capturePng(frame);
-      if (url) downloadDataUrl(url, "previz_" + tag + "_f" + frame + ".png");
-    };
-    $("pngFirst").onclick = () => png(0, "first");
-    $("pngCurrent").onclick = () => png(state.current, "current");
-    $("pngLast").onclick = () => png(state.duration, "last");
-
-    $("jsonSave").onclick = () => {
+    $("bSave").onclick = () => {
       const blob = new Blob([JSON.stringify(serialize(), null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      downloadDataUrl(url, "previz-scene.json");
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      saveFile(URL.createObjectURL(blob), "previz-scene.json", true);
     };
-    $("jsonLoad").onclick = () => $("jsonFile").click();
-    $("jsonFile").onchange = (ev) => {
+    $("bLoad").onclick = () => $("fJson").click();
+    $("fJson").onchange = (ev) => {
       const file = ev.target.files && ev.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
         try {
-          if (loadScene(JSON.parse(reader.result))) closeModal();
-          else alert("シーンデータとして読めませんでした。");
+          if (loadScene(JSON.parse(reader.result))) closeSheet();
+          else showToast("読み込めませんでした");
         } catch (e) {
-          alert("JSONの読み込みに失敗しました。");
+          showToast("読み込めませんでした");
         }
       };
       reader.readAsText(file);
@@ -1258,58 +1288,59 @@
   }
 
   function openHelp() {
-    openModal(
-      "使い方",
-      "<h3>考え方</h3>" +
-        "<p>箱で組んだ人物とカメラでカットの動きだけを先に決めて、その結果を生成動画AIへの指示（構図・カメラワーク・人物の配置）に流し込むためのツールです。</p>" +
-        "<h3>キャラクター</h3>" +
-        "<ul>" +
-        "<li>体と頭はボックス、白い四角錐が頭の向きを示します。</li>" +
-        "<li>色は追加した順に <b>赤 → 青 → 緑 → 黄</b> で割り当てられます。</li>" +
-        "<li>頭は体とは別に向きを変えられます（右上の「頭の向き」）。</li>" +
+    closePop();
+    const li = (ic, t, s) => "<li>" + icon(ic) + "<span><b>" + t + "</b><span>" + s + "</span></span></li>";
+    openSheet(
+      "つかいかた",
+      "<p>箱の人とカメラでカットの動きだけ先に決めて、そのまま生成動画AIへの指示に使うための道具です。</p>" +
+        '<ul class="howto">' +
+        li("i-move", "指でドラッグして動かす", "つかんでいる間、キャラは嫌がってプルプルします。何もない所をドラッグすると視点がまわり、2本指でひろげると寄り引きできます。") +
+        li("i-head", "白い四角錐は頭の向き", "体とは別に向きを変えられるので、歩きながら横を見る芝居も作れます。") +
+        li("i-turn", "色は 赤→青→緑→黄 の順", "追加した順に色が決まり、5人目からまた赤に戻ります。") +
+        li("i-play", "時間をあわせてから動かす", "下のバーで時間を選んでから動かすと、その時間に自動で記録されます。記録した点は左右にドラッグでずらせます。") +
+        li("i-cam", "カメラからのぞく", "画面をドラッグするとカメラが振れて、ホイールや2本指で前後に動きます。") +
         "</ul>" +
-        "<h3>操作</h3>" +
-        "<ul>" +
-        "<li>オブジェクトをクリックで選択、ドラッグで右上のモードに応じて操作。</li>" +
-        "<li>何もない所をドラッグで視点回転、ホイール／ピンチでズーム、Shift+ドラッグで平行移動。</li>" +
-        "<li>カメラ視点ではドラッグがそのままパン／チルト、ホイールで前後移動になります。</li>" +
-        "</ul>" +
-        "<h3>キーフレーム</h3>" +
-        "<ul>" +
-        "<li>タイムラインでフレームを合わせてから動かすと、<b>そのフレームに自動でキーが打たれます</b>（AUTO KEY）。</li>" +
-        "<li>キーはドラッグで前後に動かせます。キーが2つ以上あれば間は自動で補間されます。</li>" +
-        "</ul>" +
-        "<h3>ショートカット</h3>" +
-        "<ul>" +
-        "<li><kbd>Space</kbd> 再生／停止</li>" +
-        "<li><kbd>←</kbd> <kbd>→</kbd> 1フレーム移動（Shiftで10フレーム）</li>" +
-        "<li><kbd>Delete</kbd> 現在フレームのキーを削除</li>" +
-        "<li><kbd>1</kbd>〜<kbd>4</kbd> 操作モード切り替え</li>" +
-        "</ul>"
+        (canHover
+          ? "<h3>キーボード</h3><p><kbd>Space</kbd> 再生／とめる　<kbd>←</kbd><kbd>→</kbd> こま送り　" +
+            "<kbd>Delete</kbd> いまの記録を消す　<kbd>1</kbd>〜<kbd>4</kbd> 道具きりかえ</p>"
+          : "")
     );
   }
 
-  // ---------------------------------------------------------------- 初期化・イベント
+  // ---------------------------------------------------------------- 設定
 
-  function defaultScene() {
-    addCamera({ pos: { x: 0, y: 1.5, z: 5.6 }, lens: 35 });
-    addCharacter({ pos: { x: -0.85, y: 0, z: 0 }, ry: Math.PI * 0.06 });
-    addCharacter({ pos: { x: 0.95, y: 0, z: -0.4 }, ry: -Math.PI * 0.08 });
+  function syncSettings() {
+    $("pDur").value = Math.min(15, Math.max(1, +secs(state.duration).toFixed(1)));
+    $("pDurOut").textContent = secs(state.duration).toFixed(1) + "秒";
+    $("pLoop").checked = state.loop;
+    $("pTrails").checked = state.trails;
+    $("pGrid").checked = state.grid;
+    segSync($("pEase"), state.ease);
+    segSync($("pFps"), String(state.fps));
   }
 
-  // 既存のキャラと重ならない立ち位置を、横一列→奥の列の順で探す
-  function freeSpot() {
-    const occupied = state.objects
-      .filter((o) => o.type === "char")
-      .map((o) => ({ x: o.root.position.x, z: o.root.position.z }));
-    for (let row = 0; row < 6; row++) {
-      for (let col = 0; col < 4; col++) {
-        const x = (col - 1.5) * 1.15;
-        const z = -row * 1.4;
-        if (!occupied.some((p) => Math.hypot(p.x - x, p.z - z) < 0.8)) return { x: x, y: 0, z: z };
-      }
-    }
-    return { x: (Math.random() - 0.5) * 4, y: 0, z: -8 };
+  function segSync(seg, value) {
+    seg.querySelectorAll("button").forEach((b) => b.classList.toggle("is-active", b.dataset.v === value));
+  }
+
+  const closePop = () => ($("pop").hidden = true);
+
+  function setDuration(frames) {
+    state.duration = Math.max(2, Math.round(frames));
+    state.objects.forEach((o) => {
+      o.keys = o.keys.filter((k) => k.f <= state.duration);
+      if (!o.keys.length) o.keys = [readKey(o, 0)];
+    });
+    setFrame(Math.min(state.current, state.duration));
+    markDirty();
+  }
+
+  // ---------------------------------------------------------------- 初期化
+
+  function defaultScene() {
+    addCamera({ pos: { x: 0, y: 1.45, z: 6.8 }, rx: -0.06, lens: 35 });
+    addCharacter({ pos: { x: -0.85, y: 0, z: 0 }, ry: Math.PI * 0.06 });
+    addCharacter({ pos: { x: 0.95, y: 0, z: -0.4 }, ry: -Math.PI * 0.08 });
   }
 
   function bind() {
@@ -1321,81 +1352,49 @@
     el.addEventListener("wheel", onWheel, { passive: false });
     el.addEventListener("contextmenu", (e) => e.preventDefault());
 
-    $("addCharBtn").onclick = () => {
-      const obj = addCharacter({ pos: freeSpot(), frame: state.current });
+    $("addBtn").onclick = () => {
+      const obj = addCharacter({ pos: freeSpot(), frame: state.current, pop: true });
       select(obj.id);
       markDirty();
+      showToast(obj.name + " をふやしました");
     };
 
-    $("viewSeg").addEventListener("click", (ev) => {
-      const btn = ev.target.closest(".seg-btn");
-      if (!btn) return;
-      state.view = btn.dataset.view;
-      $("viewSeg").querySelectorAll(".seg-btn").forEach((b) => b.classList.toggle("is-active", b === btn));
-      $("framing").hidden = state.view !== "camera";
-      $("toolStrip").hidden = state.view === "camera";
-      $("viewportHint").textContent =
-        state.view === "camera"
-          ? "ドラッグでパン／チルト、ホイールで前後移動。動かすと自動でキーが入ります。"
-          : "クリックで選択 / オブジェクトをドラッグで操作 / 何もない所をドラッグで視点回転";
-      if (state.view === "camera") {
-        const cam = state.objects.find((o) => o.type === "camera");
-        if (cam) select(cam.id);
+    $("viewBtn").onclick = () => {
+      state.view = state.view === "camera" ? "editor" : "camera";
+      const cam = state.view === "camera";
+      useIcon($("viewIcon"), cam ? "#i-cube" : "#i-cam");
+      setTip($("viewBtn"), cam ? "ぜんたいを見る" : "カメラからのぞく");
+      $("framing").hidden = !cam;
+      $("tools").hidden = cam;
+      if (cam) {
+        const c = theCamera();
+        if (c) select(c.id);
+        showToast("カメラ視点");
       }
       updateSelRing();
-    });
+    };
 
-    $("exportBtn").onclick = openExport;
+    $("tuneBtn").onclick = () => {
+      $("pop").hidden = !$("pop").hidden;
+      if (!$("pop").hidden) syncSettings();
+    };
+
+    $("shareBtn").onclick = openExport;
     $("helpBtn").onclick = openHelp;
-    $("modalClose").onclick = closeModal;
-    $("modal").addEventListener("click", (ev) => {
-      if (ev.target === $("modal")) closeModal();
+    $("sheetClose").onclick = closeSheet;
+    $("sheet").addEventListener("click", (ev) => {
+      if (ev.target === $("sheet")) closeSheet();
     });
 
-    $("toolStrip").addEventListener("click", (ev) => {
-      const btn = ev.target.closest(".tool-btn");
+    $("tools").addEventListener("click", (ev) => {
+      const btn = ev.target.closest(".ib");
       if (!btn) return;
       state.mode = btn.dataset.mode;
-      $("toolStrip").querySelectorAll(".tool-btn").forEach((b) => b.classList.toggle("is-active", b === btn));
+      $("tools").querySelectorAll(".ib").forEach((b) => b.classList.toggle("is-active", b === btn));
+      if (!canHover) showToast(btn.getAttribute("data-tip"));
     });
 
-    ["fX", "fY", "fZ", "fRotY", "fRotX"].forEach((id) => {
-      $(id).addEventListener("input", fromInspector);
-    });
-
-    $("fLens").addEventListener("input", () => {
-      const obj = selected();
-      if (!obj || obj.type !== "camera") return;
-      const mm = +$("fLens").value;
-      $("fLensOut").textContent = mm + "mm";
-      obj.root.fov = lensToFov(mm);
-      obj.root.updateProjectionMatrix();
-      updateFrustum(obj.root);
-      autoKey(obj);
-    });
-
-    $("inspName").addEventListener("input", () => {
-      const obj = selected();
-      if (!obj) return;
-      obj.name = $("inspName").value;
-      renderTimeline();
-      saveSoon();
-    });
-
-    $("keyBtn").onclick = () => {
-      const obj = selected();
-      if (obj) autoKey(obj);
-    };
-
-    $("delKeyBtn").onclick = () => {
-      const obj = selected();
-      if (!obj) return;
-      if (!deleteKeyAt(obj, state.current)) return;
-      applyFrame(state.current);
-      syncInspectorValues();
-    };
-
-    $("delObjBtn").onclick = () => {
+    $("selDelete").onclick = () => {
       const obj = selected();
       if (!obj || obj.type === "camera") return;
       removeObject(obj);
@@ -1403,51 +1402,62 @@
       markDirty();
     };
 
-    $("sDuration").addEventListener("change", () => {
-      state.duration = Math.max(2, Math.min(600, +$("sDuration").value || 120));
-      $("sDuration").value = state.duration;
-      state.objects.forEach((o) => {
-        o.keys = o.keys.filter((k) => k.f <= state.duration);
-        if (!o.keys.length) o.keys = [readKey(o, 0)];
-      });
-      setFrame(Math.min(state.current, state.duration));
-      markDirty();
+    $("selLens").addEventListener("input", () => {
+      const obj = selected();
+      if (!obj || obj.type !== "camera") return;
+      const mm = +$("selLens").value;
+      $("selLensOut").textContent = mm + "mm";
+      obj.root.fov = lensToFov(mm);
+      obj.root.updateProjectionMatrix();
+      updateFrustum(obj.root);
+      autoKey(obj);
     });
 
-    $("sFps").addEventListener("change", () => {
-      state.fps = +$("sFps").value;
-      setFrame(state.current);
-      markDirty();
+    // 設定
+    $("pDur").addEventListener("input", () => {
+      const sec = +$("pDur").value;
+      $("pDurOut").textContent = sec.toFixed(1) + "秒";
+      setDuration(sec * state.fps);
     });
 
-    $("sEase").addEventListener("change", () => {
-      state.ease = $("sEase").value;
+    $("pEase").addEventListener("click", (ev) => {
+      const b = ev.target.closest("button");
+      if (!b) return;
+      state.ease = b.dataset.v;
+      segSync($("pEase"), state.ease);
       applyFrame(state.current);
       markDirty();
     });
 
-    $("sLoop").addEventListener("change", () => (state.loop = $("sLoop").checked));
-    $("sTrails").addEventListener("change", () => {
-      state.trails = $("sTrails").checked;
-      trailsDirty = true;
+    $("pFps").addEventListener("click", (ev) => {
+      const b = ev.target.closest("button");
+      if (!b) return;
+      const next = +b.dataset.v;
+      const scale = next / state.fps;
+      // 秒での見え方が変わらないよう、キーごと時間軸を伸縮させる
+      state.fps = next;
+      state.duration = Math.max(2, Math.round(state.duration * scale));
+      state.objects.forEach((o) => {
+        o.keys.forEach((k) => (k.f = Math.round(k.f * scale)));
+        o.keys = o.keys.filter((k, i, arr) => arr.findIndex((x) => x.f === k.f) === i);
+      });
+      segSync($("pFps"), String(state.fps));
+      setFrame(Math.round(state.current * scale));
+      markDirty();
     });
-    $("sGrid").addEventListener("change", () => (state.grid = $("sGrid").checked));
 
-    // transport
+    $("pLoop").onchange = () => (state.loop = $("pLoop").checked);
+    $("pTrails").onchange = () => {
+      state.trails = $("pTrails").checked;
+      trailsDirty = true;
+    };
+    $("pGrid").onchange = () => (state.grid = $("pGrid").checked);
+
+    // 再生まわり
     $("playBtn").onclick = () => setPlaying(!state.playing);
-    $("toStartBtn").onclick = () => setFrame(0);
-    $("toEndBtn").onclick = () => setFrame(state.duration);
-    $("prevKeyBtn").onclick = () => {
-      const fs = allKeyFrames().filter((f) => f < state.current);
-      if (fs.length) setFrame(fs[fs.length - 1]);
-    };
-    $("nextKeyBtn").onclick = () => {
-      const fs = allKeyFrames().filter((f) => f > state.current);
-      if (fs.length) setFrame(fs[0]);
-    };
-    $("frameInput").addEventListener("change", () => setFrame(+$("frameInput").value || 0));
+    $("startBtn").onclick = () => setFrame(0);
+    $("endBtn").onclick = () => setFrame(state.duration);
 
-    // timeline
     [tlRuler, tlTracks].forEach((elm) => {
       elm.addEventListener("pointerdown", tlPointerDown);
       elm.addEventListener("pointermove", tlPointerMove);
@@ -1455,12 +1465,11 @@
       elm.addEventListener("pointercancel", tlPointerUp);
     });
 
-    tlLabels.addEventListener("click", (ev) => {
-      const row = ev.target.closest(".tl-label");
+    tlDots.addEventListener("click", (ev) => {
+      const row = ev.target.closest(".tl-dot");
       if (row) select(+row.dataset.obj);
     });
 
-    // keyboard
     window.addEventListener("keydown", (ev) => {
       const t = ev.target;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) return;
@@ -1475,24 +1484,22 @@
         setFrame(state.current + (ev.shiftKey ? 10 : 1));
       } else if (ev.key === "Delete" || ev.key === "Backspace") {
         const obj = selected();
-        if (obj && deleteKeyAt(obj, state.current)) {
-          applyFrame(state.current);
-          syncInspectorValues();
-        }
+        if (obj && deleteKeyAt(obj, state.current)) applyFrame(state.current);
       } else if (ev.key === "Escape") {
-        closeModal();
+        closeSheet();
+        closePop();
       } else if (["1", "2", "3", "4"].indexOf(ev.key) >= 0) {
-        const btn = $("toolStrip").querySelectorAll(".tool-btn")[+ev.key - 1];
+        const btn = $("tools").querySelectorAll(".ib")[+ev.key - 1];
         if (btn) btn.click();
       }
     });
 
     window.addEventListener("resize", layout);
-    // タイムラインの行数が変わるとビューポートの高さも変わるので、要素側でも監視する
     if (window.ResizeObserver) {
+      // タイムラインの行数が変わるとビューポートの安全域も変わるので要素側でも監視する
       const ro = new ResizeObserver(() => layout());
       ro.observe(host);
-      ro.observe(tlLanes);
+      ro.observe($("dock"));
     }
   }
 
@@ -1506,18 +1513,15 @@
     }
     if (!restored) {
       defaultScene();
-      $("sFps").value = state.fps;
-      $("sDuration").value = state.duration;
-      $("sEase").value = state.ease;
-      const cam = state.objects.find((o) => o.type === "camera");
+      syncSettings();
+      const cam = theCamera();
       if (cam) select(cam.id);
     }
 
     bind();
     layout();
-    setFrame(0);
+    setFrame(state.current);
     setPlaying(false);
-    renderTimeline();
     tick();
   }
 
