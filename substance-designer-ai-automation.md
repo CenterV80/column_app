@@ -1,5 +1,7 @@
 # Substance Designer × AI自動化 調査まとめ
 
+*公開: 2026-09-02*
+
 ## 目的
 
 Substance Designerの**ピクセルプロセッサー内部の関数グラフ(Function Graph)接続**を、AIに自動生成させられるか検証する。MCP経由での操作も検討したが、最終的には**Substance Automation Toolkit (SAT) の pysbs** を使う方針に決定。
