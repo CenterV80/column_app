@@ -44,6 +44,55 @@
     background: #6d5bd0;
   }
 
+  .lock {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 16px;
+    padding: 32px 34px;
+    max-width: 460px;
+  }
+
+  .lock h2 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 8px;
+  }
+
+  .lock p {
+    font-size: 13.5px;
+    line-height: 1.8;
+    color: #666;
+    margin: 0 0 18px;
+  }
+
+  .lock form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .lock input {
+    font: inherit;
+    font-size: 14px;
+    flex: 1 1 200px;
+    min-width: 0;
+    padding: 9px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    color: #222;
+  }
+
+  .lock input:focus {
+    outline: 2px solid #cfc6f2;
+    border-color: #6d5bd0;
+  }
+
+  .lock .status {
+    flex-basis: 100%;
+    color: #c0392b;
+  }
+
   .btn:disabled {
     opacity: 0.45;
     cursor: not-allowed;
@@ -212,6 +261,16 @@
     <h1>絵コンテ追従 動画生成機能 技術仕様書</h1>
     <p>MiniMax H3 / ComfyUI WebUI（v0.2 ドラフト）</p>
   </header>
+  <div id="lock" class="lock">
+    <h2>🔒 パスワードが必要です</h2>
+    <p>この仕様書は暗号化して置いてあります。パスワードを入れると、この端末のブラウザ内で復号して表示します。</p>
+    <form id="unlock-form">
+      <input type="password" id="passphrase" autocomplete="current-password" placeholder="パスワード" aria-label="パスワード" autofocus>
+      <button type="submit" id="unlock-btn" class="btn">開く</button>
+      <span id="unlock-status" class="status"></span>
+    </form>
+  </div>
+  <div id="viewer" hidden>
   <p class="hint">
     仕様書の本文をMarkdownのまま置いてあります。「マークダウンをコピー」でソース全文をクリップボードに取り込めるので、
     そのままエディタやIssue、Confluenceなどに貼り付けられます。表示は「プレビュー」で整形済みに切り替えられます。
@@ -226,6 +285,7 @@
   </div>
   <pre id="raw" class="raw loading">読み込み中…</pre>
   <div id="preview" hidden></div>
+  </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
 <script>
@@ -237,18 +297,59 @@
   const viewPreviewBtn = document.getElementById("view-preview");
   let markdownSource = "";
 
-  fetch("minimax-h3-storyboard-video-spec.md")
-    .then((res) => res.text())
-    .then((markdown) => {
+  const lock = document.getElementById("lock");
+  const viewer = document.getElementById("viewer");
+  const unlockForm = document.getElementById("unlock-form");
+  const unlockBtn = document.getElementById("unlock-btn");
+  const unlockStatus = document.getElementById("unlock-status");
+  const passphrase = document.getElementById("passphrase");
+
+  // 本文は暗号化して置いてある(公開リポジトリなので、隠すだけではソースが読めてしまう)。
+  // パスワードから鍵を導出し、このブラウザの中だけで復号する。サーバーには問い合わせない。
+  async function decrypt(payload, pass) {
+    const bytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const base = await crypto.subtle.importKey(
+      "raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+    const key = await crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt: bytes(payload.salt), iterations: payload.iterations, hash: "SHA-256" },
+      base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+    const plain = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: bytes(payload.iv) }, key, bytes(payload.ciphertext));
+    return new TextDecoder().decode(plain);
+  }
+
+  let payloadPromise = null;
+  function loadPayload() {
+    if (!payloadPromise) {
+      payloadPromise = fetch("minimax-h3-storyboard-video-spec.enc.json").then((res) => res.json());
+    }
+    return payloadPromise;
+  }
+
+  unlockForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const pass = passphrase.value;
+    if (!pass) return;
+    unlockBtn.disabled = true;
+    unlockStatus.textContent = "確認中…";
+    try {
+      const markdown = await decrypt(await loadPayload(), pass);
       markdownSource = markdown;
       raw.classList.remove("loading");
       raw.textContent = markdown;
       renderPreview(markdown);
-    })
-    .catch(() => {
-      raw.classList.remove("loading");
-      raw.textContent = "仕様書を読み込めませんでした。";
-    });
+      passphrase.value = "";
+      unlockStatus.textContent = "";
+      lock.hidden = true;
+      viewer.hidden = false;
+    } catch (err) {
+      // AES-GCM は改ざん検知付きなので、鍵が違えば復号自体が例外になる。
+      unlockStatus.textContent = "パスワードが違うか、仕様書を読み込めませんでした。";
+      payloadPromise = null;
+    } finally {
+      unlockBtn.disabled = false;
+    }
+  });
 
   // プレビューは外部の marked に依存するため、読み込めなくてもコピー用の
   // マークダウン表示だけは生き残るように、描画を分けて失敗を閉じ込める。
