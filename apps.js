@@ -4,6 +4,14 @@
 // categories.js so the item shows up on the right category page.
 const APPS = [
   {
+    name: "ComfyUI API まとめ",
+    description: "ワークフローを自作WebUIから実行するためのメモ。「API化」の誤解、ワークフローJSONの位置づけ、エンドポイント一覧、パラメータ差し替えと非同期の実行フローを整理しました。",
+    path: "comfyui-api-guide.html",
+    date: "2026-09-14",
+    icon: "🔌",
+    category: "comfyui",
+  },
+  {
     name: "プレビズエディタ",
     description: "生成動画AIに渡すカットを、箱のキャラクターとカメラで先に組み立てるプレビズツール。動かすとタイムラインに自動でキーフレームが打たれ、ショット記述や静止画として書き出せます。",
     path: "apps/previz-editor/",
