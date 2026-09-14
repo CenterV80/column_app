@@ -1,7 +1,8 @@
 /*
  * プレビズエディタ
  * 生成動画AIに渡すカットを、箱のキャラクターとカメラで先に組み立てるための簡易プレビズツール。
- * キャラクターは「体＝ボックス」「頭＝ボックス」「白い四角錐＝頭の向き」で構成する。
+ * キャラクターは「体＝ボックス」「頭＝ボックス」「白い四角錐＝正面」で構成する。
+ * 体の向き＝顔の向きで、頭だけを別に回すことはしない。
  * スマホでの指ドラッグを主な操作にしていて、つかんでいる間はキャラクターが嫌がってプルプル震える。
  * トランスフォームを触ると、その時点の再生フレームに自動でキーフレームが打たれる。
  */
@@ -18,12 +19,15 @@
     { key: "yellow", label: "イエロー", hex: 0xe8c11c, css: "#e8c11c" },
   ];
 
-  const BODY_W = 0.5;
+  // 肩幅を奥行きよりはっきり広くとると、どちらを向いているか一目で分かる
+  const BODY_W = 0.64;
   const BODY_H = 1.12;
-  const BODY_D = 0.3;
+  const BODY_D = 0.26;
   const NECK_H = 0.08;
-  const HEAD = 0.36;
-  const HEAD_Y = BODY_H + NECK_H + HEAD / 2;
+  const HEAD_W = 0.38;
+  const HEAD_H = 0.34;
+  const HEAD_D = 0.3;
+  const HEAD_Y = BODY_H + NECK_H + HEAD_H / 2;
 
   const SENSOR_H = 20.25; // フルサイズ36mm幅を16:9で切り出したときの高さ(mm)
   const ASPECT = 16 / 9;
@@ -184,39 +188,35 @@
     fx.add(body);
 
     const neck = new THREE.Mesh(
-      new THREE.BoxGeometry(0.14, NECK_H + 0.02, 0.14),
+      new THREE.BoxGeometry(0.16, NECK_H + 0.02, 0.16),
       new THREE.MeshStandardMaterial({ color: col(0x3a3f4a), roughness: 0.8 })
     );
     neck.position.y = BODY_H + NECK_H / 2;
     fx.add(neck);
 
-    // 頭は体とは別に回せるようにピボットを挟む
-    const headPivot = new THREE.Group();
-    headPivot.position.y = HEAD_Y;
-    fx.add(headPivot);
-
-    const head = new THREE.Mesh(new THREE.BoxGeometry(HEAD, HEAD, HEAD), headMat);
+    // 頭は体と一体。体の向き＝顔の向きなので、別に回すピボットは持たない。
+    const head = new THREE.Mesh(new THREE.BoxGeometry(HEAD_W, HEAD_H, HEAD_D), headMat);
+    head.position.y = HEAD_Y;
     head.castShadow = true;
-    headPivot.add(head);
+    fx.add(head);
 
-    // 頭の向きを示す白い四角錐。頂点が正面(+Z)を向くようにジオメトリ側で寝かせる。
-    const coneGeo = new THREE.ConeGeometry(0.16, 0.44, 4);
+    // 正面を示す白い四角錐。頂点が正面(+Z)を向くようにジオメトリ側で寝かせる。
+    const coneGeo = new THREE.ConeGeometry(0.17, 0.44, 4);
     coneGeo.rotateY(Math.PI / 4); // 面を上下左右に向ける
     coneGeo.rotateX(Math.PI / 2); // 頂点を +Z へ
-    coneGeo.translate(0, 0, HEAD / 2 + 0.22);
+    coneGeo.translate(0, HEAD_Y, HEAD_D / 2 + 0.22);
     const cone = new THREE.Mesh(
       coneGeo,
       new THREE.MeshStandardMaterial({ color: col(0xffffff), roughness: 0.45, metalness: 0 })
     );
     cone.castShadow = true;
-    headPivot.add(cone);
+    fx.add(cone);
 
     // 指でつかみやすいように、見えない当たり判定を足す（揺れの外側に置いて的が動かないようにする）。
     // 隣のキャラ（1.15m間隔）と重ならない幅に留める。
-    const proxy = hitProxy(0.7, 1.75, 0.7, 0.88);
+    const proxy = hitProxy(0.82, 1.75, 0.72, 0.88);
     root.add(proxy);
 
-    root.userData.headPivot = headPivot;
     root.userData.fx = fx;
     root.userData.solids = [body, neck, head, cone]; // 実際に見えている面
     root.userData.proxy = proxy;
@@ -326,7 +326,6 @@
       const p = o.pos || { x: 0, y: 0, z: 0 };
       root.position.set(p.x, p.y, p.z);
       root.rotation.y = o.ry != null ? o.ry : 0;
-      root.userData.headPivot.rotation.y = 0;
       obj.keys = [readKey(obj, o.frame != null ? o.frame : 0)];
     }
     return obj;
@@ -480,7 +479,6 @@
       f: Math.round(k.f) || 0,
       p: { x: +k.p.x || 0, y: +k.p.y || 0, z: +k.p.z || 0 },
       r: { x: +k.r.x || 0, y: +k.r.y || 0, z: +k.r.z || 0 },
-      h: +k.h || 0,
       lens: k.lens != null ? +k.lens : 35,
     };
   }
@@ -492,7 +490,6 @@
       f: frame,
       p: { x: r.position.x, y: r.position.y, z: r.position.z },
       r: { x: r.rotation.x, y: r.rotation.y, z: r.rotation.z },
-      h: obj.type === "char" ? r.userData.headPivot.rotation.y : 0,
       lens: obj.type === "camera" ? fovToLens(r.fov) : 35,
     };
   }
@@ -547,7 +544,6 @@
       f: frame,
       p: { x: lerp(a.p.x, b.p.x, t), y: lerp(a.p.y, b.p.y, t), z: lerp(a.p.z, b.p.z, t) },
       r: { x: lerpAngle(a.r.x, b.r.x, t), y: lerpAngle(a.r.y, b.r.y, t), z: lerpAngle(a.r.z, b.r.z, t) },
-      h: lerpAngle(a.h, b.h, t),
       lens: lerp(a.lens, b.lens, t),
     };
   }
@@ -558,7 +554,6 @@
       if (!s) return;
       obj.root.position.set(s.p.x, s.p.y, s.p.z);
       obj.root.rotation.set(s.r.x, s.r.y, s.r.z);
-      if (obj.type === "char") obj.root.userData.headPivot.rotation.y = s.h;
       if (obj.type === "camera") {
         const fov = lensToFov(s.lens);
         if (Math.abs(fov - obj.root.fov) > 1e-4) {
@@ -1070,14 +1065,9 @@
       root.position.y = Math.max(obj.type === "char" ? 0 : 0.05, root.position.y - dy * k);
     } else if (d.mode === "yaw") {
       root.rotation.y -= dx * 0.01;
-    } else if (d.mode === "head") {
-      if (obj.type === "char") {
-        const hp = root.userData.headPivot;
-        // 頭は体に対して±100°までひねれる
-        hp.rotation.y = Math.max(-1.75, Math.min(1.75, hp.rotation.y - dx * 0.01));
-      } else {
-        root.rotation.x = Math.max(-1.4, Math.min(1.4, root.rotation.x - dy * 0.006));
-      }
+    } else if (d.mode === "head" && obj.type === "camera") {
+      // 上下の傾きはカメラだけの操作
+      root.rotation.x = Math.max(-1.4, Math.min(1.4, root.rotation.x - dy * 0.006));
     }
   }
 
@@ -1146,11 +1136,18 @@
       syncLens();
       // 道具の意味はカメラのときだけ言い換える
       setTip($("tools").querySelector('[data-mode="yaw"]'), isCam ? "カメラをふる" : "体のむき");
-      setTip($("tools").querySelector('[data-mode="head"]'), isCam ? "カメラの上下" : "頭のむき");
+      // 上下の傾きはカメラにしかないので、キャラを選んでいる間は出さない
+      $("tools").querySelector('[data-mode="head"]').hidden = !isCam;
+      if (!isCam && state.mode === "head") setMode("yaw");
     }
     tlDirty = true;
     updateLookUi();
     updateSelRing();
+  }
+
+  function setMode(mode) {
+    state.mode = mode;
+    $("tools").querySelectorAll(".ib").forEach((b) => b.classList.toggle("is-active", b.dataset.mode === mode));
   }
 
   function setTip(el, text) {
@@ -1390,9 +1387,6 @@
       } else {
         parts.push(dist > 0.05 ? "移動 " + dist.toFixed(2) + "m" : "その場");
         parts.push("体の向き " + deg(a.r.y) + "° → " + deg(b.r.y) + "°");
-        const ha = deg(a.h);
-        const hb = deg(b.h);
-        parts.push(ha === hb ? "頭 体に対して " + ha + "°" : "頭 " + ha + "° → " + hb + "°");
       }
       parts.push("キー " + obj.keys.length + "個");
       lines.push("■ " + obj.name + ": " + parts.join(" / "));
@@ -1636,8 +1630,8 @@
       "<p>箱の人とカメラでカットの動きだけ先に決めて、そのまま生成動画AIへの指示に使うための道具です。</p>" +
         '<ul class="howto">' +
         li("i-move", "指でドラッグして動かす", "歩いた向きに体も自動で向くので、道具を切り替えずに配置と向きが決まります。つかんでいる間、キャラは嫌がってプルプルします。何もない所をドラッグすると視点がまわり、2本指でひろげると寄り引きできます。") +
-        li("i-head", "白い四角錐は頭の向き", "体とは別に向きを変えられるので、歩きながら横を見る芝居も作れます。") +
-        li("i-turn", "向きだけ変えたいとき", "道具の「体のむき」で向きだけ直せます。動かしても向きを変えたくないときは、設定の「進む向きを向く」を切ってください。") +
+        li("i-head", "白い四角錐が正面", "肩幅を広くとってあるので、どちらを向いているか横からでも分かります。体の向き＝顔の向きです。") +
+        li("i-turn", "向きだけ変えたいとき", "道具の「体のむき」で、位置はそのままに向きだけ直せます。動かしても向きを変えたくないときは、設定の「進む向きを向く」を切ってください。") +
         li("i-add", "色は 赤→青→緑→黄 の順", "追加した順に色が決まり、5人目からまた赤に戻ります。") +
         li("i-play", "時間をあわせてから動かす", "下のバーで時間を選んでから動かすと、その時間に自動で記録されます。記録した点は左右にドラッグでずらせます。") +
         li("i-trash", "記録した点を消す", "点をつまんで上か下にはらうと消えます。薄くなったところで指を離すと確定。消した直後に出る「もどす」で戻せます。") +
@@ -1734,9 +1728,8 @@
 
     $("tools").addEventListener("click", (ev) => {
       const btn = ev.target.closest(".ib");
-      if (!btn) return;
-      state.mode = btn.dataset.mode;
-      $("tools").querySelectorAll(".ib").forEach((b) => b.classList.toggle("is-active", b === btn));
+      if (!btn || btn.hidden) return;
+      setMode(btn.dataset.mode);
       if (!canHover) showToast(btn.getAttribute("data-tip"));
     });
 
@@ -1869,7 +1862,7 @@
         closePop();
       } else if (["1", "2", "3", "4"].indexOf(ev.key) >= 0) {
         const bar = state.view === "camera" ? $("camTools") : $("tools");
-        const btn = bar.querySelectorAll(".ib")[+ev.key - 1];
+        const btn = [...bar.querySelectorAll(".ib")].filter((b) => !b.hidden)[+ev.key - 1];
         if (btn) btn.click();
       }
     });
