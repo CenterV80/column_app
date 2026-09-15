@@ -71,6 +71,12 @@
     margin: 0 0 4px;
   }
 
+  .a-date {
+    font-size: 11px;
+    color: #b3b3b3;
+    margin: 0 0 2px;
+  }
+
   .a-links {
     font-size: 12px;
     margin: 0;
@@ -185,14 +191,16 @@
     { bg: "#f0f9ff", emoji: "📄" },
   ];
 
+  const DATE_LINE = /^公開[:：]\s*(\d{4}-\d{2}-\d{2})$/;
+
   function buildLayout(markdown) {
     const raw = document.createElement("div");
     raw.innerHTML = marked.parse(markdown);
 
     const out = document.createDocumentFragment();
     let card = null;
-    let head = null;
-    let pCount = 0;
+    let titleWrap = null;
+    let stage = "meta";
     let colorIndex = 0;
 
     for (const el of Array.from(raw.children)) {
@@ -209,7 +217,7 @@
         card = document.createElement("article");
         card.className = "a-card";
 
-        head = document.createElement("div");
+        const head = document.createElement("div");
         head.className = "a-head";
 
         const icon = document.createElement("span");
@@ -219,7 +227,7 @@
         icon.style.background = style.bg;
         icon.textContent = style.emoji;
 
-        const titleWrap = document.createElement("div");
+        titleWrap = document.createElement("div");
         const h3 = document.createElement("h3");
         h3.innerHTML = el.innerHTML;
         titleWrap.appendChild(h3);
@@ -229,23 +237,45 @@
         card.appendChild(head);
         out.appendChild(card);
 
-        pCount = 0;
+        stage = "meta";
         continue;
       }
 
       if (el.tagName === "P" && card) {
-        pCount++;
-        if (pCount === 1) {
+        const text = el.textContent.trim();
+
+        if (stage === "meta") {
+          const dateMatch = text.match(DATE_LINE);
+          if (dateMatch) {
+            const date = document.createElement("p");
+            date.className = "a-date";
+            date.textContent = "公開: " + dateMatch[1];
+            titleWrap.appendChild(date);
+            stage = "links";
+            continue;
+          }
+          // No date line present: this paragraph is the links row.
           const links = document.createElement("p");
           links.className = "a-links";
           links.innerHTML = el.innerHTML;
-          head.querySelector("div").appendChild(links);
-        } else {
-          const desc = document.createElement("p");
-          desc.className = "a-desc";
-          desc.innerHTML = el.innerHTML;
-          card.appendChild(desc);
+          titleWrap.appendChild(links);
+          stage = "desc";
+          continue;
         }
+
+        if (stage === "links") {
+          const links = document.createElement("p");
+          links.className = "a-links";
+          links.innerHTML = el.innerHTML;
+          titleWrap.appendChild(links);
+          stage = "desc";
+          continue;
+        }
+
+        const desc = document.createElement("p");
+        desc.className = "a-desc";
+        desc.innerHTML = el.innerHTML;
+        card.appendChild(desc);
       }
     }
 
