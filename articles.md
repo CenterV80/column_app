@@ -1,5 +1,13 @@
 ## 2026年9月
 
+### ComfyUI_toyxyz_test_nodes - MiniMax H3のカメラ・プロンプト作成からポーズ編集まで詰め込んだ雑多ノード集
+
+*公開: 2026-09-15*
+
+[GitHub - toyxyz/ComfyUI_toyxyz_test_nodes](https://github.com/toyxyz/ComfyUI_toyxyz_test_nodes)
+
+開発者が日常的に使っているノードを集めた、ComfyUI向けの雑多なカスタムノード集。MiniMax-H3関連では、ショットやムーブ単位のタイムラインからオーディオビジュアル向けのプロンプトを組み立てる「Minimax H3 prompter」と、3Dのカメラ・キーフレームエディタで参考動画や手続き的なカメラプロンプトを作成する「minimax h3 camera」の2種類を収録（以前紹介した2D主体のCivitai版「MiniMax H3 Camera Control」とは別のツールで、こちらは3D空間でのキーフレーム編集を軸にしている）。このほか、領域マスクの生成（Visual area mask・Draw area mask）、深度画像の法線マップ変換、ノイズ除去といった画像処理系のノード、OpenPoseの各部位を個別に修正できる「Openpose Editor」と2つのポーズ間を補間する「Pose Interpolation」、SD 1.5・SDXL・Fluxなど複数モデルに対応する領域別プロンプティング用の「ComfyCouple Region/Mask」、リアルタイムでWebカメラ映像を取り込むWebcamアプリ、指定フォルダへ画像を保存する「Save image to path」、3Dモデル形式でエクスポートする「Export GLB」など、テーマを問わず幅広い実用ノードが並ぶ。導入は`custom_nodes`にクローンし、Webカメラ機能を使う場合は`CaptureCam`フォルダ内のセットアップスクリプトを実行する。GPLv3ライセンスで公開。
+
 ### MiniMax-H3 Fun ControlNet Union - Canny/Depth/HED/MLSD/Poseを1本でこなす公式ControlNet
 
 *公開: 2026-09-15*
