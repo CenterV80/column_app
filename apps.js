@@ -300,6 +300,14 @@ const APPS = [
     category: "minimax-h3",
   },
   {
+    name: "動画ControlNetのしくみ: 絵コンテ追従のために何が注入されているのか",
+    description: "動画生成モデルのControlNetが実際に何を注入しているのかを、MiniMax H3のFun ControlNet Unionを題材にComfyUIの実装から整理しました。50ブロック中5箇所への残差加算、strengthとステップ範囲の効き方、絵コンテのコマ数が足りないときの挙動までまとめています。",
+    path: "minimax-h3-video-controlnet.html",
+    date: "2026-09-15",
+    icon: "🕹️",
+    category: "minimax-h3",
+  },
+  {
     name: "絵コンテ→動画の追従性を上げたい: MiniMax H3のControlNet活用を検討したログ",
     description: "絵コンテのラフな構図をR2V生成に反映させる方法を検討し、Alibaba PAI製のMiniMax-H3-Fun-Controlnet-Unionという前例にたどり着くまでのログです。",
     path: "minimax-h3-storyboard-control.html",
