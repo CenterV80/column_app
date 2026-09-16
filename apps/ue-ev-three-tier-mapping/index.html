@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UEマテリアル小技:露出値(EV)の3段マッピング | column_app</title>
+<meta name="description" content="EyeAdaptationをlog2してEV(段数)に変換し、明るい・普通・暗いの3点をfit2段で補間する、UEマテリアルの露出連動マッピングをまとめました。">
+<link rel="stylesheet" href="../../hub.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hub">
+  <a class="back-link" href="../../categories/ue/index.html">← UEカテゴリに戻る</a>
+  <header>
+    <h1>📐 UEマテリアル小技:露出値(EV)の3段マッピング</h1>
+    <p>EyeAdaptationをlog2してEV(段数)に変換し、明るい・普通・暗いの3点をfit2段で補間する、露出連動マッピングの組み方をまとめました。</p>
+  </header>
+  <div id="content" class="doc loading">読み込み中…</div>
+  <p style="margin-top: 24px;">
+    <a class="back-link" href="../../categories/ue/index.html">← UEカテゴリに戻る</a>
+  </p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
+<script src="chart.js"></script>
+<script>
+  fetch("article.md")
+    .then((res) => res.text())
+    .then((markdown) => {
+      const content = document.getElementById("content");
+      content.classList.remove("loading");
+      content.innerHTML = marked.parse(markdown);
+      initEvChart();
+    })
+    .catch(() => {
+      document.getElementById("content").textContent = "記事を読み込めませんでした。";
+    });
+</script>
+</body>
+</html>
