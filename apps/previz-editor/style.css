@@ -536,6 +536,8 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .row-btn:hover { background: rgba(255, 255, 255, 0.12); }
+.row-btn:disabled { opacity: 0.5; cursor: default; }
+.row-btn:disabled:hover { background: rgba(255, 255, 255, 0.06); }
 .row-btn svg { flex: 0 0 auto; }
 .row-btn small { display: block; font-weight: 400; font-size: 11px; color: var(--ink-dim); margin-top: 2px; }
 
