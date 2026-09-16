@@ -34,6 +34,8 @@
   const CAM_CSS = "#cfd6e4";
 
   const STORAGE_KEY = "previz-editor.scene.v1";
+  const VIDEO_W = 1280;
+  const VIDEO_H = 720;
   const LOOK_H = 1.2; // キャラのどのあたりを見るか（胸から頭の間）
 
   const lensToFov = (mm) => 2 * Math.atan(SENSOR_H / 2 / mm) * (180 / Math.PI);
@@ -701,6 +703,11 @@
 
   function tick() {
     requestAnimationFrame(tick);
+    // 動画の書き出し中は、こちらが1コマずつ描くので通常の描画は止める
+    if (exporting) {
+      clock.getDelta();
+      return;
+    }
     const wall = clock.getDelta();
     const dt = Math.min(0.05, wall);
 
@@ -1521,6 +1528,142 @@
     return url;
   }
 
+  // ---------------------------------------------------------------- 動画の書き出し
+
+  let exporting = false;
+  const loadedScripts = {};
+
+  // ムーサは重いので、使うときだけ読み込む
+  function loadScriptOnce(src) {
+    if (loadedScripts[src]) return Promise.resolve();
+    return new Promise((res, rej) => {
+      const el = document.createElement("script");
+      el.src = src;
+      el.onload = () => {
+        loadedScripts[src] = true;
+        res();
+      };
+      el.onerror = () => rej(new Error("読み込めませんでした: " + src));
+      document.head.appendChild(el);
+    });
+  }
+
+  // このブラウザで使える形式を上から順に試す。H.264が使えればMP4になる。
+  async function pickVideoFormat() {
+    if (typeof VideoEncoder === "undefined" || typeof VideoFrame === "undefined") return null;
+    const tries = [
+      { codec: "avc1.640028", box: "avc", ext: "mp4", label: "MP4" },
+      { codec: "avc1.4d0028", box: "avc", ext: "mp4", label: "MP4" },
+      { codec: "avc1.42001f", box: "avc", ext: "mp4", label: "MP4" },
+      { codec: "vp09.00.10.08", box: "V_VP9", ext: "webm", label: "WebM" },
+    ];
+    for (const t of tries) {
+      try {
+        const s = await VideoEncoder.isConfigSupported({
+          codec: t.codec,
+          width: VIDEO_W,
+          height: VIDEO_H,
+          bitrate: 8e6,
+          framerate: state.fps,
+        });
+        if (s && s.supported) return t;
+      } catch (e) {
+        /* この形式は使えないだけなので次を試す */
+      }
+    }
+    return null;
+  }
+
+  async function exportVideo(onProgress) {
+    const camObj = theCamera();
+    if (!camObj) throw new Error("カメラがありません");
+    const fmt = await pickVideoFormat();
+    if (!fmt) throw new Error("このブラウザは動画の書き出しに対応していません");
+
+    await loadScriptOnce(fmt.ext === "mp4" ? "vendor/mp4-muxer.js" : "vendor/webm-muxer.js");
+    const lib = fmt.ext === "mp4" ? window.Mp4Muxer : window.WebMMuxer;
+    const target = new lib.ArrayBufferTarget();
+    const muxer = new lib.Muxer(
+      fmt.ext === "mp4"
+        ? {
+            target: target,
+            video: { codec: fmt.box, width: VIDEO_W, height: VIDEO_H, frameRate: state.fps },
+            fastStart: "in-memory",
+          }
+        : {
+            target: target,
+            video: { codec: fmt.box, width: VIDEO_W, height: VIDEO_H, frameRate: state.fps },
+          }
+    );
+
+    let failure = null;
+    const encoder = new VideoEncoder({
+      output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+      error: (e) => (failure = e),
+    });
+    encoder.configure({
+      codec: fmt.codec,
+      width: VIDEO_W,
+      height: VIDEO_H,
+      bitrate: 8e6,
+      framerate: state.fps,
+    });
+
+    const keepFrame = state.current;
+    const w = host.clientWidth;
+    const h = host.clientHeight;
+    const rigWas = camObj.root.userData.rig.visible;
+    exporting = true;
+    setPlaying(false);
+    renderer.setScissorTest(false);
+    renderer.setSize(VIDEO_W, VIDEO_H, false);
+
+    try {
+      for (let f = 0; f <= state.duration; f++) {
+        if (failure) throw failure;
+        applyFrame(f);
+        // 補助の表示は映さない
+        camObj.root.userData.rig.visible = false;
+        trailGroup.visible = false;
+        selRing.visible = false;
+        reticle.visible = false;
+        renderer.setViewport(0, 0, VIDEO_W, VIDEO_H);
+        renderer.render(scene, camObj.root);
+
+        const frame = new VideoFrame(renderer.domElement, {
+          timestamp: Math.round((f * 1e6) / state.fps),
+          duration: Math.round(1e6 / state.fps),
+        });
+        encoder.encode(frame, { keyFrame: f % state.fps === 0 });
+        frame.close();
+
+        if (onProgress) onProgress(f + 1, state.duration + 1);
+        // 画面が固まらないよう、ときどき処理を譲る
+        if (encoder.encodeQueueSize > 8 || f % 4 === 0) await new Promise((r) => setTimeout(r, 0));
+      }
+      await encoder.flush();
+      if (failure) throw failure;
+      muxer.finalize();
+    } finally {
+      try {
+        if (encoder.state !== "closed") encoder.close();
+      } catch (e) {
+        /* すでに閉じていれば何もしなくてよい */
+      }
+      exporting = false;
+      renderer.setSize(w, h, false);
+      camObj.root.userData.rig.visible = rigWas;
+      applyFrame(keepFrame);
+      layout();
+    }
+
+    return {
+      blob: new Blob([target.buffer], { type: fmt.ext === "mp4" ? "video/mp4" : "video/webm" }),
+      ext: fmt.ext,
+      label: fmt.label,
+    };
+  }
+
   function saveFile(url, filename, revoke) {
     const a = document.createElement("a");
     a.href = url;
@@ -1565,6 +1708,9 @@
         "<span>ショットの説明をコピー<small>カメラと人の動きを文章にします</small></span></button>" +
         '<button class="row-btn" id="bCopyPrompt">' + icon("i-copy") +
         "<span>英語プロンプトをコピー<small>生成AIに渡すたたき台</small></span></button>" +
+        "<h3>動画</h3>" +
+        '<button class="row-btn" id="bVideo">' + icon("i-cam") +
+        "<span>動画を書き出す<small id=\"bVideoSub\">形式をしらべています…</small></span></button>" +
         "<h3>画像（1280×720）</h3>" +
         '<div class="chips"><button class="chip" data-png="first">さいしょ</button>' +
         '<button class="chip" data-png="current">いま</button>' +
@@ -1576,6 +1722,43 @@
         '<input type="file" id="fJson" accept="application/json,.json" hidden>' +
         '<textarea id="exText" spellcheck="false" readonly hidden></textarea>'
     );
+
+    // 使える形式が分かったら、ボタンの説明に出す
+    const vBtn = $("bVideo");
+    const vSub = $("bVideoSub");
+    pickVideoFormat().then((fmt) => {
+      if (!$("bVideoSub")) return;
+      if (!fmt) {
+        vSub.textContent = "このブラウザでは書き出せません";
+        vBtn.disabled = true;
+        vBtn.style.opacity = 0.45;
+        return;
+      }
+      vSub.textContent =
+        fmt.label + " / " + VIDEO_W + "×" + VIDEO_H + " / " + state.fps + "fps / " +
+        secs(state.duration).toFixed(1) + "秒" + (fmt.ext === "mp4" ? "" : "（MP4非対応のブラウザです）");
+    });
+
+    vBtn.onclick = async () => {
+      if (vBtn.disabled) return;
+      vBtn.disabled = true;
+      const keep = vSub.textContent;
+      try {
+        const out = await exportVideo((done, total) => {
+          if ($("bVideoSub")) vSub.textContent = "書き出し中… " + done + " / " + total + " コマ";
+        });
+        saveFile(URL.createObjectURL(out.blob), "previz." + out.ext, true);
+        if ($("bVideoSub")) vSub.textContent = "書き出しました（" + Math.round(out.blob.size / 1024) + " KB）";
+      } catch (err) {
+        if ($("bVideoSub")) vSub.textContent = "書き出せませんでした: " + (err && err.message ? err.message : err);
+        showToast("動画を書き出せませんでした");
+      } finally {
+        vBtn.disabled = false;
+        setTimeout(() => {
+          if ($("bVideoSub") && vSub.textContent.indexOf("書き出し中") < 0) vSub.textContent = keep;
+        }, 4000);
+      }
+    };
 
     const flash = (btn, msg) => {
       const span = btn.querySelector("span");
@@ -1637,6 +1820,7 @@
         li("i-trash", "記録した点を消す", "点をつまんで上か下にはらうと消えます。薄くなったところで指を離すと確定。消した直後に出る「もどす」で戻せます。") +
         li("i-look", "見たい人を画面でタップ", "カメラ視点でキャラをタップすると、その人を中心にドラッグで回り込めます。記録されるのはいまの時間のカメラだけで、他の時間の動きは変わりません。もう一度タップするか、何もない所をタップで解除。") +
         li("i-cam", "カメラからのぞく", "誰も見ていないときは、右の道具で「ふる」と「上下左右にずらす」を切り替えられます。前後はホイールか2本指でひろげる操作です。") +
+        li("i-share", "動画で書き出す", "書き出しの画面から、カメラの画をそのまま動画（MP4）にできます。1コマずつ描いて作るので、再生が重い端末でもコマ落ちしません。") +
         "</ul>" +
         (canHover
           ? "<h3>キーボード</h3><p><kbd>Space</kbd> 再生／とめる　<kbd>←</kbd><kbd>→</kbd> こま送り　" +
