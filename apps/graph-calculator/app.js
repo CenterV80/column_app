@@ -3,14 +3,25 @@
 /* ---------------------------------------------------------------------
  * Math expression parser: tokenizer -> shunting-yard -> RPN evaluator
  * Supports: + - * / ^ %  unary +/-  ( )  ,
- * Functions: sin cos tan asin acos atan sinh cosh tanh sqrt abs
- *            log ln exp floor ceil round sign min max
+ * Builtin functions: sin cos tan asin acos atan sinh cosh tanh sqrt abs
+ *                     log ln exp floor ceil round sign min max
  * Constants: pi e
- * Variable: x
+ * Plus a small "environment" layer on top so a whole calculator page can
+ * paste in Desmos-style scripts like:
+ *   a=-1
+ *   V_a=0
+ *   s(x)=min(1,max(0,x))
+ *   F(x,p,q,m,n)=m+(n-m)s((x-p)/(q-p))
+ *   y=F(x,b,c,F(x,a,b,V_a,V_b),V_c)
+ *   (a,V_a),(b,V_b),(c,V_c)
+ * i.e. bare "name=expr" defines a global variable, "name(p,...)=expr"
+ * defines a callable function, "y=expr" (or a bare expression) is the
+ * plotted curve, and a comma-separated list of "(expr,expr)" pairs is
+ * plotted as discrete points. See classifyExpression() below.
  * Implicit multiplication: 2x, 2(x+1), x(x+1), (x+1)(x-1), (x+1)2
  * ------------------------------------------------------------------- */
 
-const FUNCTIONS = new Set([
+const BUILTIN_FUNCTIONS = new Set([
   "sin", "cos", "tan", "asin", "acos", "atan",
   "sinh", "cosh", "tanh", "sqrt", "abs", "log", "ln",
   "exp", "floor", "ceil", "round", "sign", "min", "max",
@@ -19,7 +30,12 @@ const CONSTANTS = { pi: Math.PI, e: Math.E };
 
 class ParseError extends Error {}
 
-function tokenize(input) {
+// `knownVars`: bare identifiers that should tokenize as a single variable
+// (always includes "x", plus any global variable names and, when compiling
+// a function body, that function's own parameter names).
+// `funcNames`: identifiers that should tokenize as a function call when
+// immediately followed by "(" (builtins plus every user-defined function).
+function tokenize(input, knownVars, funcNames) {
   const src = input.replace(/\s+/g, "");
   const tokens = [];
   let i = 0;
@@ -34,12 +50,12 @@ function tokenize(input) {
       }
       tokens.push({ type: "NUM", value: parseFloat(numStr) });
       i = j;
-    } else if (/[a-zA-Z]/.test(c)) {
+    } else if (/[a-zA-Z_]/.test(c)) {
       let j = i;
-      while (j < src.length && /[a-zA-Z]/.test(src[j])) j++;
+      while (j < src.length && /[a-zA-Z0-9_]/.test(src[j])) j++;
       let name = src.slice(i, j);
       // Followed immediately by '(' and a known function name -> function call
-      if (FUNCTIONS.has(name) && src[j] === "(") {
+      if (funcNames.has(name) && src[j] === "(") {
         tokens.push({ type: "FUNC", value: name });
         i = j;
         continue;
@@ -49,35 +65,44 @@ function tokenize(input) {
         i = j;
         continue;
       }
-      if (name === "x") {
-        tokens.push({ type: "VAR" });
+      if (knownVars.has(name)) {
+        tokens.push({ type: "IDENT", value: name });
         i = j;
         continue;
       }
-      // Try to decompose into known pieces (constants / function calls / x's)
+      // A name containing "_" can only ever be a single identifier (e.g.
+      // "V_a") -- splitting it letter-by-letter wouldn't mean anything, so
+      // an unrecognized one is a hard error rather than a decomposition
+      // candidate.
+      if (name.includes("_")) {
+        throw new ParseError(`未定義の変数・関数です: "${name}"`);
+      }
+      // Try to decompose into known pieces via implicit multiplication,
+      // e.g. "2pix" -> 2 * pi * x, or "ab" -> a * b when both are defined.
+      const candidates = [...knownVars, ...Object.keys(CONSTANTS)]
+        .filter((n) => !n.includes("_"))
+        .sort((a, b) => b.length - a.length);
       let k = 0;
       let consumed = false;
       while (k < name.length) {
         let matched = false;
-        for (const constName of Object.keys(CONSTANTS)) {
-          if (name.startsWith(constName, k)) {
-            tokens.push({ type: "CONST", value: constName });
-            k += constName.length;
+        for (const cand of candidates) {
+          if (name.startsWith(cand, k)) {
+            tokens.push(
+              CONSTANTS.hasOwnProperty(cand)
+                ? { type: "CONST", value: cand }
+                : { type: "IDENT", value: cand }
+            );
+            k += cand.length;
             matched = true;
             consumed = true;
             break;
           }
         }
         if (matched) continue;
-        if (name[k] === "x") {
-          tokens.push({ type: "VAR" });
-          k += 1;
-          consumed = true;
-          continue;
-        }
-        throw new ParseError(`不明な識別子です: "${name}"`);
+        throw new ParseError(`未定義の変数・関数です: "${name}"`);
       }
-      if (!consumed) throw new ParseError(`不明な識別子です: "${name}"`);
+      if (!consumed) throw new ParseError(`未定義の変数・関数です: "${name}"`);
       i = j;
     } else if (c === "+" || c === "-" || c === "*" || c === "/" || c === "^" || c === "%") {
       tokens.push({ type: "OP", value: c });
@@ -92,9 +117,7 @@ function tokenize(input) {
       tokens.push({ type: "COMMA" });
       i++;
     } else if (c === "=") {
-      // allow a single top-level '=' as in "y=..." but we already strip the
-      // leading "y=" before tokenizing, so a stray '=' is an error.
-      throw new ParseError("この電卓は y = f(x) の形式のみ対応しています");
+      throw new ParseError("式の中に \"=\" は使えません");
     } else {
       throw new ParseError(`使用できない文字です: "${c}"`);
     }
@@ -103,10 +126,10 @@ function tokenize(input) {
 }
 
 function isValueEnd(tok) {
-  return tok && (tok.type === "NUM" || tok.type === "CONST" || tok.type === "VAR" || tok.type === "RPAREN");
+  return tok && (tok.type === "NUM" || tok.type === "CONST" || tok.type === "IDENT" || tok.type === "RPAREN");
 }
 function isValueStart(tok) {
-  return tok && (tok.type === "NUM" || tok.type === "CONST" || tok.type === "VAR" || tok.type === "FUNC" || tok.type === "LPAREN");
+  return tok && (tok.type === "NUM" || tok.type === "CONST" || tok.type === "IDENT" || tok.type === "FUNC" || tok.type === "LPAREN");
 }
 
 function insertImplicitMultiplication(tokens) {
@@ -127,13 +150,14 @@ const RIGHT_ASSOC = new Set(["^", "u"]);
 function toRPN(tokens) {
   const output = [];
   const stack = [];
+  const argCounts = []; // tracks comma count for the innermost open function call
   let prevType = null; // to detect unary vs binary
 
   const peekIsOp = () => stack.length && stack[stack.length - 1].type === "OP";
 
   for (let i = 0; i < tokens.length; i++) {
     const tok = tokens[i];
-    if (tok.type === "NUM" || tok.type === "CONST" || tok.type === "VAR") {
+    if (tok.type === "NUM" || tok.type === "CONST" || tok.type === "IDENT") {
       output.push(tok);
     } else if (tok.type === "FUNC") {
       stack.push(tok);
@@ -141,7 +165,10 @@ function toRPN(tokens) {
       while (stack.length && stack[stack.length - 1].type !== "LPAREN") {
         output.push(stack.pop());
       }
-      if (!stack.length) throw new ParseError("カンマの位置が不正です");
+      if (!stack.length || !stack[stack.length - 1].isCall) {
+        throw new ParseError("カンマの位置が不正です");
+      }
+      argCounts[argCounts.length - 1]++;
     } else if (tok.type === "OP") {
       const isUnary =
         (tok.value === "-" || tok.value === "+") &&
@@ -165,20 +192,27 @@ function toRPN(tokens) {
       prevType = "OP";
       continue;
     } else if (tok.type === "LPAREN") {
-      stack.push(tok);
+      const isCall = prevType === "FUNC";
+      stack.push({ type: "LPAREN", isCall });
+      if (isCall) argCounts.push(1);
     } else if (tok.type === "RPAREN") {
-      let found = false;
+      let matchedParen = null;
       while (stack.length) {
         const top = stack.pop();
         if (top.type === "LPAREN") {
-          found = true;
+          matchedParen = top;
           break;
         }
         output.push(top);
       }
-      if (!found) throw new ParseError("かっこが正しく閉じられていません");
-      if (stack.length && stack[stack.length - 1].type === "FUNC") {
-        output.push(stack.pop());
+      if (!matchedParen) throw new ParseError("かっこが正しく閉じられていません");
+      if (matchedParen.isCall) {
+        const argc = argCounts.pop();
+        if (stack.length && stack[stack.length - 1].type === "FUNC") {
+          const funcTok = stack.pop();
+          funcTok.argc = argc;
+          output.push(funcTok);
+        }
       }
     }
     prevType = tok.type;
@@ -191,29 +225,41 @@ function toRPN(tokens) {
   return output;
 }
 
-function compile(exprText) {
-  let text = exprText.trim();
+// opts: { paramNames: string[], variableNames: Set<string>, functionNames: Set<string> }
+function compile(bodyText, opts) {
+  const paramNames = (opts && opts.paramNames) || [];
+  const variableNames = (opts && opts.variableNames) || new Set();
+  const functionNames = (opts && opts.functionNames) || BUILTIN_FUNCTIONS;
+  const text = bodyText.trim();
   if (text === "") throw new ParseError("式を入力してください");
-  const eqMatch = text.match(/^[a-zA-Z]\s*=\s*(.*)$/);
-  if (eqMatch) {
-    text = eqMatch[1];
-    if (text.trim() === "") throw new ParseError("式を入力してください");
-  }
-  const tokens = insertImplicitMultiplication(tokenize(text));
+  const knownVars = new Set(["x", ...paramNames, ...variableNames]);
+  const tokens = insertImplicitMultiplication(tokenize(text, knownVars, functionNames));
   const rpn = toRPN(tokens);
   if (rpn.length === 0) throw new ParseError("式を入力してください");
   return rpn;
 }
 
-function evalRPN(rpn, x) {
+// `scope`: plain object of name -> number for the current call frame (e.g.
+// {x: worldX} for the top-level plot, or a function's bound parameters).
+// `env`: the Environment providing global variables/functions (see below).
+// `stackGuard`: a Set used to detect circular variable/function references.
+function evalRPN(rpn, scope, env, stackGuard) {
+  scope = scope || {};
+  stackGuard = stackGuard || new Set();
   const stack = [];
   for (const tok of rpn) {
     if (tok.type === "NUM") {
       stack.push(tok.value);
-    } else if (tok.type === "VAR") {
-      stack.push(x);
     } else if (tok.type === "CONST") {
       stack.push(CONSTANTS[tok.value]);
+    } else if (tok.type === "IDENT") {
+      if (Object.prototype.hasOwnProperty.call(scope, tok.value)) {
+        stack.push(scope[tok.value]);
+      } else if (env) {
+        stack.push(env.resolveVariable(tok.value, stackGuard));
+      } else {
+        throw new ParseError(`未定義の変数です: "${tok.value}"`);
+      }
     } else if (tok.type === "OP") {
       if (tok.isUnary) {
         const a = stack.pop();
@@ -232,37 +278,183 @@ function evalRPN(rpn, x) {
         }
       }
     } else if (tok.type === "FUNC") {
-      const nArgs = tok.value === "min" || tok.value === "max" ? 2 : 1;
+      const nArgs = tok.argc != null ? tok.argc : 1;
       const args = [];
       for (let i = 0; i < nArgs; i++) args.unshift(stack.pop());
-      switch (tok.value) {
-        case "sin": stack.push(Math.sin(args[0])); break;
-        case "cos": stack.push(Math.cos(args[0])); break;
-        case "tan": stack.push(Math.tan(args[0])); break;
-        case "asin": stack.push(Math.asin(args[0])); break;
-        case "acos": stack.push(Math.acos(args[0])); break;
-        case "atan": stack.push(Math.atan(args[0])); break;
-        case "sinh": stack.push(Math.sinh(args[0])); break;
-        case "cosh": stack.push(Math.cosh(args[0])); break;
-        case "tanh": stack.push(Math.tanh(args[0])); break;
-        case "sqrt": stack.push(Math.sqrt(args[0])); break;
-        case "abs": stack.push(Math.abs(args[0])); break;
-        case "log": stack.push(Math.log10(args[0])); break;
-        case "ln": stack.push(Math.log(args[0])); break;
-        case "exp": stack.push(Math.exp(args[0])); break;
-        case "floor": stack.push(Math.floor(args[0])); break;
-        case "ceil": stack.push(Math.ceil(args[0])); break;
-        case "round": stack.push(Math.round(args[0])); break;
-        case "sign": stack.push(Math.sign(args[0])); break;
-        case "min": stack.push(Math.min(args[0], args[1])); break;
-        case "max": stack.push(Math.max(args[0], args[1])); break;
-        default: throw new ParseError(`不明な関数です: ${tok.value}`);
+      if (BUILTIN_FUNCTIONS.has(tok.value)) {
+        switch (tok.value) {
+          case "sin": stack.push(Math.sin(args[0])); break;
+          case "cos": stack.push(Math.cos(args[0])); break;
+          case "tan": stack.push(Math.tan(args[0])); break;
+          case "asin": stack.push(Math.asin(args[0])); break;
+          case "acos": stack.push(Math.acos(args[0])); break;
+          case "atan": stack.push(Math.atan(args[0])); break;
+          case "sinh": stack.push(Math.sinh(args[0])); break;
+          case "cosh": stack.push(Math.cosh(args[0])); break;
+          case "tanh": stack.push(Math.tanh(args[0])); break;
+          case "sqrt": stack.push(Math.sqrt(args[0])); break;
+          case "abs": stack.push(Math.abs(args[0])); break;
+          case "log": stack.push(Math.log10(args[0])); break;
+          case "ln": stack.push(Math.log(args[0])); break;
+          case "exp": stack.push(Math.exp(args[0])); break;
+          case "floor": stack.push(Math.floor(args[0])); break;
+          case "ceil": stack.push(Math.ceil(args[0])); break;
+          case "round": stack.push(Math.round(args[0])); break;
+          case "sign": stack.push(Math.sign(args[0])); break;
+          case "min": stack.push(Math.min(args[0], args[1])); break;
+          case "max": stack.push(Math.max(args[0], args[1])); break;
+          default: throw new ParseError(`不明な関数です: ${tok.value}`);
+        }
+      } else if (env && env.functions.has(tok.value)) {
+        stack.push(env.callFunction(tok.value, args, stackGuard));
+      } else {
+        throw new ParseError(`未定義の関数です: "${tok.value}"`);
       }
     }
   }
   if (stack.length !== 1) throw new ParseError("式が不正です");
   return stack[0];
 }
+
+/* ---------------------------------------------------------------------
+ * Environment: holds global variable/function definitions shared across
+ * every expression row, rebuilt whenever any row's text changes.
+ * ------------------------------------------------------------------- */
+
+class Environment {
+  constructor() {
+    this.variables = new Map(); // name -> { rpn }
+    this.functions = new Map(); // name -> { params, rpn }
+    this._cache = new Map(); // memoized variable values for this environment's lifetime
+  }
+
+  resolveVariable(name, stackGuard) {
+    if (this._cache.has(name)) return this._cache.get(name);
+    const def = this.variables.get(name);
+    if (!def) throw new ParseError(`未定義の変数です: "${name}"`);
+    const guardKey = "var:" + name;
+    if (stackGuard.has(guardKey)) throw new ParseError(`循環参照があります: "${name}"`);
+    stackGuard.add(guardKey);
+    const value = evalRPN(def.rpn, {}, this, stackGuard);
+    stackGuard.delete(guardKey);
+    this._cache.set(name, value);
+    return value;
+  }
+
+  callFunction(name, args, stackGuard) {
+    const def = this.functions.get(name);
+    if (!def) throw new ParseError(`未定義の関数です: "${name}"`);
+    if (def.params.length !== args.length) {
+      throw new ParseError(
+        `${name} の引数の数が正しくありません(必要: ${def.params.length}個, 実際: ${args.length}個)`
+      );
+    }
+    const scope = {};
+    def.params.forEach((p, i) => {
+      scope[p] = args[i];
+    });
+    const guardKey = "fn:" + name + ":" + args.join(",");
+    if (stackGuard.has(guardKey)) throw new ParseError(`循環参照があります: "${name}"`);
+    stackGuard.add(guardKey);
+    const value = evalRPN(def.rpn, scope, this, stackGuard);
+    stackGuard.delete(guardKey);
+    return value;
+  }
+}
+
+/* ---------------------------------------------------------------------
+ * Row classification: decides whether a pasted/typed line is a variable
+ * definition, a function definition, a plotted curve, or a point list.
+ * ------------------------------------------------------------------- */
+
+const FUNC_DEF_RE = /^([a-zA-Z_][a-zA-Z0-9_]*)\(\s*([a-zA-Z_][a-zA-Z0-9_]*(?:\s*,\s*[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\)\s*=\s*(.+)$/;
+const VAR_DEF_RE = /^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)$/;
+
+function splitTopLevelComma(s) {
+  const parts = [];
+  let depth = 0;
+  let start = 0;
+  for (let k = 0; k < s.length; k++) {
+    const c = s[k];
+    if (c === "(") depth++;
+    else if (c === ")") depth--;
+    else if (c === "," && depth === 0) {
+      parts.push(s.slice(start, k));
+      start = k + 1;
+    }
+  }
+  parts.push(s.slice(start));
+  return parts;
+}
+
+// Parses "(expr,expr),(expr,expr),..." into [{xText, yText}, ...], or
+// returns null if `text` doesn't fully match that shape (so the caller can
+// fall back to treating it as an ordinary expression).
+function tryParsePointList(text) {
+  let i = 0;
+  const points = [];
+  const skipWs = () => {
+    while (i < text.length && /\s/.test(text[i])) i++;
+  };
+  while (true) {
+    skipWs();
+    if (i >= text.length) break;
+    if (text[i] !== "(") return null;
+    let depth = 0;
+    const start = i;
+    for (; i < text.length; i++) {
+      if (text[i] === "(") depth++;
+      else if (text[i] === ")") {
+        depth--;
+        if (depth === 0) {
+          i++;
+          break;
+        }
+      }
+    }
+    if (depth !== 0) return null;
+    const inner = text.slice(start + 1, i - 1);
+    const parts = splitTopLevelComma(inner);
+    if (parts.length !== 2 || !parts[0].trim() || !parts[1].trim()) return null;
+    points.push({ xText: parts[0].trim(), yText: parts[1].trim() });
+    skipWs();
+    if (i < text.length && text[i] === ",") {
+      i++;
+      continue;
+    }
+    break;
+  }
+  skipWs();
+  if (i !== text.length || points.length === 0) return null;
+  return points;
+}
+
+function classifyExpression(rawText) {
+  const text = rawText.trim();
+  if (text === "") return { kind: "empty" };
+
+  const funcMatch = text.match(FUNC_DEF_RE);
+  if (funcMatch) {
+    const params = funcMatch[2].split(",").map((p) => p.trim());
+    return { kind: "funcdef", name: funcMatch[1], params, bodyText: funcMatch[3] };
+  }
+
+  const varMatch = text.match(VAR_DEF_RE);
+  if (varMatch) {
+    if (varMatch[1] === "y") {
+      return { kind: "plot", bodyText: varMatch[2] };
+    }
+    return { kind: "vardef", name: varMatch[1], bodyText: varMatch[2] };
+  }
+
+  if (text[0] === "(") {
+    const points = tryParsePointList(text);
+    if (points) return { kind: "points", points };
+  }
+
+  return { kind: "plot", bodyText: text };
+}
+
 
 /* ---------------------------------------------------------------------
  * Graph view: canvas rendering, pan/zoom, grid
@@ -433,8 +625,9 @@ class GraphView {
     return niceFrac * base;
   }
 
-  render(expressions) {
+  render(expressions, env) {
     this._lastExpressions = expressions || this._lastExpressions || [];
+    this._lastEnv = env || this._lastEnv || null;
     const { ctx, width, height, scale } = this;
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = "#ffffff";
@@ -499,7 +692,7 @@ class GraphView {
 
     // Function curves
     for (const expr of this._lastExpressions) {
-      if (!expr.visible || !expr.rpn) continue;
+      if (expr.kind !== "plot" || !expr.visible || !expr.rpn) continue;
       ctx.strokeStyle = expr.color;
       ctx.lineWidth = 2.2;
       ctx.beginPath();
@@ -510,7 +703,7 @@ class GraphView {
         const wx = this.cx + (px - width / 2) / scale;
         let wy;
         try {
-          wy = evalRPN(expr.rpn, wx);
+          wy = evalRPN(expr.rpn, { x: wx }, this._lastEnv, new Set());
         } catch (err) {
           wy = NaN;
         }
@@ -532,6 +725,29 @@ class GraphView {
       }
       ctx.stroke();
     }
+
+    // Point sets, e.g. "(a,V_a),(b,V_b),(c,V_c)"
+    for (const expr of this._lastExpressions) {
+      if (expr.kind !== "points" || !expr.visible || !expr.points || expr.error) continue;
+      for (const pt of expr.points) {
+        let wx, wy;
+        try {
+          wx = evalRPN(pt.xRpn, {}, this._lastEnv, new Set());
+          wy = evalRPN(pt.yRpn, {}, this._lastEnv, new Set());
+        } catch (err) {
+          continue;
+        }
+        if (!isFinite(wx) || !isFinite(wy)) continue;
+        const s = this.worldToScreen(wx, wy);
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = expr.color;
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "#ffffff";
+        ctx.stroke();
+      }
+    }
   }
 }
 
@@ -546,6 +762,7 @@ class ExpressionManager {
     this.expressions = [];
     this.nextId = 1;
     this.colorIndex = 0;
+    this.env = new Environment();
   }
 
   addExpression(initialText = "") {
@@ -554,12 +771,15 @@ class ExpressionManager {
       text: initialText,
       color: PALETTE[this.colorIndex % PALETTE.length],
       visible: true,
+      kind: "plot",
       rpn: null,
+      points: null,
       error: null,
+      definedName: null,
     };
     this.colorIndex++;
     this.expressions.push(expr);
-    if (initialText) this._compile(expr);
+    this._rebuildEnvironment();
     this._renderList();
     this._focusExpr(expr.id);
     this._rerenderGraph();
@@ -568,23 +788,72 @@ class ExpressionManager {
 
   removeExpression(id) {
     this.expressions = this.expressions.filter((e) => e.id !== id);
+    this._rebuildEnvironment();
     this._renderList();
     this._rerenderGraph();
   }
 
-  _compile(expr) {
-    if (expr.text.trim() === "") {
-      expr.rpn = null;
+  // Re-classifies and re-compiles every row from scratch, since rows can
+  // reference variables/functions defined in *other* rows (in any order).
+  _rebuildEnvironment() {
+    const env = new Environment();
+    const functionNames = new Set(BUILTIN_FUNCTIONS);
+    const variableNames = new Set();
+
+    const classified = this.expressions.map((expr) => {
+      const c = classifyExpression(expr.text);
+      if (c.kind === "funcdef") functionNames.add(c.name);
+      if (c.kind === "vardef") variableNames.add(c.name);
+      return c;
+    });
+
+    classified.forEach((c, idx) => {
+      const expr = this.expressions[idx];
+      expr.kind = c.kind;
       expr.error = null;
-      return;
-    }
-    try {
-      expr.rpn = compile(expr.text);
-      expr.error = null;
-    } catch (err) {
       expr.rpn = null;
-      expr.error = err.message || "式が正しくありません";
-    }
+      expr.points = null;
+      expr.definedName = c.name || null;
+      if (c.kind === "empty") return;
+
+      try {
+        if (c.kind === "funcdef") {
+          const rpn = compile(c.bodyText, { paramNames: c.params, variableNames, functionNames });
+          env.functions.set(c.name, { params: c.params, rpn });
+        } else if (c.kind === "vardef") {
+          const rpn = compile(c.bodyText, { paramNames: [], variableNames, functionNames });
+          env.variables.set(c.name, { rpn });
+        } else if (c.kind === "plot") {
+          expr.rpn = compile(c.bodyText, { paramNames: ["x"], variableNames, functionNames });
+        } else if (c.kind === "points") {
+          expr.points = c.points.map((p) => ({
+            xRpn: compile(p.xText, { paramNames: [], variableNames, functionNames }),
+            yRpn: compile(p.yText, { paramNames: [], variableNames, functionNames }),
+          }));
+        }
+      } catch (err) {
+        expr.error = err.message || "式が正しくありません";
+      }
+    });
+
+    // Proactively evaluate definitions once so circular references (e.g.
+    // a=b, b=a) surface as an error on their row even if nothing else ever
+    // ends up referencing them.
+    this.expressions.forEach((expr) => {
+      if (expr.error) return;
+      try {
+        if (expr.kind === "vardef") {
+          env.resolveVariable(expr.definedName, new Set());
+        } else if (expr.kind === "funcdef") {
+          const def = env.functions.get(expr.definedName);
+          if (def) env.callFunction(expr.definedName, def.params.map(() => 0), new Set());
+        }
+      } catch (err) {
+        expr.error = err.message || "式が正しくありません";
+      }
+    });
+
+    this.env = env;
   }
 
   _focusExpr(id) {
@@ -595,7 +864,7 @@ class ExpressionManager {
   }
 
   _rerenderGraph() {
-    this.graphView.render(this.expressions);
+    this.graphView.render(this.expressions, this.env);
   }
 
   _renderList() {
@@ -628,9 +897,8 @@ class ExpressionManager {
       input.spellcheck = false;
       input.addEventListener("input", () => {
         expr.text = input.value;
-        this._compile(expr);
-        input.classList.toggle("error", !!expr.error);
-        this._showError(row, expr);
+        this._rebuildEnvironment();
+        this._refreshAllRowStates();
         this._rerenderGraph();
       });
       input.addEventListener("keydown", (e) => {
@@ -642,6 +910,31 @@ class ExpressionManager {
             const next = this.expressions[idx + 1];
             this._focusExpr(next.id);
           }
+        }
+      });
+      // A pasted multi-line script (variable/function definitions, a plot,
+      // a point list, ...) is spread across one new row per line instead of
+      // being dumped into a single input as one unparsable blob.
+      input.addEventListener("paste", (e) => {
+        const clipboard = e.clipboardData || window.clipboardData;
+        const text = clipboard ? clipboard.getData("text") : "";
+        if (!text || !text.includes("\n")) return;
+        e.preventDefault();
+        const lines = text
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter((l) => l !== "");
+        if (lines.length === 0) return;
+        expr.text = lines[0];
+        if (lines.length === 1) {
+          input.value = lines[0];
+          this._rebuildEnvironment();
+          this._refreshAllRowStates();
+          this._rerenderGraph();
+          return;
+        }
+        for (let k = 1; k < lines.length; k++) {
+          this.addExpression(lines[k]);
         }
       });
       const trackActive = () => {
@@ -672,7 +965,22 @@ class ExpressionManager {
       deleteBtn.addEventListener("click", () => this.removeExpression(expr.id));
       row.appendChild(deleteBtn);
 
+      row.classList.toggle("is-definition", expr.kind === "vardef" || expr.kind === "funcdef");
       this.listEl.appendChild(row);
+      this._showError(row, expr);
+    });
+  }
+
+  // Refreshes error highlighting/messages and the "definition row" styling
+  // for every row in place, without touching the DOM nodes themselves (a
+  // full _renderList() would drop focus/cursor position while typing).
+  _refreshAllRowStates() {
+    this.expressions.forEach((expr) => {
+      const row = this.listEl.querySelector(`.expr-row[data-id="${expr.id}"]`);
+      if (!row) return;
+      const input = row.querySelector(".expr-input");
+      if (input) input.classList.toggle("error", !!expr.error);
+      row.classList.toggle("is-definition", expr.kind === "vardef" || expr.kind === "funcdef");
       this._showError(row, expr);
     });
   }
@@ -720,13 +1028,10 @@ class ExpressionManager {
 
     const newText = text.slice(0, start) + snippet + text.slice(end);
     expr.text = newText;
-    this._compile(expr);
+    this._rebuildEnvironment();
 
-    if (input) {
-      input.value = newText;
-      input.classList.toggle("error", !!expr.error);
-    }
-    if (row) this._showError(row, expr);
+    if (input) input.value = newText;
+    this._refreshAllRowStates();
     this._rerenderGraph();
 
     const openIdx = snippet.indexOf("(");
@@ -820,5 +1125,5 @@ window.addEventListener("DOMContentLoaded", () => {
     manager.insertSnippet(chip.dataset.insert);
   });
 
-  graphView.render(manager.expressions);
+  graphView.render(manager.expressions, manager.env);
 });
