@@ -220,6 +220,14 @@ const APPS = [
     category: "ue",
   },
   {
+    name: "UEマテリアル小技:露出値(EV)の3段マッピング",
+    description: "EyeAdaptationをlog2してEV(段数)に変換し、明るい・普通・暗いの3点をfit2段で補間する、露出連動マッピングの組み方をまとめました。",
+    path: "apps/ue-ev-three-tier-mapping/",
+    date: "2026-09-16",
+    icon: "📐",
+    category: "ue",
+  },
+  {
     name: "HoudiniでObjectレベルのHDAをSOPレベルに変換する方法",
     description: "うっかりObjectレベルでHDA化してしまった部品を、SOPレベルの部品として作り直す2つの方法を図解でまとめます。",
     path: "apps/houdini-object-to-sop-hda/",
