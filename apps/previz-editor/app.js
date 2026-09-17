@@ -29,9 +29,17 @@
   const HEAD_D = 0.3;
   const HEAD_Y = BODY_H + NECK_H + HEAD_H / 2;
 
+  // キャラの種別。当たり判定・注視点の高さ・立ち位置の間隔をここでまとめて持つ。
+  const KIND = {
+    human: { label: "ひと", suffix: "", radius: 0.5, lookH: 1.2, proxy: [0.82, 1.75, 0.72, 0.88] },
+    giant: { label: "巨人", suffix: "巨人", radius: 1.5, lookH: 3.3, proxy: [2.6, 4.7, 1.5, 2.35] },
+    dragon: { label: "竜", suffix: "竜", radius: 2.0, lookH: 1.9, proxy: [3.0, 2.8, 5.6, 1.3] },
+  };
+
   const SENSOR_H = 20.25; // フルサイズ36mm幅を16:9で切り出したときの高さ(mm)
   const ASPECT = 16 / 9;
   const CAM_CSS = "#cfd6e4";
+  const PROP_CSS = "#96a1b6";
 
   const STORAGE_KEY = "previz-editor.scene.v1";
   const VIDEO_W = 1280;
@@ -64,6 +72,7 @@
     selectedId: null,
     nextId: 1,
     charCount: 0,
+    propCount: 0,
   };
 
   // ---------------------------------------------------------------- three 基本
@@ -77,12 +86,16 @@
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.setClearColor(0x12141b, 1);
+  renderer.setClearColor(0x1d2430, 1);
   host.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x12141b);
-  scene.fog = new THREE.Fog(col(0x12141b), 9, 32);
+  // 全体を少し明るくし、フォグは遠くで効かせる（近景がくすまないように）
+  const BG = 0x1d2430;
+  scene.background = new THREE.Color(BG);
+  // three r128 のフォグは sRGB に直したあとで混ぜられるので、
+  // ここはリニアに変換せず背景と同じ値をそのまま渡す（変換すると地平線に暗い帯が出る）
+  scene.fog = new THREE.Fog(BG, 26, 95);
 
   const editorCam = new THREE.PerspectiveCamera(45, 1, 0.1, 400);
   const orbit = { target: new THREE.Vector3(0, 0.95, 0), radius: 7.8, theta: 0.55, phi: 1.22 };
@@ -98,30 +111,30 @@
   }
   updateEditorCam();
 
-  scene.add(new THREE.HemisphereLight(0x9db2d2, 0x2a2f3a, 0.75));
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
+  scene.add(new THREE.HemisphereLight(0xa9c0e0, 0x3b4352, 1.05));
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.75);
   keyLight.position.set(5, 9, 6);
   keyLight.castShadow = true;
   keyLight.shadow.mapSize.set(1024, 1024);
-  keyLight.shadow.camera.left = -12;
-  keyLight.shadow.camera.right = 12;
-  keyLight.shadow.camera.top = 12;
-  keyLight.shadow.camera.bottom = -12;
+  keyLight.shadow.camera.left = -26;
+  keyLight.shadow.camera.right = 26;
+  keyLight.shadow.camera.top = 26;
+  keyLight.shadow.camera.bottom = -26;
   keyLight.shadow.radius = 2;
   scene.add(keyLight);
-  const fill = new THREE.DirectionalLight(0x93a9d2, 0.4);
+  const fill = new THREE.DirectionalLight(0xa3b6d8, 0.55);
   fill.position.set(-6, 4, -5);
   scene.add(fill);
 
   const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(120, 120),
-    new THREE.MeshStandardMaterial({ color: col(0x2c3340), roughness: 1, metalness: 0 })
+    new THREE.PlaneGeometry(400, 400),
+    new THREE.MeshStandardMaterial({ color: col(0x3d4757), roughness: 1, metalness: 0 })
   );
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
   scene.add(floor);
 
-  const grid = new THREE.GridHelper(24, 24, 0x6b768f, 0x424b5e);
+  const grid = new THREE.GridHelper(60, 60, 0x99a6c0, 0x647089);
   // GridHelper は頂点カラーなので、こちらも個別にリニアへ寄せる
   (function () {
     const a = grid.geometry.attributes.color;
@@ -166,7 +179,31 @@
 
   // ---------------------------------------------------------------- リグ生成
 
-  function buildCharacter(colorIndex) {
+  // 正面を示す白い四角錐。頂点が正面(+Z)を向くようにジオメトリ側で寝かせる。
+  function frontCone(radius, height, y, z) {
+    const g = new THREE.ConeGeometry(radius, height, 4);
+    g.rotateY(Math.PI / 4); // 面を上下左右に向ける
+    g.rotateX(Math.PI / 2); // 頂点を +Z へ
+    g.translate(0, y, z + height / 2);
+    const m = new THREE.Mesh(
+      g,
+      new THREE.MeshStandardMaterial({ color: col(0xffffff), roughness: 0.45, metalness: 0 })
+    );
+    m.castShadow = true;
+    return m;
+  }
+
+  function slab(w, h, d, x, y, z, mat) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    return m;
+  }
+
+  function buildCharacter(colorIndex, kind) {
+    if (kind === "giant") return buildGiant(colorIndex);
+    if (kind === "dragon") return buildDragon(colorIndex);
     const color = COLORS[colorIndex % COLORS.length];
     const root = new THREE.Group();
 
@@ -202,26 +239,114 @@
     head.castShadow = true;
     fx.add(head);
 
-    // 正面を示す白い四角錐。頂点が正面(+Z)を向くようにジオメトリ側で寝かせる。
-    const coneGeo = new THREE.ConeGeometry(0.17, 0.44, 4);
-    coneGeo.rotateY(Math.PI / 4); // 面を上下左右に向ける
-    coneGeo.rotateX(Math.PI / 2); // 頂点を +Z へ
-    coneGeo.translate(0, HEAD_Y, HEAD_D / 2 + 0.22);
-    const cone = new THREE.Mesh(
-      coneGeo,
-      new THREE.MeshStandardMaterial({ color: col(0xffffff), roughness: 0.45, metalness: 0 })
-    );
-    cone.castShadow = true;
+    const cone = frontCone(0.17, 0.44, HEAD_Y, HEAD_D / 2);
     fx.add(cone);
 
-    // 指でつかみやすいように、見えない当たり判定を足す（揺れの外側に置いて的が動かないようにする）。
-    // 隣のキャラ（1.15m間隔）と重ならない幅に留める。
-    const proxy = hitProxy(0.82, 1.75, 0.72, 0.88);
+    // 指でつかみやすいように、見えない当たり判定を足す（揺れの外側に置いて的が動かないようにする）
+    const proxy = hitProxy.apply(null, KIND.human.proxy);
     root.add(proxy);
 
     root.userData.fx = fx;
     root.userData.solids = [body, neck, head, cone]; // 実際に見えている面
     root.userData.proxy = proxy;
+    return root;
+  }
+
+  // 巨人。人型と同じ作りのまま、背を高くして腕を足す。
+  function buildGiant(colorIndex) {
+    const color = COLORS[colorIndex % COLORS.length];
+    const root = new THREE.Group();
+    const fx = new THREE.Group();
+    root.add(fx);
+
+    const mat = new THREE.MeshStandardMaterial({ color: col(color.hex), roughness: 0.72, metalness: 0.04 });
+    const headMat = new THREE.MeshStandardMaterial({
+      color: col(color.hex).lerp(col(0xffffff), 0.1),
+      roughness: 0.7,
+      metalness: 0.04,
+    });
+    const darkMat = new THREE.MeshStandardMaterial({ color: col(0x3a3f4a), roughness: 0.8 });
+
+    const legL = slab(0.62, 1.55, 0.6, -0.42, 0.775, 0, mat);
+    const legR = slab(0.62, 1.55, 0.6, 0.42, 0.775, 0, mat);
+    const body = slab(1.8, 1.75, 0.8, 0, 2.4, 0, mat);
+    const armL = slab(0.5, 1.6, 0.52, -1.16, 2.45, 0, mat);
+    const armR = slab(0.5, 1.6, 0.52, 1.16, 2.45, 0, mat);
+    const neck = slab(0.4, 0.22, 0.4, 0, 3.38, 0, darkMat);
+    const head = slab(1.0, 0.86, 0.82, 0, 3.92, 0, headMat);
+    const cone = frontCone(0.42, 1.05, 3.92, 0.41);
+    fx.add(legL, legR, body, armL, armR, neck, head, cone);
+
+    const proxy = hitProxy.apply(null, KIND.giant.proxy);
+    root.add(proxy);
+    root.userData.fx = fx;
+    root.userData.solids = [legL, legR, body, armL, armR, neck, head, cone];
+    root.userData.proxy = proxy;
+    return root;
+  }
+
+  // 竜。胴・首・尾・翼・脚を箱で組んで、横から見た形で分かるようにする。
+  function buildDragon(colorIndex) {
+    const color = COLORS[colorIndex % COLORS.length];
+    const root = new THREE.Group();
+    const fx = new THREE.Group();
+    root.add(fx);
+
+    const mat = new THREE.MeshStandardMaterial({ color: col(color.hex), roughness: 0.7, metalness: 0.05 });
+    const headMat = new THREE.MeshStandardMaterial({
+      color: col(color.hex).lerp(col(0xffffff), 0.12),
+      roughness: 0.68,
+    });
+    const wingMat = new THREE.MeshStandardMaterial({
+      color: col(color.hex).lerp(col(0x000000), 0.28),
+      roughness: 0.8,
+      side: THREE.DoubleSide,
+    });
+    const darkMat = new THREE.MeshStandardMaterial({ color: col(0x3a3f4a), roughness: 0.8 });
+
+    const parts = [];
+    const add = (m) => {
+      parts.push(m);
+      fx.add(m);
+      return m;
+    };
+
+    // 胴（前が太く後ろが細い）
+    add(slab(1.15, 1.0, 1.5, 0, 1.45, 0.35, mat));
+    add(slab(0.9, 0.8, 1.3, 0, 1.4, -0.95, mat));
+    // 尾（後ろへ細くなる）
+    add(slab(0.6, 0.55, 1.2, 0, 1.3, -2.1, mat));
+    add(slab(0.38, 0.36, 1.2, 0, 1.12, -3.1, mat));
+    add(slab(0.2, 0.2, 1.0, 0, 0.95, -4.0, mat));
+    // 首（前へ持ち上がる）
+    add(slab(0.6, 0.6, 0.9, 0, 1.85, 1.35, mat));
+    add(slab(0.48, 0.5, 0.8, 0, 2.25, 2.0, mat));
+    // 頭と鼻づら
+    const head = add(slab(0.6, 0.55, 0.85, 0, 2.5, 2.7, headMat));
+    add(slab(0.38, 0.3, 0.55, 0, 2.4, 3.3, headMat));
+    // 角
+    add(slab(0.1, 0.42, 0.1, -0.18, 2.85, 2.5, darkMat));
+    add(slab(0.1, 0.42, 0.1, 0.18, 2.85, 2.5, darkMat));
+    // 翼（左右に大きく張り出す）
+    const wingL = add(slab(2.4, 0.09, 1.7, -1.75, 2.15, 0.1, wingMat));
+    const wingR = add(slab(2.4, 0.09, 1.7, 1.75, 2.15, 0.1, wingMat));
+    wingL.rotation.z = 0.26;
+    wingR.rotation.z = -0.26;
+    // 脚
+    add(slab(0.32, 0.95, 0.34, -0.62, 0.48, 0.75, mat));
+    add(slab(0.32, 0.95, 0.34, 0.62, 0.48, 0.75, mat));
+    add(slab(0.3, 0.85, 0.32, -0.55, 0.43, -0.85, mat));
+    add(slab(0.3, 0.85, 0.32, 0.55, 0.43, -0.85, mat));
+    // 正面の印は鼻先に
+    const cone = frontCone(0.2, 0.55, 2.42, 3.58);
+    add(cone);
+
+    const proxy = hitProxy.apply(null, KIND.dragon.proxy);
+    root.add(proxy);
+    root.userData.fx = fx;
+    root.userData.solids = parts;
+    root.userData.proxy = proxy;
+    root.userData.headMesh = head;
     return root;
   }
 
@@ -292,30 +417,52 @@
     geo.computeBoundingSphere();
   }
 
+  // 背景のめじるし。全部おなじ大きさにしておくと、見えた大きさがそのまま距離になる。
+  function buildProp() {
+    const root = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: col(0x93a0b8), roughness: 0.85, metalness: 0.05 });
+    const dark = new THREE.MeshStandardMaterial({ color: col(0x6d7689), roughness: 0.9 });
+    const base = slab(1.0, 0.3, 1.0, 0, 0.15, 0, dark);
+    const post = slab(0.6, 3.6, 0.6, 0, 2.1, 0, mat);
+    const cap = slab(0.84, 0.24, 0.84, 0, 4.02, 0, dark);
+    root.add(base, post, cap);
+    const proxy = hitProxy(1.1, 4.2, 1.1, 2.1);
+    root.add(proxy);
+    root.userData.solids = [base, post, cap];
+    root.userData.proxy = proxy;
+    return root;
+  }
+
   // ---------------------------------------------------------------- オブジェクト管理
 
   // 名前は色そのもの。同じ色が複数いるときだけ番号を足す。
-  function nameForColor(colorIndex) {
-    const label = COLORS[colorIndex % COLORS.length].label;
-    const same = state.objects.filter((o) => o.type === "char" && o.colorIndex % COLORS.length === colorIndex % COLORS.length);
+  function nameForColor(colorIndex, kind) {
+    const label = COLORS[colorIndex % COLORS.length].label + KIND[kind].suffix;
+    const same = state.objects.filter(
+      (o) => o.type === "char" && o.kind === kind && o.colorIndex % COLORS.length === colorIndex % COLORS.length
+    );
     return same.length ? label + (same.length + 1) : label;
   }
 
   function addCharacter(opts) {
     const o = opts || {};
+    const kind = KIND[o.kind] ? o.kind : "human";
     const colorIndex = o.colorIndex != null ? o.colorIndex : state.charCount;
     const color = COLORS[colorIndex % COLORS.length];
-    const root = buildCharacter(colorIndex);
+    const root = buildCharacter(colorIndex, kind);
     root.userData.objId = state.nextId;
 
     const obj = {
       id: state.nextId++,
       type: "char",
-      name: o.name || nameForColor(colorIndex),
+      kind: kind,
+      name: o.name || nameForColor(colorIndex, kind),
       colorIndex: colorIndex,
       css: color.css,
       root: root,
       keys: [],
+      radius: KIND[kind].radius,
+      lookH: KIND[kind].lookH,
       fx: { amp: 0, t: Math.random() * 10, spawn: o.pop ? 1 : 0 },
     };
     state.charCount++;
@@ -366,6 +513,31 @@
     return obj;
   }
 
+  function addProp(opts) {
+    const o = opts || {};
+    const root = buildProp();
+    root.userData.objId = state.nextId;
+    const obj = {
+      id: state.nextId++,
+      type: "prop",
+      name: o.name || "めじるし" + (state.propCount + 1),
+      colorIndex: -1,
+      css: PROP_CSS,
+      root: root,
+      keys: [], // 背景の目印なので、時間の記録は持たない
+      radius: 0.75,
+      lookH: 2,
+      fx: { amp: 0, t: 0, spawn: 0 },
+    };
+    state.propCount++;
+    scene.add(root);
+    state.objects.push(obj);
+    const p = o.pos || freeSpot(1.6);
+    root.position.set(p.x, 0, p.z);
+    root.rotation.y = o.ry || 0;
+    return obj;
+  }
+
   function removeObject(obj) {
     scene.remove(obj.root);
     obj.root.traverse((n) => {
@@ -386,7 +558,7 @@
   const theCamera = () => state.objects.find((o) => o.type === "camera") || null;
 
   function lookPoint(t) {
-    return new THREE.Vector3(t.root.position.x, t.root.position.y + LOOK_H, t.root.position.z);
+    return new THREE.Vector3(t.root.position.x, t.root.position.y + (t.lookH || LOOK_H), t.root.position.z);
   }
 
   // 注視中の「操作のとき」だけ、カメラを相手に向ける。
@@ -460,18 +632,20 @@
   }
 
   // 既存のキャラと重ならない立ち位置を、横一列→奥の列の順で探す
-  function freeSpot() {
+  function freeSpot(radius) {
+    const r = radius || 0.5;
     const taken = state.objects
-      .filter((o) => o.type === "char")
-      .map((o) => ({ x: o.root.position.x, z: o.root.position.z }));
-    for (let row = 0; row < 6; row++) {
-      for (let col = 0; col < 4; col++) {
-        const x = (col - 1.5) * 1.15;
-        const z = -row * 1.4;
-        if (!taken.some((p) => Math.hypot(p.x - x, p.z - z) < 0.8)) return { x: x, y: 0, z: z };
+      .filter((o) => o.type !== "camera")
+      .map((o) => ({ x: o.root.position.x, z: o.root.position.z, r: o.radius || 0.5 }));
+    const step = Math.max(1.15, r * 2 + 0.5);
+    for (let row = 0; row < 8; row++) {
+      for (let c = 0; c < 5; c++) {
+        const x = (c - 2) * step;
+        const z = -row * step;
+        if (!taken.some((p) => Math.hypot(p.x - x, p.z - z) < p.r + r + 0.3)) return { x: x, y: 0, z: z };
       }
     }
-    return { x: (Math.random() - 0.5) * 4, y: 0, z: -8 };
+    return { x: (Math.random() - 0.5) * 10, y: 0, z: -12 };
   }
 
   // ---------------------------------------------------------------- キーフレーム
@@ -498,6 +672,11 @@
 
   // 自動キーフレーム：トランスフォームを触ったら、その場で現在フレームに打つ
   function autoKey(obj) {
+    // めじるしは背景の飾りなので、動かしても時間の記録はしない（保存だけする）
+    if (obj.type === "prop") {
+      markDirty();
+      return;
+    }
     const k = readKey(obj, state.current);
     const at = obj.keys.findIndex((x) => x.f === state.current);
     if (at >= 0) obj.keys[at] = k;
@@ -608,12 +787,14 @@
 
   function updateSelRing() {
     const obj = selected();
-    if (!obj || obj.type !== "char" || state.view === "camera") {
+    if (!obj || obj.type === "camera" || state.view === "camera") {
       selRing.visible = false;
       return;
     }
     selRing.visible = true;
     selRing.position.set(obj.root.position.x, obj.root.position.y + 0.012, obj.root.position.z);
+    const sc = (obj.radius || 0.5) / 0.5;
+    selRing.scale.set(sc, sc, sc);
   }
 
   // ---------------------------------------------------------------- プルプル
@@ -1253,6 +1434,7 @@
     let dots = "";
     let tracks = "";
     state.objects.forEach((obj) => {
+      if (obj.type === "prop") return; // 背景のめじるしは時間に関係しない
       const sel = obj.id === state.selectedId ? " is-selected" : "";
       const dropRow = tlDrag && tlDrag.kind === "key" && tlDrag.discard && tlDrag.obj.id === obj.id ? " is-dropping" : "";
       dots +=
@@ -1376,6 +1558,7 @@
     );
 
     state.objects.forEach((obj) => {
+      if (obj.type === "prop") return;
       const a = sample(obj, 0);
       const b = sample(obj, state.duration);
       const dist = Math.hypot(b.p.x - a.p.x, b.p.y - a.p.y, b.p.z - a.p.z);
@@ -1454,12 +1637,16 @@
         const i = state.objects.findIndex((o) => o.id === c.lookAt);
         return i < 0 ? null : i;
       })(),
-      objects: state.objects.map((o) => ({
-        type: o.type,
-        name: o.name,
-        colorIndex: o.colorIndex,
-        keys: o.keys,
-      })),
+      objects: state.objects.map((o) =>
+        o.type === "prop"
+          ? {
+              type: "prop",
+              name: o.name,
+              pos: { x: o.root.position.x, y: o.root.position.y, z: o.root.position.z },
+              ry: o.root.rotation.y,
+            }
+          : { type: o.type, kind: o.kind, name: o.name, colorIndex: o.colorIndex, keys: o.keys }
+      ),
     };
   }
 
@@ -1475,9 +1662,11 @@
     state.ease = data.ease === "linear" ? "linear" : "smooth";
     state.autoFace = data.autoFace !== false;
 
+    state.propCount = 0;
     data.objects.forEach((o) => {
       if (o.type === "camera") addCamera({ keys: o.keys });
-      else addCharacter({ name: o.name, colorIndex: o.colorIndex, keys: o.keys });
+      else if (o.type === "prop") addProp({ name: o.name, pos: o.pos, ry: o.ry });
+      else addCharacter({ name: o.name, kind: o.kind, colorIndex: o.colorIndex, keys: o.keys });
     });
     if (!theCamera()) addCamera({});
     if (typeof data.lookAt === "number" && state.objects[data.lookAt]) {
@@ -1528,6 +1717,61 @@
     return url;
   }
 
+  // 近いほど白、遠いほど黒。距離そのままではなく逆数（視差）で割り当てる。
+  // こうすると手前の 側の差が潰れず、デプス条件付けで使う絵に近い濃淡になる。
+  const depthMat = new THREE.ShaderMaterial({
+    side: THREE.DoubleSide,
+    uniforms: { uNear: { value: 1 }, uFar: { value: 40 } },
+    vertexShader: [
+      "varying float vDist;",
+      "void main() {",
+      "  vec4 mv = modelViewMatrix * vec4(position, 1.0);",
+      "  vDist = -mv.z;",
+      "  gl_Position = projectionMatrix * mv;",
+      "}",
+    ].join("\n"),
+    fragmentShader: [
+      "uniform float uNear;",
+      "uniform float uFar;",
+      "varying float vDist;",
+      "void main() {",
+      "  float invN = 1.0 / max(uNear, 0.001);",
+      "  float invF = 1.0 / max(uFar, 0.002);",
+      "  float v = (1.0 / max(vDist, 0.001) - invF) / max(0.0001, invN - invF);",
+      "  gl_FragColor = vec4(vec3(clamp(v, 0.0, 1.0)), 1.0);",
+      "}",
+    ].join("\n"),
+  });
+
+  // カット全体で同じ濃淡になるよう、映るものまでの距離を先に測っておく
+  function depthRange(camObj) {
+    let lo = Infinity;
+    let hi = 0;
+    const targets = state.objects.filter((o) => o.type !== "camera");
+    const cp = new THREE.Vector3();
+    const p = new THREE.Vector3();
+    for (let f = 0; f <= state.duration; f++) {
+      const cs = sample(camObj, f);
+      cp.set(cs.p.x, cs.p.y, cs.p.z);
+      targets.forEach((o) => {
+        const t = o.keys.length ? sample(o, f) : null;
+        p.set(
+          t ? t.p.x : o.root.position.x,
+          (t ? t.p.y : o.root.position.y) + (o.lookH || 1) * 0.5,
+          t ? t.p.z : o.root.position.z
+        );
+        const d = cp.distanceTo(p);
+        if (d < lo) lo = d;
+        if (d > hi) hi = d;
+      });
+    }
+    if (!isFinite(lo)) {
+      lo = 2;
+      hi = 30;
+    }
+    return { near: Math.max(0.4, lo - 2), far: Math.max(lo + 4, hi + 6) };
+  }
+
   // ---------------------------------------------------------------- 動画の書き出し
 
   let exporting = false;
@@ -1574,7 +1818,8 @@
     return null;
   }
 
-  async function exportVideo(onProgress) {
+  async function exportVideo(onProgress, opts) {
+    const depth = !!(opts && opts.depth);
     const camObj = theCamera();
     if (!camObj) throw new Error("カメラがありません");
     const fmt = await pickVideoFormat();
@@ -1613,10 +1858,19 @@
     const w = host.clientWidth;
     const h = host.clientHeight;
     const rigWas = camObj.root.userData.rig.visible;
+    const bgWas = scene.background;
     exporting = true;
     setPlaying(false);
     renderer.setScissorTest(false);
     renderer.setSize(VIDEO_W, VIDEO_H, false);
+
+    if (depth) {
+      const rng = depthRange(camObj);
+      depthMat.uniforms.uNear.value = rng.near;
+      depthMat.uniforms.uFar.value = rng.far;
+      scene.overrideMaterial = depthMat;
+      scene.background = new THREE.Color(0x000000); // 何もない所は一番遠い扱い
+    }
 
     try {
       for (let f = 0; f <= state.duration; f++) {
@@ -1627,6 +1881,7 @@
         trailGroup.visible = false;
         selRing.visible = false;
         reticle.visible = false;
+        grid.visible = !depth; // マス目は距離の絵に混ざるので出さない
         renderer.setViewport(0, 0, VIDEO_W, VIDEO_H);
         renderer.render(scene, camObj.root);
 
@@ -1651,6 +1906,9 @@
         /* すでに閉じていれば何もしなくてよい */
       }
       exporting = false;
+      scene.overrideMaterial = null;
+      scene.background = bgWas;
+      grid.visible = state.grid;
       renderer.setSize(w, h, false);
       camObj.root.userData.rig.visible = rigWas;
       applyFrame(keepFrame);
@@ -1711,6 +1969,8 @@
         "<h3>動画</h3>" +
         '<button class="row-btn" id="bVideo">' + icon("i-cam") +
         "<span>動画を書き出す<small id=\"bVideoSub\">形式をしらべています…</small></span></button>" +
+        '<button class="row-btn" id="bDepth">' + icon("i-cube") +
+        "<span>デプスの動画を書き出す<small>近いほど白い、奥行きだけの映像</small></span></button>" +
         "<h3>画像（1280×720）</h3>" +
         '<div class="chips"><button class="chip" data-png="first">さいしょ</button>' +
         '<button class="chip" data-png="current">いま</button>' +
@@ -1731,7 +1991,7 @@
       if (!fmt) {
         vSub.textContent = "このブラウザでは書き出せません";
         vBtn.disabled = true;
-        vBtn.style.opacity = 0.45;
+        $("bDepth").disabled = true;
         return;
       }
       vSub.textContent =
@@ -1739,26 +1999,36 @@
         secs(state.duration).toFixed(1) + "秒" + (fmt.ext === "mp4" ? "" : "（MP4非対応のブラウザです）");
     });
 
-    vBtn.onclick = async () => {
-      if (vBtn.disabled) return;
-      vBtn.disabled = true;
-      const keep = vSub.textContent;
+    // 通常の絵とデプス、どちらも同じ流れで書き出す
+    const runExport = (btn, subEl, depth, filename) => async () => {
+      if (btn.disabled) return;
+      const others = [vBtn, $("bDepth")].filter(Boolean);
+      others.forEach((b) => (b.disabled = true));
+      const keep = subEl.textContent;
+      const alive = () => document.body.contains(subEl);
       try {
-        const out = await exportVideo((done, total) => {
-          if ($("bVideoSub")) vSub.textContent = "書き出し中… " + done + " / " + total + " コマ";
-        });
-        saveFile(URL.createObjectURL(out.blob), "previz." + out.ext, true);
-        if ($("bVideoSub")) vSub.textContent = "書き出しました（" + Math.round(out.blob.size / 1024) + " KB）";
+        const out = await exportVideo(
+          (done, total) => {
+            if (alive()) subEl.textContent = "書き出し中… " + done + " / " + total + " コマ";
+          },
+          { depth: depth }
+        );
+        saveFile(URL.createObjectURL(out.blob), filename + "." + out.ext, true);
+        if (alive()) subEl.textContent = "書き出しました（" + Math.round(out.blob.size / 1024) + " KB）";
       } catch (err) {
-        if ($("bVideoSub")) vSub.textContent = "書き出せませんでした: " + (err && err.message ? err.message : err);
+        if (alive()) subEl.textContent = "書き出せませんでした: " + (err && err.message ? err.message : err);
         showToast("動画を書き出せませんでした");
       } finally {
-        vBtn.disabled = false;
+        others.forEach((b) => (b.disabled = false));
         setTimeout(() => {
-          if ($("bVideoSub") && vSub.textContent.indexOf("書き出し中") < 0) vSub.textContent = keep;
+          if (alive() && subEl.textContent.indexOf("書き出し中") < 0) subEl.textContent = keep;
         }, 4000);
       }
     };
+
+    vBtn.onclick = runExport(vBtn, vSub, false, "previz");
+    const dBtn = $("bDepth");
+    dBtn.onclick = runExport(dBtn, dBtn.querySelector("small"), true, "previz_depth");
 
     const flash = (btn, msg) => {
       const span = btn.querySelector("span");
@@ -1846,7 +2116,10 @@
     seg.querySelectorAll("button").forEach((b) => b.classList.toggle("is-active", b.dataset.v === value));
   }
 
-  const closePop = () => ($("pop").hidden = true);
+  const closePop = () => {
+    $("pop").hidden = true;
+    $("addPop").hidden = true;
+  };
 
   function setDuration(frames) {
     state.duration = Math.max(2, Math.round(frames));
@@ -1864,6 +2137,13 @@
     addCamera({ pos: { x: 0, y: 1.45, z: 6.8 }, rx: -0.06, lens: 35 });
     addCharacter({ pos: { x: -0.85, y: 0, z: 0 }, ry: Math.PI * 0.06 });
     addCharacter({ pos: { x: 0.95, y: 0, z: -0.4 }, ry: -Math.PI * 0.08 });
+    // 奥行きの手がかり。同じ大きさのものを等間隔に置くと距離がつかみやすい。
+    [
+      [-8, -3], [8, -3],
+      [-9.5, -13], [9.5, -13],
+      [-11, -24], [11, -24],
+      [-12.5, -36], [12.5, -36],
+    ].forEach((p) => addProp({ pos: { x: p[0], z: p[1] } }));
   }
 
   function bind() {
@@ -1876,11 +2156,23 @@
     el.addEventListener("contextmenu", (e) => e.preventDefault());
 
     $("addBtn").onclick = () => {
-      const obj = addCharacter({ pos: freeSpot(), frame: state.current, pop: true });
+      $("pop").hidden = true;
+      $("addPop").hidden = !$("addPop").hidden;
+    };
+
+    $("addPop").addEventListener("click", (ev) => {
+      const btn = ev.target.closest(".add-row");
+      if (!btn) return;
+      $("addPop").hidden = true;
+      const what = btn.dataset.add;
+      const obj =
+        what === "prop"
+          ? addProp({})
+          : addCharacter({ kind: what, pos: freeSpot(KIND[what].radius), frame: state.current, pop: true });
       select(obj.id);
       markDirty();
-      showToast(obj.name + " をふやしました");
-    };
+      showToast(obj.name + "をふやしました");
+    });
 
     $("viewBtn").onclick = () => {
       state.view = state.view === "camera" ? "editor" : "camera";
@@ -1899,6 +2191,7 @@
     };
 
     $("tuneBtn").onclick = () => {
+      $("addPop").hidden = true;
       $("pop").hidden = !$("pop").hidden;
       if (!$("pop").hidden) syncSettings();
     };
@@ -1933,9 +2226,29 @@
     $("selDelete").onclick = () => {
       const obj = selected();
       if (!obj || obj.type === "camera") return;
+      if (obj.type === "prop") {
+        const at0 = state.objects.indexOf(obj);
+        const snap0 = {
+          name: obj.name,
+          pos: { x: obj.root.position.x, y: obj.root.position.y, z: obj.root.position.z },
+          ry: obj.root.rotation.y,
+        };
+        removeObject(obj);
+        select(state.objects.length ? state.objects[0].id : null);
+        markDirty();
+        showToast(snap0.name + "をけしました", () => {
+          const o = addProp(snap0);
+          state.propCount--;
+          state.objects.splice(state.objects.indexOf(o), 1);
+          state.objects.splice(at0, 0, o);
+          select(o.id);
+          markDirty();
+        });
+        return;
+      }
       // 戻せるように、消す前の姿を控えておく
       const at = state.objects.indexOf(obj);
-      const snap = { name: obj.name, colorIndex: obj.colorIndex, keys: JSON.parse(JSON.stringify(obj.keys)) };
+      const snap = { name: obj.name, kind: obj.kind, colorIndex: obj.colorIndex, keys: JSON.parse(JSON.stringify(obj.keys)) };
       const camObj = theCamera();
       const wasLook = !!(camObj && camObj.lookAt === obj.id);
       removeObject(obj);

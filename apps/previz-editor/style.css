@@ -267,6 +267,29 @@ input[type="range"]::-moz-range-thumb {
   z-index: 20;
 }
 
+.pop-add { width: 214px; padding: 8px; }
+
+.add-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  border-radius: 12px;
+  padding: 9px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.add-row:hover { background: rgba(255, 255, 255, 0.1); }
+.add-row svg { flex: 0 0 auto; color: var(--ink-dim); }
+.add-row small { display: block; font-weight: 400; font-size: 10.5px; color: var(--ink-dim); margin-top: 1px; }
+
 .pop-row {
   display: flex;
   align-items: center;
