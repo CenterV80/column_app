@@ -260,6 +260,13 @@ const APPS = [
     category: "ai-coding",
   },
   {
+    name: "セッションログ運用ワークフロー：AGENTS.md対応版",
+    description: "ルール定義を.github/copilot-instructions.mdからAGENTS.mdに移し、Copilot以外のAI（Claude Code、Codexなど）でも同じルールでログを書けるようにする方法をまとめました。",
+    path: "apps/session-log-workflow-agents-md.html",
+    icon: "🔗",
+    category: "ai-coding",
+  },
+  {
     name: "Claude Design × Git Copilot で進めるUIモック作成ワークフロー",
     description: "「仕様書 → モック → 実装」をAIで効率化する2AI連携フローと、実際に使ったプロンプトをまとめました。",
     path: "apps/claude-design-git-copilot-workflow.html",
