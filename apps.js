@@ -4,6 +4,14 @@
 // categories.js so the item shows up on the right category page.
 const APPS = [
   {
+    name: "プレビズエディタ",
+    description: "生成動画AIに渡すカットを、箱のキャラクターとカメラで先に組み立てるツール。動かすと自動でキーフレームが打たれ、複数カットを繋げて動画やデプス映像として書き出せます。",
+    path: "apps/previz-editor/",
+    date: "2026-09-18",
+    icon: "🎥",
+    category: "mini-apps",
+  },
+  {
     name: "ComfyUIフロントエンド開発のルール",
     description: "ComfyUIを叩く自作フロントエンドを作るとき、Claude Codeに渡すCLAUDE.mdのテンプレート。連携するエンドポイント、ワークフロー生成の決まりごと、安全面の禁止事項、作業ルールをリストにまとめました。",
     path: "comfyui-frontend-rules.html",
