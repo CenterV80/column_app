@@ -29,9 +29,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          # Pages サイトが無効化されていても、ここで作り直して配信を復活させる
-          enablement: true
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
