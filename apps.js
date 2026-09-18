@@ -4,6 +4,14 @@
 // categories.js so the item shows up on the right category page.
 const APPS = [
   {
+    name: "ComfyUIフロントエンド開発のルール",
+    description: "ComfyUIを叩く自作フロントエンドを作るとき、Claude Codeに渡すCLAUDE.mdのテンプレート。連携するエンドポイント、ワークフロー生成の決まりごと、安全面の禁止事項、作業ルールをリストにまとめました。",
+    path: "comfyui-frontend-rules.html",
+    date: "2026-09-18",
+    icon: "📋",
+    category: "comfyui",
+  },
+  {
     name: "ComfyUI API まとめ",
     description: "ワークフローを自作WebUIから実行するためのメモ。「API化」の誤解、ワークフローJSONの位置づけ、エンドポイント一覧、パラメータ差し替えと非同期の実行フローを整理しました。",
     path: "comfyui-api-guide.html",
