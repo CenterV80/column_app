@@ -1,5 +1,13 @@
 ## 2026年9月
 
+### ComfyUI-Hyperflow - コア改造なしで導入できる8ステップLoRA「HyperFlow」
+
+*公開: 2026-09-19*
+
+[GitHub - Saganaki22/ComfyUI-Hyperflow](https://github.com/Saganaki22/ComfyUI-Hyperflow)
+
+Video Rebirthが開発した8ステップ蒸留LoRA「HyperFlow」を、MiniMax-H3（動画・音声対応）向けにComfyUIで使えるようにしたノードパッケージ。ランク256・bf16形式のLoRAに加えて、時刻`t`と参照点`r`の両方を条件として使う「二重時間条件付け `(t, r)`」という仕組みを実装しているのが技術的な特徴。ComfyUI標準の重みアダプタ機構をそのまま活用しており、開発者は「ComfyUIのコアファイルは一切改造せず、専用サンプラーも不要」と明言している。LoRAの適用方法は2種類選べ、実行時にその場で適用する`bypass`（デフォルト）と、あらかじめ重みに統合しておく`merge`（VRAM効率重視）を切り替えられる。量子化済みモデルやモデルオフロードとの併用にも対応。ノードの接続フローは「Load Diffusion Model (MiniMax-H3) → ApplyHyperFlow → SamplerCustomAdvanced」というシンプルな3段構成で、`ApplyHyperFlow`ノードが学習済みの9段階シグマグリッドを出力し、そのままサンプラーに渡す形になっている。導入は`custom_nodes`にクローンし、Hugging Faceから3.6〜3.7GBの重みファイルをダウンロードしてComfyUIを再起動するだけ。
+
 ### h3-game-sprites - AI生成動画を昔ながらの2Dゲームスプライトシートに変換するエージェントスキル
 
 *公開: 2026-09-15*
