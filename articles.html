@@ -16,6 +16,88 @@
     letter-spacing: -0.02em;
   }
 
+  .disclaimer {
+    font-size: 12px;
+    line-height: 1.7;
+    color: #888;
+    background: #f7f7f8;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 16px 0 24px;
+  }
+
+  .controls {
+    margin-bottom: 20px;
+  }
+
+  .search-box {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font: inherit;
+    font-size: 14px;
+    padding: 10px 16px;
+    border: 1px solid #e2e2e2;
+    border-radius: 999px;
+    outline: none;
+    margin-bottom: 10px;
+    background: #fff;
+  }
+
+  .search-box:focus {
+    border-color: #6d5bd0;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .month-nav {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .month-pill {
+    all: unset;
+    font: inherit;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6d5bd0;
+    background: #efecfb;
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+
+  .month-pill:hover {
+    background: #e2ddf7;
+  }
+
+  .pdf-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6d5bd0;
+    background: #efecfb;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .pdf-button:hover {
+    background: #e2ddf7;
+  }
+
   .section-label {
     display: inline-block;
     font-size: 12px;
@@ -36,21 +118,30 @@
     background: #fff;
     border: 1px solid #ececec;
     border-radius: 16px;
-    padding: 20px 22px;
-    margin-bottom: 14px;
-    transition: box-shadow 0.15s, transform 0.15s;
-  }
-
-  .a-card:hover {
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
-  }
-
-  .a-head {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
     margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .a-toggle {
+    all: unset;
+    font: inherit;
+    text-align: left;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 16px 20px;
+    cursor: pointer;
+  }
+
+  .a-toggle:hover {
+    background: #fafafa;
+  }
+
+  .a-toggle:focus-visible {
+    outline: 2px solid #6d5bd0;
+    outline-offset: -2px;
   }
 
   .a-icon {
@@ -64,17 +155,76 @@
     font-size: 19px;
   }
 
-  .a-head h3 {
-    font-size: 17px;
+  .a-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 16px;
     font-weight: 700;
     line-height: 1.4;
+    margin: 0;
+    color: #222;
+  }
+
+  .a-new-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    background: #ef4444;
+    padding: 2px 6px;
+    border-radius: 999px;
+    margin-left: 8px;
+    letter-spacing: 0.03em;
+    vertical-align: middle;
+  }
+
+  .a-chevron {
+    flex-shrink: 0;
+    color: #bbb;
+    font-size: 12px;
+    transition: transform 0.15s;
+  }
+
+  .a-toggle[aria-expanded="true"] .a-chevron {
+    transform: rotate(180deg);
+  }
+
+  .a-body {
+    padding: 0 20px 18px 74px;
+  }
+
+  @media (max-width: 480px) {
+    .a-body {
+      padding-left: 20px;
+    }
+  }
+
+  .a-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0 0 4px;
   }
 
   .a-date {
     font-size: 11px;
     color: #b3b3b3;
-    margin: 0 0 2px;
+    margin: 0;
+  }
+
+  .a-copylink {
+    all: unset;
+    font: inherit;
+    cursor: pointer;
+    font-size: 12px;
+    color: #bbb;
+    padding: 2px 5px;
+    border-radius: 6px;
+  }
+
+  .a-copylink:hover {
+    background: #f2f2f2;
+    color: #6d5bd0;
   }
 
   .a-links {
@@ -99,6 +249,10 @@
     margin: 0;
   }
 
+  .a-desc + .a-desc {
+    margin-top: 10px;
+  }
+
   .a-desc strong {
     color: #222;
   }
@@ -108,58 +262,32 @@
     font-size: 14px;
   }
 
-  .disclaimer {
-    font-size: 12px;
-    line-height: 1.7;
-    color: #888;
-    background: #f7f7f8;
-    border: 1px solid #ececec;
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin: 16px 0 24px;
-  }
-
-  .toolbar {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 8px;
-  }
-
-  .pdf-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #6d5bd0;
-    background: #efecfb;
-    border: none;
-    border-radius: 999px;
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .pdf-button:hover {
-    background: #e2ddf7;
-  }
-
   @media print {
     .back-link,
-    .toolbar {
+    .controls {
       display: none;
+    }
+
+    .a-chevron,
+    .a-copylink,
+    .a-new-badge {
+      display: none;
+    }
+
+    .a-toggle {
+      cursor: default;
+    }
+
+    .a-body {
+      display: block !important;
+      padding-left: 20px;
     }
 
     .a-card {
       border: none;
-      box-shadow: none;
-      padding: 12px 0;
+      padding: 0;
+      margin-bottom: 12px;
       break-inside: avoid;
-    }
-
-    .a-card:hover {
-      transform: none;
-      box-shadow: none;
     }
 
     body {
@@ -176,8 +304,12 @@
     <p>ローカルAIまわりの気になるニュースをまとめています。</p>
   </header>
   <p class="disclaimer">このページの記事は、サイト運営者が興味を持ったリンク（主にGitHubなど）をもとにAIが要約・執筆しています。内容に誤りが見つかった場合はその都度修正しています。</p>
-  <div class="toolbar">
-    <button class="pdf-button" onclick="window.print()">📄 PDFとして保存</button>
+  <div class="controls">
+    <input type="search" id="search-box" class="search-box" placeholder="🔍 記事を検索（例: MiniMax, LTX, VRAM）">
+    <div class="toolbar">
+      <div class="month-nav" id="month-nav"></div>
+      <button class="pdf-button" onclick="window.print()">📄 PDFとして保存</button>
+    </div>
   </div>
   <div id="content" class="loading">読み込み中…</div>
 </div>
@@ -193,21 +325,31 @@
 
   const DATE_LINE = /^公開[:：]\s*(\d{4}-\d{2}-\d{2})$/;
 
+  function slugify(str) {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0;
+    }
+    return "a-" + Math.abs(hash).toString(36);
+  }
+
   function buildLayout(markdown) {
     const raw = document.createElement("div");
     raw.innerHTML = marked.parse(markdown);
 
     const out = document.createDocumentFragment();
     let card = null;
-    let titleWrap = null;
+    let body = null;
     let stage = "meta";
     let colorIndex = 0;
+    let currentMonth = "";
 
     for (const el of Array.from(raw.children)) {
       if (el.tagName === "H2") {
+        currentMonth = el.textContent.trim();
         const label = document.createElement("div");
         label.className = "section-label";
-        label.textContent = el.textContent;
+        label.textContent = currentMonth;
         out.appendChild(label);
         card = null;
         continue;
@@ -216,9 +358,14 @@
       if (el.tagName === "H3") {
         card = document.createElement("article");
         card.className = "a-card";
+        card.id = slugify(el.textContent.trim());
+        card.dataset.month = currentMonth;
+        const thisCard = card; // captured per-iteration for closures below
 
-        const head = document.createElement("div");
-        head.className = "a-head";
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "a-toggle";
+        toggle.setAttribute("aria-expanded", "false");
 
         const icon = document.createElement("span");
         const style = PALETTE[colorIndex % PALETTE.length];
@@ -227,14 +374,31 @@
         icon.style.background = style.bg;
         icon.textContent = style.emoji;
 
-        titleWrap = document.createElement("div");
-        const h3 = document.createElement("h3");
-        h3.innerHTML = el.innerHTML;
-        titleWrap.appendChild(h3);
+        const titleEl = document.createElement("h3");
+        titleEl.className = "a-title";
+        titleEl.innerHTML = el.innerHTML;
 
-        head.appendChild(icon);
-        head.appendChild(titleWrap);
-        card.appendChild(head);
+        const chevron = document.createElement("span");
+        chevron.className = "a-chevron";
+        chevron.textContent = "▾";
+
+        toggle.appendChild(icon);
+        toggle.appendChild(titleEl);
+        toggle.appendChild(chevron);
+
+        body = document.createElement("div");
+        body.className = "a-body";
+        body.hidden = true;
+        const thisBody = body; // captured per-iteration for closures below
+
+        toggle.addEventListener("click", () => {
+          const expanded = toggle.getAttribute("aria-expanded") === "true";
+          toggle.setAttribute("aria-expanded", String(!expanded));
+          thisBody.hidden = expanded;
+        });
+
+        card.appendChild(toggle);
+        card.appendChild(body);
         out.appendChild(card);
 
         stage = "meta";
@@ -247,18 +411,47 @@
         if (stage === "meta") {
           const dateMatch = text.match(DATE_LINE);
           if (dateMatch) {
+            card.dataset.date = dateMatch[1];
+
+            const meta = document.createElement("div");
+            meta.className = "a-meta";
+
             const date = document.createElement("p");
             date.className = "a-date";
             date.textContent = "公開: " + dateMatch[1];
-            titleWrap.appendChild(date);
+
+            const cardId = card.id; // captured now (not via closure over the mutable `card` var)
+            const copyBtn = document.createElement("button");
+            copyBtn.type = "button";
+            copyBtn.className = "a-copylink";
+            copyBtn.textContent = "🔗";
+            copyBtn.title = "この記事へのリンクをコピー";
+            copyBtn.addEventListener("click", () => {
+              const url = location.origin + location.pathname + "#" + cardId;
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard
+                  .writeText(url)
+                  .then(() => {
+                    copyBtn.textContent = "✅";
+                    setTimeout(() => {
+                      copyBtn.textContent = "🔗";
+                    }, 1200);
+                  })
+                  .catch(() => {});
+              }
+            });
+
+            meta.appendChild(date);
+            meta.appendChild(copyBtn);
+            body.appendChild(meta);
             stage = "links";
             continue;
           }
-          // No date line present: this paragraph is the links row.
+
           const links = document.createElement("p");
           links.className = "a-links";
           links.innerHTML = el.innerHTML;
-          titleWrap.appendChild(links);
+          body.appendChild(links);
           stage = "desc";
           continue;
         }
@@ -267,7 +460,7 @@
           const links = document.createElement("p");
           links.className = "a-links";
           links.innerHTML = el.innerHTML;
-          titleWrap.appendChild(links);
+          body.appendChild(links);
           stage = "desc";
           continue;
         }
@@ -275,11 +468,107 @@
         const desc = document.createElement("p");
         desc.className = "a-desc";
         desc.innerHTML = el.innerHTML;
-        card.appendChild(desc);
+        body.appendChild(desc);
       }
     }
 
     return out;
+  }
+
+  function computeSearchIndex() {
+    document.querySelectorAll(".a-card").forEach((card) => {
+      const title = card.querySelector(".a-title")?.textContent || "";
+      const descs = Array.from(card.querySelectorAll(".a-desc"))
+        .map((p) => p.textContent)
+        .join(" ");
+      card.dataset.search = (title + " " + descs).toLowerCase();
+    });
+  }
+
+  function buildMonthNav() {
+    const nav = document.getElementById("month-nav");
+    if (!nav) return;
+    nav.innerHTML = "";
+    document.querySelectorAll(".section-label").forEach((label) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "month-pill";
+      btn.textContent = label.textContent;
+      btn.addEventListener("click", () => {
+        label.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      nav.appendChild(btn);
+    });
+  }
+
+  function applyNewBadges() {
+    let last = null;
+    try {
+      last = localStorage.getItem("articles_last_visit");
+    } catch (e) {}
+
+    if (last) {
+      document.querySelectorAll(".a-card").forEach((card) => {
+        const d = card.dataset.date;
+        if (d && d > last) {
+          const badge = document.createElement("span");
+          badge.className = "a-new-badge";
+          badge.textContent = "NEW";
+          card.querySelector(".a-title").appendChild(badge);
+        }
+      });
+    }
+
+    try {
+      localStorage.setItem("articles_last_visit", new Date().toISOString().slice(0, 10));
+    } catch (e) {}
+  }
+
+  function handleInitialHash() {
+    if (!location.hash) return;
+    const id = decodeURIComponent(location.hash.slice(1));
+    const card = document.getElementById(id);
+    if (!card) return;
+    const toggle = card.querySelector(".a-toggle");
+    const body = card.querySelector(".a-body");
+    toggle.setAttribute("aria-expanded", "true");
+    body.hidden = false;
+    card.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function applyFilter(query) {
+    const q = query.trim().toLowerCase();
+    const active = q.length > 0;
+    const cards = document.querySelectorAll(".a-card");
+
+    cards.forEach((card) => {
+      const match = !active || (card.dataset.search || "").includes(q);
+      card.hidden = !match;
+
+      const toggle = card.querySelector(".a-toggle");
+      const body = card.querySelector(".a-body");
+      if (active && match) {
+        toggle.setAttribute("aria-expanded", "true");
+        body.hidden = false;
+      } else if (!active) {
+        toggle.setAttribute("aria-expanded", "false");
+        body.hidden = true;
+      }
+    });
+
+    document.querySelectorAll(".section-label").forEach((label) => {
+      const month = label.textContent;
+      const anyVisible = Array.from(
+        document.querySelectorAll('.a-card[data-month="' + CSS.escape(month) + '"]')
+      ).some((c) => !c.hidden);
+      label.hidden = active && !anyVisible;
+    });
+  }
+
+  function wireSearch() {
+    const input = document.getElementById("search-box");
+    if (!input) return;
+    input.addEventListener("input", () => applyFilter(input.value));
   }
 
   fetch("articles.md")
@@ -289,6 +578,12 @@
       content.classList.remove("loading");
       content.innerHTML = "";
       content.appendChild(buildLayout(markdown));
+
+      computeSearchIndex();
+      buildMonthNav();
+      applyNewBadges();
+      handleInitialHash();
+      wireSearch();
     })
     .catch(() => {
       document.getElementById("content").textContent = "記事を読み込めませんでした。";
