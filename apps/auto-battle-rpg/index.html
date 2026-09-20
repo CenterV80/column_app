@@ -220,14 +220,21 @@
       repeating-linear-gradient(45deg, #4ea3ff22 0 12px, transparent 12px 24px),
       repeating-linear-gradient(-45deg, #b479ff1c 0 12px, transparent 12px 24px);
     border: var(--frame) solid var(--line);
-    padding: 24px 122px 24px 20px;
+    padding: 24px 112px 24px 20px;
     position: relative;
     overflow: hidden;
   }
-  .hero .dragon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+  .hero .dragon { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 96px; height: auto; }
   .hero .kicker { font-family: var(--dot); font-size: var(--fs-sm); letter-spacing: .18em; color: var(--accent); }
   .hero h2 { font-family: var(--dot); font-size: var(--fs-2xl); line-height: 1.24; margin: 8px 0 10px; font-weight: 400; }
   .hero p { font-size: var(--fs-sm); color: var(--muted); line-break: strict; max-width: 22em; }
+
+  /* narrow phones: give the headline its second line back by letting the
+     dragon take less of the width */
+  @media (max-width: 380px) {
+    .hero { padding-right: 92px; }
+    .hero .dragon { width: 80px; right: 4px; }
+  }
 
   .feature { display: flex; gap: 10px; align-items: flex-start; }
   .feature + .feature { margin-top: 14px; }
