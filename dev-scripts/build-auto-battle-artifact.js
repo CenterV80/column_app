@@ -37,19 +37,5 @@ cut(/<\/html>\s*/i, "</html>");
 // The category link only exists inside the site, so the whole footer goes.
 cut(/\s*<p id="footer">[\s\S]*?<\/p>\s*\n/, "site footer");
 
-// An artifact is a single file, so the key art has to travel inside it.
-const artDir = path.join(__dirname, "..", "apps", "auto-battle-rpg", "art");
-html = html.replace(/"art\/([\w.-]+)"/g, (m, name) => {
-  const file = path.join(artDir, name);
-  if (!fs.existsSync(file)) {
-    console.error(`missing art file: ${name}`);
-    process.exit(1);
-  }
-  const mime = name.endsWith(".webp") ? "image/webp" : name.endsWith(".png") ? "image/png" : "image/jpeg";
-  const b64 = fs.readFileSync(file).toString("base64");
-  console.log(`  inlined ${name} (${(b64.length / 1024).toFixed(0)}KB base64)`);
-  return `"data:${mime};base64,${b64}"`;
-});
-
 fs.writeFileSync(out, html.trimStart());
 console.log(`wrote ${out} (${(html.length / 1024).toFixed(0)}KB)`);
