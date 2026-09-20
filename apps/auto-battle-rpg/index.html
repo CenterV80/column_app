@@ -188,6 +188,35 @@
   .hero h2 { font-size: 27px; line-height: 1.2; margin: 6px 0 8px; font-weight: 750; letter-spacing: -.01em; }
   .hero p { font-size: 13px; color: var(--muted); }
 
+  .keyart {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    background:
+      radial-gradient(68% 62% at 72% 42%, #46535e 0%, #2c3843 52%, #222d36 100%);
+    box-shadow: var(--shadow-lift);
+  }
+  .keyart::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 0 40px #1a232b66;
+  }
+  .keyart img { display: block; }
+
+  .hero-art {
+    display: flex; align-items: stretch; gap: 10px;
+    padding: 20px 0 0 18px; min-height: 268px;
+  }
+  .hero-art .copy { flex: 1; min-width: 0; padding-bottom: 20px; align-self: center; }
+  .hero-art .copy .kicker { font-size: 11.5px; letter-spacing: .18em; color: #f0a79c; font-weight: 700; }
+  .hero-art .copy h2 { font-size: 26px; line-height: 1.22; margin: 6px 0 8px; font-weight: 750;
+                       color: #fbfaf8; letter-spacing: -.01em; }
+  .hero-art .copy p { font-size: 12.5px; color: #c3ced6; }
+  .hero-art .figure { flex: none; display: flex; align-items: flex-end; }
+  .hero-art .figure img { height: 258px; width: auto; }
+
+  .ending-art { padding: 16px; display: grid; place-items: center; }
+  .ending-art img { max-height: 320px; width: auto; max-width: 100%; }
+
   .feature { display: flex; gap: 10px; align-items: flex-start; }
   .feature + .feature { margin-top: 12px; }
   .feature .ico {
@@ -1051,14 +1080,18 @@
 
   // ---- title
   function viewTitle() {
-    const dragon = spriteImg("dragon", 96);
-    dragon.classList.add("dragon");
     return [
-      h("div", { class: "hero" }, [
-        dragon,
-        h("div", { class: "kicker", text: "AUTO BATTLE" }),
-        h("h2", { html: "カードで<br>さくせんを<br>組む" }),
-        h("p", { text: "戦闘中の操作はなし。組んだ作戦どおりに自動で戦います。乱数は一切なし。" }),
+      h("div", { class: "keyart" }, [
+        h("div", { class: "hero-art" }, [
+          h("div", { class: "copy" }, [
+            h("div", { class: "kicker", text: "AUTO BATTLE" }),
+            h("h2", { html: "カードで<br>さくせんを<br>組む" }),
+            h("p", { text: "戦闘中の操作はなし。組んだ作戦どおりに自動で戦います。" }),
+          ]),
+          h("div", { class: "figure" }, [
+            h("img", { src: "art/knight.webp", alt: "ゆうしゃ", width: 314, height: 520 }),
+          ]),
+        ]),
       ]),
       h("div", { class: "card" }, [
         feature("◇", "条件で 分岐する", "「ピンチなら」「敵が強攻撃なら」で作戦を切り替える"),
@@ -1067,6 +1100,7 @@
       ]),
     ];
   }
+
   function feature(ico, t, d) {
     return h("div", { class: "feature" }, [
       h("div", { class: "ico", text: ico }),
@@ -1541,9 +1575,11 @@
     return [
       h("div", { class: "banner win" }, [
         h("h2", { text: "ぜんステージ クリア！" }),
-        h("div", { class: "sub", text: "作戦だけで 竜を たおした" }),
+        h("div", { class: "sub", text: "作戦だけで 勝ち切った" }),
       ]),
-      h("div", { class: "card", style: "text-align:center" }, [spriteImg("dragon", 128)]),
+      h("div", { class: "keyart ending-art" }, [
+        h("img", { src: "art/winged.webp", alt: "", width: 625, height: 420 }),
+      ]),
       h("div", { class: "card" }, [
         h("div", { class: "small muted", text: "強さはステータスではなく、組み立てた作戦のことでした。カードを変えれば、別の答えも見つかります。" }),
       ]),
