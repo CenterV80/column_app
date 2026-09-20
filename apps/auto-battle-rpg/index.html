@@ -30,12 +30,19 @@
     --accent: #4ea3ff;   /* your side, and every control you press */
     --accent-soft: #4ea3ff1f;
     --accent-deep: #2b7fd8;
-    --coral: #ff4b3e;    /* the enemy, damage */
-    --amber: #ffd23e;    /* awaken, warnings, the charge turn */
-    --teal: #3ad14b;     /* health, healing */
-    --sky: #b479ff;      /* defensive states */
+    --coral: #ff4b3e;    /* the enemy: its damage, its strong attack */
+    --amber: #ffd23e;    /* incoming danger being telegraphed. nothing else */
+    --green: #3ad14b;    /* your HP and your healing. nothing else */
+    --purple: #b479ff;   /* defensive states */
 
-    --radius: 4px;
+    --fs-xs: 12px;
+    --fs-sm: 13px;
+    --fs-md: 15px;
+    --fs-lg: 17px;
+    --fs-xl: 20px;
+    --fs-2xl: 28px;
+
+    --radius: 0;
     --tap: 48px;
     --frame: 3px;
     --dot: "DotGothic16", "Hiragino Sans", monospace;
@@ -54,7 +61,7 @@
       repeating-linear-gradient(45deg, #ffffff06 0 2px, transparent 2px 8px);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
-    font-size: 15px;
+    font-size: var(--fs-md);
     line-height: 1.5;
     display: flex;
     justify-content: center;
@@ -85,21 +92,21 @@
   #topbar .back {
     width: 40px; height: 40px;
     flex: none;
-    border-radius: 3px;
+    border-radius: 0;
     border: 2px solid var(--line);
     background: #000;
     color: var(--text);
-    font-size: 17px;
+    font-size: var(--fs-lg);
     cursor: pointer;
   }
   #topbar .back:active { background: var(--line); color: #000; }
-  #topbar h1 { font-family: var(--dot); font-size: 17px; font-weight: 400; letter-spacing: .02em;
+  #topbar h1 { font-family: var(--dot); font-size: var(--fs-lg); font-weight: 400; letter-spacing: .02em;
                flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #topbar .meta { font-family: var(--dot); font-size: 13px; color: var(--amber); flex: none; }
+  #topbar .meta { font-family: var(--dot); font-size: var(--fs-sm); color: var(--dim); flex: none; }
   #topbar .icon-btn {
     width: 40px; height: 40px; flex: none;
-    border-radius: 3px; border: 2px solid var(--line-soft);
-    background: #000; color: var(--muted); font-size: 15px; cursor: pointer;
+    border-radius: 0; border: 2px solid var(--line-soft);
+    background: #000; color: var(--muted); font-size: var(--fs-md); cursor: pointer;
   }
 
   #view {
@@ -110,8 +117,17 @@
     padding: 14px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
+  /* optically centred: a touch more room below than above */
+  #view.center > :first-child { margin-top: auto; }
+  #view.center > :last-child { margin-bottom: auto; }
+  #view.center { padding-bottom: 28px; }
+  #view.fill > .grow { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  #view.fill > .grow > .scroll { flex: 1; min-height: 0; overflow-y: auto; }
+  #view.fill > .push { margin-top: auto; }
+  /* a console log fills from the bottom, so it is never a framed void */
+  #view.fill > .grow > .scroll.log-scroll { display: flex; flex-direction: column; justify-content: flex-end; }
 
   #actionbar {
     flex: none;
@@ -127,12 +143,12 @@
   .btn {
     flex: 1;
     min-height: var(--tap);
-    border-radius: var(--radius);
+    border-radius: 0;
     border: var(--frame) solid var(--line);
     background: var(--surface);
     color: var(--text);
     font-family: var(--dot);
-    font-size: 16px;
+    font-size: var(--fs-lg);
     font-weight: 400;
     cursor: pointer;
     display: inline-flex;
@@ -144,141 +160,152 @@
   .btn:active { transform: scale(.985); background: var(--line); }
   .btn.primary { background: var(--accent); border-color: var(--line); color: #04121f; }
   .btn.primary:active { background: var(--accent-deep); color: #fff; }
-  .btn:disabled { opacity: .4; cursor: default; }
-  .btn:disabled:active { transform: none; background: var(--surface-2); }
+  .btn:disabled { cursor: default; color: #5a5a70; border-color: #2c2c3a; background: #000; }
+  .btn:disabled:active { transform: none; background: #000; }
 
   .card {
     background: var(--surface);
     border: var(--frame) solid var(--line);
-    border-radius: var(--radius);
+    border-radius: 0;
     padding: 12px;
   }
   .card h2 {
     font-family: var(--dot);
-    font-size: 14px; font-weight: 400; color: var(--amber);
+    font-size: var(--fs-sm); font-weight: 400; color: var(--muted);
     letter-spacing: .04em; margin-bottom: 10px;
   }
 
   .chip {
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 2px 8px; border-radius: 3px;
-    font-family: var(--dot); font-size: 13px; font-weight: 400;
+    padding: 2px 8px; border-radius: 0;
+    font-family: var(--dot); font-size: var(--fs-sm); font-weight: 400;
     background: #000; color: var(--muted);
     border: 2px solid var(--line-soft);
   }
-  .chip.teal { color: var(--teal); border-color: #3ad14b; background: #000; }
+  .chip.green { color: var(--green); border-color: #3ad14b; background: #000; }
   .chip.coral { color: var(--coral); border-color: #ff4b3e; background: #000; }
   .chip.amber { color: var(--amber); border-color: #ffd23e; background: #000; }
-  .chip.violet { color: var(--accent); border-color: #4ea3ff; background: #000; }
-  .chip.sky { color: var(--sky); border-color: #b479ff; background: #000; }
+  .chip.awaken { background: var(--line); color: #000; border-color: var(--line); }
+  .chip.accent { color: var(--accent); border-color: #4ea3ff; background: #000; }
+  .chip.purple { color: var(--purple); border-color: #b479ff; background: #000; }
 
   .sprite { image-rendering: pixelated; display: block; }
+  .art-frame { display: grid; place-items: center; padding: 18px; }
 
   .bar {
     height: 12px; border-radius: 0; background: #000; overflow: hidden;
     border: 2px solid var(--line-soft);
     background-image: repeating-linear-gradient(90deg, transparent 0 5px, #ffffff14 5px 6px);
   }
-  .bar > i { display: block; height: 100%; border-radius: 0; transition: width .32s steps(12, end); }
+  .bar > i { display: block; height: 100%; border-radius: 0; }
   .bar.enemy > i { background: var(--coral); }
-  .bar.player > i { background: var(--teal); }
+  .bar.player > i { background: var(--green); }
 
-  .stat-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 13px; }
-  .stat-row .k { font-family: var(--dot); font-size: 14px; }
+  .stat-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: var(--fs-sm); }
+  .stat-row .k { font-family: var(--dot); font-size: var(--fs-sm); }
   .stat-row .k { color: var(--muted); }
-  .stat-row .v { font-family: var(--dot); font-size: 15px; font-variant-numeric: tabular-nums; font-weight: 400; }
+  .stat-row .v { font-family: var(--dot); font-size: var(--fs-md); font-variant-numeric: tabular-nums; font-weight: 400; }
 
   .muted { color: var(--muted); }
   .dim { color: var(--dim); }
-  .small { font-size: 13px; }
-  .tiny { font-size: 12px; }
+  .small { font-size: var(--fs-sm); }
+  .tiny { font-size: var(--fs-xs); }
 
   /* ---------- title ---------- */
   .hero {
-    border-radius: var(--radius);
+    justify-content: center;
+    border-radius: 0;
     background: #000;
     background-image:
       repeating-linear-gradient(45deg, #4ea3ff22 0 12px, transparent 12px 24px),
       repeating-linear-gradient(-45deg, #b479ff1c 0 12px, transparent 12px 24px);
     border: var(--frame) solid var(--line);
-    padding: 22px 104px 18px 18px;
+    padding: 24px 108px 24px 20px;
     position: relative;
     overflow: hidden;
   }
-  .hero .dragon { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); opacity: .9; }
-  .hero .kicker { font-family: var(--dot); font-size: 13px; letter-spacing: .18em; color: var(--amber); }
-  .hero h2 { font-family: var(--dot); font-size: 26px; line-height: 1.24; margin: 8px 0 10px; font-weight: 400; }
-  .hero p { font-size: 13px; color: var(--muted); }
+  .hero .dragon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+  .hero .kicker { font-family: var(--dot); font-size: var(--fs-sm); letter-spacing: .18em; color: var(--accent); }
+  .hero h2 { font-family: var(--dot); font-size: var(--fs-2xl); line-height: 1.24; margin: 8px 0 10px; font-weight: 400; }
+  .hero p { font-size: var(--fs-sm); color: var(--muted); line-break: strict; max-width: 22em; }
 
   .feature { display: flex; gap: 10px; align-items: flex-start; }
-  .feature + .feature { margin-top: 12px; }
+  .feature + .feature { margin-top: 14px; }
   .feature .ico {
-    width: 30px; height: 30px; flex: none; border-radius: 9px;
-    display: grid; place-items: center; font-size: 15px;
-    background: var(--accent-soft); color: var(--accent);
+    width: 36px; height: 36px; flex: none; border-radius: 0;
+    display: grid; place-items: center;
+    background: #000; border: 2px solid var(--line-soft);
   }
-  .feature .t { font-size: 14px; font-weight: 650; }
-  .feature .d { font-size: 12.5px; color: var(--muted); }
+  .feature .t { font-family: var(--dot); font-size: var(--fs-md); font-weight: 400; }
+  .feature .d { font-size: var(--fs-sm); color: var(--muted); }
 
   /* ---------- stage list ---------- */
+  .stage-list { display: flex; flex-direction: column; gap: 10px; }
   .stage {
     display: flex; align-items: center; gap: 12px;
     width: 100%; text-align: left;
-    background: var(--surface); border: var(--frame) solid var(--line);
-    border-radius: var(--radius); padding: 10px; cursor: pointer;
+    background: var(--surface); border: 2px solid var(--line);
+    border-radius: 0; padding: 16px 12px; cursor: pointer;
     font: inherit; color: var(--text);
     transition: transform .06s ease, border-color .12s ease;
   }
-  .stage:active { transform: translateY(2px); border-color: var(--amber); }
-  .stage.locked { opacity: .5; cursor: default; }
+  .stage:active { transform: translateY(2px); }
+  /* beaten stages step back so the next fight is the thing you see first */
+  .stage.done { border-width: 2px; border-color: var(--line-soft); padding: 13px 12px; }
+  .stage.done .name { color: var(--muted); }
+  .stage.done .thumb img { filter: grayscale(.65); opacity: .72; }
+  .stage.next { box-shadow: inset 4px 0 0 var(--accent); border-color: var(--accent); }
+  .stage.next .name { color: var(--accent); }
+  .stage.locked { cursor: default; border-color: #2c2c3a; }
+  .stage.locked .name, .stage.locked .sub { color: #5a5a70; }
   .stage.locked:active { transform: none; border-color: var(--line); }
   .stage .thumb {
-    width: 56px; height: 56px; flex: none; border-radius: 2px;
+    width: 64px; height: 64px; flex: none; border-radius: 0;
     background: #000; border: 2px solid var(--line-soft);
     display: grid; place-items: center; overflow: hidden;
   }
-  .stage .body { flex: 1; min-width: 0; }
-  .stage .name { font-family: var(--dot); font-weight: 400; font-size: 16px; }
-  .stage .sub { font-size: 12.5px; color: var(--muted); }
-  .stage .go { color: var(--dim); font-size: 18px; flex: none; }
+  .stage .body { flex: 1; min-width: 0; overflow: hidden; }
+  .stage .name { font-family: var(--dot); font-weight: 400; font-size: var(--fs-lg); white-space: nowrap; }
+  .stage .sub { font-size: var(--fs-sm); color: var(--muted); white-space: nowrap; }
+  .stage .go { color: var(--dim); font-size: var(--fs-xl); flex: none; }
 
   /* ---------- schedule ---------- */
   .sched { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
   .sched::-webkit-scrollbar { display: none; }
   .sched .t {
-    flex: none; min-width: 58px; border-radius: 3px; padding: 5px 8px;
+    flex: none; min-width: 58px; border-radius: 0; padding: 5px 8px;
     background: #000; border: 2px solid var(--line-soft); text-align: center;
   }
   .sched .t.strong { border-color: var(--coral); background: #ff4b3e1f; }
-  .sched .t.safe { border-color: var(--teal); background: #3ad14b1a; }
-  .sched .t .n { font-size: 10.5px; color: var(--dim); font-weight: 700; letter-spacing: .06em; }
-  .sched .t .a { font-family: var(--dot); font-size: 14px; font-weight: 400; white-space: nowrap; }
+  .sched .t.safe { border-color: var(--amber); background: #ffd23e14; }
+  .sched .t .n { font-size: var(--fs-xs); color: var(--dim); font-weight: 600; letter-spacing: .06em; }
+  .sched .t .a { font-family: var(--dot); font-size: var(--fs-sm); font-weight: 400; white-space: nowrap; }
   .sched .t.strong .a { color: var(--coral); }
-  .sched .t.safe .a { color: var(--teal); }
+  .sched .t.safe .a { color: var(--amber); }
 
   /* ---------- deck slots ---------- */
   .slots { display: flex; flex-direction: column; gap: 8px; }
   .slot {
     display: flex; align-items: center; gap: 10px;
     background: var(--surface); border: 2px solid var(--line-soft);
-    border-radius: 3px; padding: 8px 8px 8px 4px;
+    border-radius: 0; padding: 8px 8px 8px 4px;
     touch-action: pan-y;
   }
-  .slot.indent { margin-left: 18px; border-left: 3px solid var(--amber); }
+  .slot.indent { margin-left: 18px; border-left: 3px solid var(--accent); }
   .slot.dragging { opacity: .96; border-color: var(--accent); box-shadow: var(--shadow-lift); position: relative; z-index: 5; }
   .slot.drop-target { border-color: var(--accent); background: var(--accent-soft); }
   .slot .handle {
     width: 34px; min-height: 44px; flex: none;
     display: grid; place-items: center; color: var(--dim);
-    cursor: grab; touch-action: none; font-size: 15px;
+    cursor: grab; touch-action: none; font-size: var(--fs-md);
   }
   .slot .main { flex: 1; min-width: 0; }
-  .slot .name { font-family: var(--dot); font-weight: 400; font-size: 16px; display: flex; align-items: center; gap: 7px; }
-  .slot .desc { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .slot .name { font-family: var(--dot); font-weight: 400; font-size: var(--fs-lg); display: flex; align-items: center; gap: 7px; }
+  .slot .desc { font-size: var(--fs-xs); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .slot .del {
-    width: 42px; height: 42px; flex: none; border-radius: 10px;
-    border: 1px solid var(--line); background: var(--surface-2);
-    color: var(--muted); font-size: 15px; cursor: pointer;
+    width: 42px; height: 42px; flex: none; border-radius: 0;
+    border: 2px solid var(--line-soft); background: #000;
+    color: var(--muted); font-size: var(--fs-md); cursor: pointer;
   }
   .slot .del:active { background: var(--line); color: var(--coral); }
   .slot.dead { background: #0c0c12; border-style: dashed; border-color: var(--coral); }
@@ -286,51 +313,51 @@
   .slot.empty { border-style: dashed; justify-content: center; padding: 0; }
   .slot.empty button {
     width: 100%; min-height: var(--tap); background: none; border: 0;
-    color: var(--muted); font: inherit; font-size: 13.5px; cursor: pointer;
+    color: var(--muted); font: inherit; font-size: var(--fs-sm); cursor: pointer;
   }
 
-  .kind-dot { width: 8px; height: 8px; border-radius: 3px; flex: none; }
+  .kind-dot { width: 8px; height: 8px; border-radius: 0; flex: none; }
 
   .verdict {
     display: flex; align-items: center; gap: 10px;
-    border-radius: 3px; padding: 10px 12px;
-    border: 2px solid var(--line-soft); background: #000;
-    font-size: 13.5px;
+    border-radius: 0; padding: 10px 12px;
+    border: var(--frame) solid var(--line-soft); background: #000;
+    font-family: var(--dot); font-size: var(--fs-md); line-height: 1.5;
   }
-  .verdict b { font-family: var(--dot); font-size: 16px; color: var(--amber); }
-  .verdict.win  { border-color: var(--teal); }
+  .verdict b { color: var(--accent); font-weight: 400; }
+  .verdict.win  { border-color: var(--green); }
   .verdict.lose { border-color: var(--coral); }
   .verdict b { font-variant-numeric: tabular-nums; }
 
   /* ---------- card picker ---------- */
-  .pick-group + .pick-group { margin-top: 14px; }
-  .pick-group h3 { font-size: 12px; color: var(--muted); font-weight: 650; letter-spacing: .05em; margin-bottom: 8px; }
+
   .pick {
     display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left;
-    background: var(--surface); border: 2px solid var(--line-soft); border-radius: 3px;
+    background: var(--surface); border: 2px solid var(--line-soft); border-radius: 0;
     padding: 11px 12px; min-height: var(--tap); cursor: pointer; font: inherit; color: var(--text);
   }
   .pick + .pick { margin-top: 8px; }
-  .pick:active { border-color: var(--amber); background: var(--accent-soft); }
-  .pick.locked { opacity: .42; cursor: default; }
+  .pick:active { border-color: var(--accent); background: var(--accent-soft); }
+  .pick.locked { cursor: default; border-color: #2c2c3a; }
+  .pick.locked .n, .pick.locked .d { color: #5a5a70; }
   .pick.locked:active { border-color: var(--line); background: var(--surface); }
-  .pick .n { font-family: var(--dot); font-weight: 400; font-size: 16px; }
-  .pick .d { font-size: 12.5px; color: var(--muted); }
+  .pick .n { font-family: var(--dot); font-weight: 400; font-size: var(--fs-lg); }
+  .pick .d { font-size: var(--fs-sm); color: var(--muted); }
 
   /* ---------- plan table ---------- */
-  table.plan { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
-  table.plan th { text-align: left; font-size: 11.5px; color: var(--dim); font-weight: 650; padding: 0 6px 8px; letter-spacing: .04em; }
-  table.plan td { padding: 9px 6px; border-top: 1px solid var(--line-soft); vertical-align: top; font-family: var(--dot); font-size: 14px; }
+  table.plan { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+  table.plan th { text-align: left; font-size: var(--fs-xs); color: var(--dim); font-weight: 600; padding: 0 6px 8px; letter-spacing: .04em; }
+  table.plan td { padding: 9px 6px; border-top: 1px solid var(--line-soft); vertical-align: top; font-family: var(--dot); font-size: var(--fs-sm); }
   table.plan tr.hit td { background: #ff4b3e1a; }
-  table.plan .turn { color: var(--dim); font-weight: 700; width: 20px; }
-  table.plan .mine { font-weight: 600; }
-  table.plan .num { text-align: right; width: 34px; }
-  table.plan .efoe { color: var(--muted); font-size: 12px; }
+  table.plan .turn { color: var(--dim); font-weight: 400; width: 20px; }
+  table.plan .mine { font-weight: 400; }
+  table.plan .num { text-align: right; width: 34px; white-space: nowrap; }
+  table.plan .efoe { color: var(--muted); font-size: var(--fs-xs); }
 
   /* ---------- battle ---------- */
   .fighter { display: flex; gap: 12px; align-items: center; }
   .fighter .art {
-    width: 92px; height: 92px; flex: none; border-radius: 2px;
+    width: 92px; height: 92px; flex: none; border-radius: 0;
     background: #000;
     border: 2px solid var(--line-soft);
     display: grid; place-items: center; position: relative; overflow: hidden;
@@ -340,7 +367,7 @@
     background:
       repeating-linear-gradient(45deg, var(--stage-a, #4ea3ff) 0 10px, transparent 10px 20px),
       repeating-linear-gradient(-45deg, var(--stage-b, #b479ff) 0 10px, transparent 10px 20px);
-    opacity: .3;
+    opacity: .12;
     animation: drift 3.2s linear infinite;
   }
   .fighter .art > * { position: relative; z-index: 1; }
@@ -349,52 +376,62 @@
   .fighter.small .art { width: 72px; height: 72px; }
   .fighter .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
   .fighter .row1 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .fighter .nm { font-family: var(--dot); font-weight: 400; font-size: 17px; }
+  .fighter .nm { font-family: var(--dot); font-weight: 400; font-size: var(--fs-lg); }
 
   @keyframes hit { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
   .art.shake { animation: hit .22s ease; }
   .art.flash > .sprite { filter: brightness(3) saturate(0); }
-  .art.down > .sprite { opacity: .25; filter: grayscale(1); transition: opacity .4s ease; }
+  .art.down > .sprite { opacity: .3; filter: grayscale(1); transition: opacity .4s ease; }
+  .art.down::before { animation: none; opacity: .04; }
 
   .pop {
     position: absolute; left: 50%; top: 24%;
     transform: translateX(-50%);
-    font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums;
+    font-weight: 400; font-size: var(--fs-2xl); font-variant-numeric: tabular-nums;
     pointer-events: none; animation: rise .9s ease-out forwards;
     text-shadow: 0 2px 0 #000, 0 0 10px #000;
   }
   .pop.dmg { color: var(--coral); }
-  .pop.heal { color: var(--teal); }
+  .pop.heal { color: var(--green); }
   @keyframes rise { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.8); }
                     22% { opacity: 1; transform: translate(-50%, -4px) scale(1.08); }
                     100% { opacity: 0; transform: translate(-50%, -34px) scale(1); } }
 
   .odo { font-family: var(--dot); font-variant-numeric: tabular-nums; }
-  .odo.rolling { color: var(--amber); }
+  .odo.rolling { color: var(--coral); }
 
+  .trace-label { font-family: var(--dot); font-size: var(--fs-sm); color: var(--muted);
+                 margin: 12px 0 6px; }
   .trace { display: flex; gap: 5px; }
   .trace .s {
-    flex: 1; height: 7px; border-radius: 999px;
-    background: var(--surface-2); border: 1px solid var(--line);
+    flex: 1; height: 10px; border-radius: 0;
+    background: #000; border: 2px solid var(--line);
   }
-  .trace .s.on { background: var(--accent); border-color: transparent; }
+  .trace .s.on { background: var(--kind, var(--accent)); border-color: var(--kind, var(--accent)); }
   .trace .s.ghost { opacity: .35; }
 
   #log { display: flex; flex-direction: column; gap: 6px; }
-  #log .ln { font-size: 13.5px; color: var(--muted); }
-  #log .ln.turn { color: var(--dim); font-size: 11.5px; font-weight: 700; letter-spacing: .07em;
-                  margin-top: 4px; text-transform: uppercase; }
-  #log .ln.now { color: var(--text); font-weight: 600; }
+  #log .ln { font-size: var(--fs-sm); color: var(--muted); }
+  #log .ln.turn { font-family: var(--dot); color: var(--muted); font-size: var(--fs-sm);
+                  letter-spacing: .06em; margin-top: 8px; }
+  .log-empty { font-family: var(--dot); font-size: var(--fs-md); color: var(--dim);
+               text-align: center; padding: 0 0 12px; }
+  #log .ln.now { color: var(--text); }
   #log .ln.good { color: var(--accent); }
   #log .ln.bad { color: var(--coral); }
   #log .ln.warn { color: var(--amber); }
 
   /* ---------- result ---------- */
-  .banner { border-radius: var(--radius); padding: 18px 16px; text-align: center; border: var(--frame) solid var(--line); background: #000; }
-  .banner.win { background: linear-gradient(180deg, #3ad14b33, #000); border-color: var(--teal); }
+  .banner { border-radius: 0; padding: 18px 16px; text-align: center; border: var(--frame) solid var(--line); background: #000; }
+  .banner.win { background: linear-gradient(180deg, #3ad14b33, #000); border-color: var(--green); }
   .banner.lose { background: linear-gradient(180deg, #ff4b3e33, #000); border-color: var(--coral); }
-  .banner h2 { font-family: var(--dot); font-size: 26px; font-weight: 400; }
-  .banner .sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .banner h2 { font-family: var(--dot); font-size: var(--fs-2xl); font-weight: 400; }
+  .thesis { font-family: var(--dot); font-size: var(--fs-md); line-height: 1.7; }
+  .banner .sub { font-size: var(--fs-sm); color: var(--muted); margin-top: 3px; }
+
+  .result-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+  table.plan th.self-h, table.plan td.self-h { color: var(--green); }
+  table.plan th.coral-h, table.plan td.coral-h { color: var(--coral); }
 
   .reward { display: flex; gap: 10px; align-items: flex-start; }
   .reward + .reward { margin-top: 10px; }
@@ -479,7 +516,7 @@
       id: 5, name: "らいりゅう", sprite: "dragon", hp: 34, armor: 1,
       pattern: [{ t:"attack", v:3 }, { t:"attack", v:3 }, { t:"charge" }, { t:"strong", v:10 }],
       reward: [],
-      hint: "HP30。ふつうに たたかっては ぜったいに たりない。ピンチで かくせいし るいじょうを うて。",
+      hint: "HP34。ふつうに たたかっては ぜったいに たりない。ピンチで かくせいし るいじょうを うて。",
     },
   ];
 
@@ -624,6 +661,28 @@
   // ENGINE END
   // =====================================================================
 
+  // UI glyphs: same pixel unit as the character sprites.
+  const GLYPHS = {
+    branch: [
+      "................", "......1111......", ".....133331.....", ".....133331.....",
+      "......1111......", "........1.......", "........1.......", "...111111111....",
+      "...1.......1....", "...1.......1....", "..1111...1111...", "..133331.133331.",
+      "..133331.133331.", "..1111...1111...", "................", "................",
+    ],
+    up: [
+      "................", ".......11.......", "......1331......", ".....133331.....",
+      "....13333331....", "...1333333331...", "..133333333331..", ".11113333311111.",
+      "....13333331....", "....13333331....", "....13333331....", "....13333331....",
+      "....11111111....", "................", "................", "................",
+    ],
+    clock: [
+      "................", ".....111111.....", "...1133333311...", "..133333333331..",
+      ".13333133331331.", ".13333133333331.", "133331333333331.", "133331333333331.",
+      "13333133333.331.", "1333313333..331.", ".1333313333.331.", ".13333133333331.",
+      "..133333333331..", "...1133333311...", ".....111111.....", "................",
+    ],
+  };
+
   const SPRITES = {
     slime: [
       "................................",
@@ -763,36 +822,36 @@
     ],
     dragon: [
       "................................",
-      "....................00..00......",
-      "...................02200220.....",
-      "..................02200220......",
-      ".........0000....02200220.......",
-      ".......0033300..002222222200....",
-      ".....0333332222002222222222220..",
-      "...033322220000222222222222220..",
-      "..0330022220330222222222222220..",
-      ".033322222222000022222222222220.",
-      ".000022222222222222222222121210.",
-      ".00330222222222222222222121210..",
-      "..000022222222222222221212120...",
-      "...00222222222212111111111110...",
-      ".....02222222221212121111110....",
-      "......022222222111111111110.....",
-      ".......0222222211111111110......",
-      "........02222221111111110.......",
-      "........02222200111100110.......",
-      "........011110..01110010........",
-      "........00110....00100...00.....",
-      "........0000......000...........",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
+      ".........00..........00.........",
+      "........0330........0330........",
+      "........0330........0330........",
+      ".......033000000000000330.......",
+      "......03332222222222223330......",
+      ".....0333222222222222223330.....",
+      ".....0332220330220330222330.....",
+      ".....0332220330220330222330.....",
+      ".....0222222222222222222220.....",
+      "......02222223333332222220......",
+      "......02222203333330222220......",
+      ".......022220333333022220.......",
+      "........0222203003022220........",
+      ".........00222000022200.........",
+      "..........0000....0000..........",
+      "...........0222222220...........",
+      "...........0112222110...........",
+      "..0000000000222222220000000000..",
+      ".011111111102222222201111111110.",
+      "01111111111022222222011111111110",
+      "01111111111022222222011111111110",
+      ".011111111102222222201111111110.",
+      "..0111111110222222220111111110..",
+      "....011111102222222201111110....",
+      "......01111022222222011110......",
+      "..........022222222220..........",
+      "...........0222112220...........",
+      "............02222220............",
+      ".............011110.............",
+      "..............0000..............",
       "................................",
     ],
     hero: [
@@ -841,7 +900,7 @@
     golem:  ["#8fa0b8", "#4ea3ff"],
     witch:  ["#b479ff", "#ff4bd8"],
     dragon: ["#ff4b3e", "#ffd23e"],
-    hero:   ["#4ea3ff", "#3ad14b"],
+    hero:   ["#ffd23e", "#ff8a3e"],
   };
 
   const RAMPS = {
@@ -873,6 +932,29 @@
       }
     }
     return (spriteCache[key] = c.toDataURL());
+  }
+
+  // glyphs use the interface palette rather than a creature ramp
+  const GLYPH_RAMP = { "1": "#4ea3ff", "3": "#0a1626" };
+  function glyphImg(name, px) {
+    const art = GLYPHS[name], scale = Math.max(1, Math.round(px / 16));
+    const c = document.createElement("canvas");
+    c.width = c.height = 16 * scale;
+    const x = c.getContext("2d");
+    for (let r = 0; r < 16; r++) {
+      for (let i = 0; i < art[r].length; i++) {
+        const col = GLYPH_RAMP[art[r][i]];
+        if (!col) continue;
+        x.fillStyle = col;
+        x.fillRect(i * scale, r * scale, scale, scale);
+      }
+    }
+    const img = new Image();
+    img.className = "sprite";
+    img.src = c.toDataURL();
+    img.width = img.height = 16 * scale;
+    img.alt = "";
+    return img;
   }
 
   function spriteImg(name, px) {
@@ -964,8 +1046,9 @@
     const sim = simulate(stage, deck);
     const rows = [];
     let cur = null;
-    const ACTS = { attack: "こうげき", heal: "かいふく", guard: "ぼうぎょ",
-                   reckless: "すてみ", idle: "ようす見" };
+    // Only real actions end the turn; かいふく and ぼうぎょ resolve before one,
+    // so they belong in the prefix beside the boosts, not in the action slot.
+    const ACTS = { attack: "こうげき", reckless: "すてみ", idle: "ようす見" };
     sim.events.forEach((e) => {
       if (e.t === "turn") {
         cur = { turn: e.turn, boosts: [], act: "", php: e.s.php, ehp: e.s.ehp, enemy: "" };
@@ -974,8 +1057,9 @@
       }
       if (!cur) return;
       if (e.t === "boost") cur.boosts.push(CARDS[e.card].short);
-      else if (ACTS[e.t]) cur.act = ACTS[e.t];
+      else if (e.t === "heal" && e.amt > 0) cur.boosts.push("かいふく");
       else if (e.t === "guard") cur.boosts.push("ぼうぎょ");
+      else if (ACTS[e.t]) cur.act = ACTS[e.t];
       else if (e.t === "enemyAtk") cur.enemy = (e.kind === "strong" ? "つよ" : "こう") + e.dmg;
       else if (e.t === "enemyCharge") cur.enemy = "ためる";
       else if (e.t === "enemyHeal") cur.enemy = "かいふく";
@@ -1048,10 +1132,10 @@
   }
 
   const KIND = {
-    cond:   { label: "じょうけん", cls: "amber",  color: "var(--amber)" },
-    boost:  { label: "きょうか",   cls: "violet", color: "var(--accent)" },
-    state:  { label: "まもり",     cls: "sky",    color: "var(--sky)" },
-    action: { label: "こうどう",   cls: "teal",   color: "var(--teal)" },
+    cond:   { label: "じょうけん", cls: "accent", color: "var(--muted)" },
+    boost:  { label: "きょうか",   cls: "accent", color: "var(--accent)" },
+    state:  { label: "まもり",     cls: "purple",    color: "var(--purple)" },
+    action: { label: "こうどう",   cls: "green",   color: "var(--green)" },
   };
 
   // ------------------------------------------------------------------ view
@@ -1085,7 +1169,7 @@
     }, [label]);
   }
 
-  function go(screen) { G.screen = screen; render(); }
+  function go(screen) { finishRolls(); G.screen = screen; render(); }
 
   function bar(cls, ratio) {
     return h("div", { class: "bar " + cls }, [h("i", { style: "width:" + Math.max(0, Math.min(1, ratio)) * 100 + "%" })]);
@@ -1097,25 +1181,25 @@
 
   // ---- title
   function viewTitle() {
-    const dragon = spriteImg("dragon", 96);
+    const dragon = spriteImg("dragon", 112);
     dragon.classList.add("dragon");
     return [
-      h("div", { class: "hero" }, [
+      h("div", { class: "hero grow" }, [
         dragon,
         h("div", { class: "kicker", text: "AUTO BATTLE" }),
-        h("h2", { html: "カードで<br>さくせんを<br>組む" }),
-        h("p", { text: "戦闘中の操作はなし。組んだ作戦どおりに自動で戦います。乱数は一切なし。" }),
+        h("h2", { html: "カードで<br>さくせんを 組む" }),
+        h("p", { text: "戦闘中の操作はなし。乱数もなし。" }),
       ]),
       h("div", { class: "card" }, [
-        feature("◇", "条件で 分岐する", "「ピンチなら」「敵が強攻撃なら」で作戦を切り替える"),
-        feature("△", "強化は 1回だけ", "使う順番で結果が変わる。+2→×2 は 8、×2→+2 は 6"),
-        feature("⏱", "敵の手は 読める", "何ターン目に何が来るか表示される。計算して組める"),
+        feature("branch", "条件で 分岐する", "「ピンチなら」「敵が強攻撃なら」で作戦を切り替える"),
+        feature("up", "強化は 1回だけ", "使う順番で結果が変わる。+2→×2 は 8、×2→+2 は 6"),
+        feature("clock", "敵の手は 読める", "何ターン目に何が来るか表示される"),
       ]),
     ];
   }
   function feature(ico, t, d) {
     return h("div", { class: "feature" }, [
-      h("div", { class: "ico", text: ico }),
+      h("div", { class: "ico" }, [glyphImg(ico, 32)]),
       h("div", {}, [h("div", { class: "t", text: t }), h("div", { class: "d", text: d })]),
     ]);
   }
@@ -1138,14 +1222,15 @@
 
   // ---- stage select
   function viewMap() {
-    return STAGES.map((st) => {
+    const rows = STAGES.map((st) => {
       const open = stageUnlocked(st), clear = save.cleared.indexOf(st.id) >= 0;
       const thumb = h("div", { class: "thumb" }, [open ? spriteImg(st.sprite, 48) : h("span", { class: "dim", text: "?" })]);
-      const chip = clear ? h("span", { class: "chip teal", text: "クリア" })
-                 : open ? h("span", { class: "chip violet", text: "ちょうせん" })
+      const chip = clear ? h("span", { class: "chip", text: "クリア" })
+                 : open ? h("span", { class: "chip accent", text: "ちょうせん" })
                         : h("span", { class: "chip", text: "ロック" });
+      const next = open && !clear;
       return h("button", {
-        class: "stage" + (open ? "" : " locked"),
+        class: "stage" + (open ? "" : " locked") + (clear ? " done" : "") + (next ? " next" : ""),
         disabled: open ? null : "",
         onclick: open ? () => {
           Snd.init(); Snd.ok();
@@ -1161,6 +1246,7 @@
         open ? h("span", { class: "go", text: "›" }) : null,
       ]);
     });
+    return [h("div", { class: "card grow" }, [h("div", { class: "scroll stage-list" }, rows)])];
   }
 
   // ---- enemy info
@@ -1234,7 +1320,7 @@
     if (known && G.deck.length) {
       const p = planSummary(st, G.deck);
       out.push(h("div", { class: "verdict " + (p.ok ? "win" : "lose") }, [
-        h("span", { class: "chip " + (p.ok ? "teal" : "coral"), text: "よそく" }),
+        h("span", { class: "chip " + (p.ok ? "green" : "coral"), text: "よそく" }),
         h("span", { html: p.s.replace(/(\d+)/g, "<b>$1</b>") }),
       ]));
     }
@@ -1322,7 +1408,7 @@
                     ["state", "まもり（1バトル1回）"], ["cond", "じょうけん（分岐）"]];
     return groups.map(([kind, label]) => {
       const ids = ALL_CARDS.filter((id) => CARDS[id].kind === kind);
-      return h("div", { class: "pick-group" }, [h("h3", { text: label })].concat(
+      return h("div", { class: "card" }, [h("h2", { text: label })].concat(
         ids.map((id) => {
           const c = CARDS[id], have = owned.indexOf(id) >= 0;
           return h("button", {
@@ -1346,27 +1432,36 @@
   }
 
   // ---- dry run
-  function viewPlan() {
-    const { rows, result } = planRows(G.stage, G.deck);
-    const table = h("table", { class: "plan" }, [
+  function planTable(stage, deck) {
+    const { rows } = planRows(stage, deck);
+    return h("table", { class: "plan" }, [
       h("thead", {}, [h("tr", {}, [
-        h("th", { text: "T" }), h("th", { text: "じぶんの手" }), h("th", { class: "num", text: "HP" }),
-        h("th", { text: "てきの手" }), h("th", { class: "num", text: "HP" }),
+        h("th", { text: "T" }), h("th", { text: "じぶんの手" }),
+        h("th", { class: "num self-h", text: "自" }),
+        h("th", { text: "てきの手" }), h("th", { class: "num coral-h", text: "敵" }),
       ])]),
       h("tbody", {}, rows.map((r) => h("tr", { class: r.enemy && r.enemy.indexOf("つよ") === 0 ? "hit" : "" }, [
         h("td", { class: "turn", text: String(r.turn) }),
         h("td", { class: "mine", text: (r.boosts.length ? r.boosts.join("+") + " → " : "") + (r.act || "—") }),
-        h("td", { class: "num", text: String(Math.max(0, r.php)) }),
+        h("td", { class: "num self-h", text: String(Math.max(0, r.php)) }),
         h("td", { class: "efoe", text: r.enemy || "—" }),
-        h("td", { class: "num", text: String(Math.max(0, r.ehp)) }),
+        h("td", { class: "num coral-h", text: String(Math.max(0, r.ehp)) }),
       ]))),
     ]);
+  }
+
+  function viewPlan() {
+    const { rows, result } = planRows(G.stage, G.deck);
     const verdict = h("div", { class: "verdict " + (result === "win" ? "win" : "lose") }, [
-      h("span", { class: "chip " + (result === "win" ? "teal" : "coral"),
+      h("span", { class: "chip " + (result === "win" ? "green" : "coral"),
                   text: result === "win" ? "しょうり" : result === "lose" ? "はいぼく" : "ひきわけ" }),
       h("span", { html: "<b>" + rows.length + "</b> ターンで決着" }),
     ]);
-    return [verdict, h("div", { class: "card" }, [table])];
+    verdict.classList.add("push");
+    return [
+      h("div", { class: "card" }, [planTable(G.stage, G.deck)]),
+      verdict,
+    ];
   }
 
   // ---- battle
@@ -1393,14 +1488,14 @@
     const b = G.battle;
     if (!b || b.done) return;
     b.i++;
-    if (b.i >= b.events.length) { b.done = true; renderBattleBar(); return; }
+    if (b.i >= b.events.length) { b.done = true; finishRolls(); renderBattleBar(); return; }
     const e = b.events[b.i];
     const prev = b.state;
     b.state = e.s;
     b.cardIdx = e.idx === undefined ? b.cardIdx : e.idx;
     if (e.t === "turn") b.turn = e.turn;
     applyBattleEvent(e, prev);
-    if (e.t === "end") { b.done = true; renderBattleBar(); }
+    if (e.t === "end") { b.done = true; finishRolls(); renderBattleBar(); }
   }
 
   function applyBattleEvent(e, prev) {
@@ -1413,7 +1508,7 @@
       let cls = "";
       if (e.t === "attack" || e.t === "boost") cls = "good";
       else if (e.t === "enemyAtk" || e.t === "reckless") cls = "bad";
-      else if (e.t === "awaken" || e.t === "cond") cls = e.t === "cond" && !e.ok ? "" : "warn";
+      else if (e.t === "awaken") cls = "warn";
       pushLog(line.filter(Boolean).join("　"), cls);
     }
 
@@ -1445,43 +1540,64 @@
     if (!log || !text) return;
     [].forEach.call(log.children, (c) => c.classList.remove("now"));
     log.appendChild(h("div", { class: "ln now " + (cls || ""), text }));
+    const empty = el("logEmpty");
+    if (empty) empty.hidden = log.children.length > 0;
     while (log.children.length > 40) log.firstChild.remove();
     log.parentNode.scrollTop = log.parentNode.scrollHeight;
   }
 
   // The counter rolls to its new value instead of jumping, the way a console
   // RPG shows damage landing.
-  function rollTo(node, value) {
+  const ROLL_MS = 360, ROLL_MAX_STEPS = 18;
+  const rollers = [];
+
+  function rollTo(node, value, barId, max) {
+    const bar = barId ? el(barId) : null;
+    const set = (v) => {
+      node.textContent = v;
+      node.dataset.v = v;
+      if (bar) bar.style.width = Math.max(0, v) / max * 100 + "%";
+    };
     const from = parseInt(node.dataset.v || node.textContent, 10);
     const to = Math.max(0, value);
-    if (!isFinite(from) || from === to) { node.dataset.v = to; node.textContent = to; return; }
+    node._done = () => { clearInterval(node._roll); node.classList.remove("rolling"); set(to); };
+    if (rollers.indexOf(node) < 0) rollers.push(node);
+    if (!isFinite(from) || from === to) { node._done(); return; }
+
     clearInterval(node._roll);
-    const step = from > to ? -1 : 1;
-    let cur = from;
+    // a 60-point hit still lands inside ROLL_MS: the readout may never trail
+    // the fight it is reporting on
+    const steps = Math.min(Math.abs(to - from), ROLL_MAX_STEPS);
+    const delta = (to - from) / steps;
+    let i = 0;
+    node.classList.add("rolling");
     node._roll = setInterval(() => {
-      cur += step;
-      node.textContent = cur;
-      node.dataset.v = cur;
-      node.classList.toggle("rolling", cur !== to);
-      if (cur === to) { clearInterval(node._roll); node.classList.remove("rolling"); }
-    }, 70);
+      i++;
+      if (i >= steps) { node._done(); return; }
+      set(Math.round(from + delta * i));
+    }, ROLL_MS / steps);
+  }
+
+  // Called when the battle ends or the view changes, so a counter is never
+  // caught mid-roll showing a value the game has already moved past.
+  function finishRolls() {
+    rollers.forEach((n) => { if (n._done) n._done(); });
+    rollers.length = 0;
   }
 
   function syncBattleStats() {
     const b = G.battle, s = b.state, st = G.stage;
     const set = (id, fn) => { const n = el(id); if (n) fn(n); };
-    set("ehpBar", (n) => { n.style.width = Math.max(0, s.ehp) / st.hp * 100 + "%"; });
-    set("ehpNum", (n) => rollTo(n, s.ehp));
-    set("phpBar", (n) => { n.style.width = Math.max(0, s.php) / PLAYER_MAX_HP * 100 + "%"; });
-    set("phpNum", (n) => rollTo(n, s.php));
+    set("ehpNum", (n) => rollTo(n, s.ehp, "ehpBar", st.hp));
+    set("phpNum", (n) => rollTo(n, s.php, "phpBar", PLAYER_MAX_HP));
     set("patkTxt", (n) => { n.textContent = String(s.patk); });
-    set("turnTxt", (n) => { n.textContent = "ターン " + b.turn; });
+
     set("awakenChip", (n) => { n.hidden = !s.awaken; });
-    set("nextRow", (n) => { n.hidden = s.ehp <= 0; });
+    set("nextRow", (n) => { n.style.visibility = s.ehp <= 0 ? "hidden" : "visible"; });
     set("nextTxt", (n) => {
       const na = nextEnemyAct(st, s.eidx);
       n.textContent = hasSeen(st) ? actShort(na) : "？？？";
-      n.className = "chip " + (na.t === "strong" ? "amber" : na.t === "charge" ? "teal" : "");
+      n.className = "chip " + (na.t === "strong" ? "coral" : na.t === "charge" ? "green" : "");
     });
     set("enemyArt", (n) => { n.classList.toggle("down", s.ehp <= 0); });
     set("playerArt", (n) => { n.classList.toggle("down", s.php <= 0); });
@@ -1502,7 +1618,7 @@
         h("div", { class: "info" }, [
           h("div", { class: "row1" }, [
             h("span", { class: "nm", text: st.name }),
-            h("span", { class: "tiny dim", id: "turnTxt", text: "ターン 1" }),
+
           ]),
           h("div", { class: "bar enemy" }, [h("i", { id: "ehpBar", style: "width:100%" })]),
           h("div", { class: "stat-row" }, [
@@ -1528,7 +1644,7 @@
         h("div", { class: "info" }, [
           h("div", { class: "row1" }, [
             h("span", { class: "nm", text: "ゆうしゃ" }),
-            h("span", { class: "chip amber", id: "awakenChip", hidden: "", text: "かくせい" }),
+            h("span", { class: "chip awaken", id: "awakenChip", hidden: "", text: "かくせい" }),
           ]),
           h("div", { class: "bar player" }, [h("i", { id: "phpBar", style: "width:100%" })]),
           h("div", { class: "stat-row" }, [
@@ -1544,13 +1660,19 @@
           ]),
         ]),
       ]),
-      h("div", { class: "trace", id: "trace", style: "margin-top:12px" },
+      h("div", { class: "trace-label", text: "いま よんでいる カード" }),
+      h("div", { class: "trace", id: "trace" },
         Array.from({ length: MAX_DECK }, (_, i) =>
-          h("div", { class: "s" + (i >= G.deck.length ? " ghost" : "") }))),
+          h("div", { class: "s" + (i >= G.deck.length ? " ghost" : ""),
+                     style: i < G.deck.length ? "--kind:" + KIND[CARDS[G.deck[i]].kind].color : "" }))),
     ]);
 
-    const log = h("div", { class: "card", style: "flex:1;min-height:150px;overflow-y:auto" },
-      [h("div", { id: "log" })]);
+    const log = h("div", { class: "card grow" }, [
+      h("div", { class: "scroll log-scroll" }, [
+        h("div", { class: "log-empty", id: "logEmpty", text: "さくせん じっこう ちゅう…" }),
+        h("div", { id: "log" }),
+      ]),
+    ]);
 
     return [enemy, player, log];
   }
@@ -1565,6 +1687,7 @@
         b.fast = true;
         clearTimeout(b.timer);
         while (!b.done) stepBattle();
+        finishRolls();
         renderBattleBar();
       }, { primary: true }));
     }
@@ -1574,6 +1697,14 @@
     const b = G.battle;
     clearTimeout(b.timer);
     G.result = b.result;
+    const last = b.events[b.events.length - 1].s;
+    let peak = PLAYER_BASE_ATK;
+    b.events.forEach((e) => { if (e.s && e.s.patk > peak) peak = e.s.patk; });
+    G.summary = {
+      turns: b.events.filter((e) => e.t === "turn").length,
+      php: Math.max(0, last.php), ehp: Math.max(0, last.ehp), peak,
+      deck: G.deck.slice(),
+    };
     G.gained = [];
     if (b.result === "win" && save.cleared.indexOf(G.stage.id) < 0) {
       save.cleared.push(G.stage.id);
@@ -1585,30 +1716,52 @@
 
   // ---- result
   function viewResult() {
-    const won = G.result === "win";
+    const won = G.result === "win", sum = G.summary || { turns: 0, php: 0, ehp: 0, peak: 0, deck: [] };
     const out = [
       h("div", { class: "banner " + (won ? "win" : "lose") }, [
         h("h2", { text: won ? "しょうり！" : G.result === "lose" ? "はいぼく…" : "ひきわけ" }),
         h("div", { class: "sub", text: won ? G.stage.name + " を たおした" : "作戦を組み直して もう一度" }),
       ]),
     ];
+
     if (won && G.gained.length) {
       out.push(h("div", { class: "card" }, [h("h2", { text: "カードを おぼえた！" })].concat(
         G.gained.map((id) => {
           const c = CARDS[id];
           return h("div", { class: "reward" }, [
             kindDot(c.kind),
-            h("div", {}, [h("div", { class: "n", style: "font-weight:650", text: c.name }),
-                          h("div", { class: "d small muted", text: c.desc })]),
+            h("div", {}, [h("div", { style: "font-family:var(--dot);font-size:var(--fs-lg)", text: c.name }),
+                          h("div", { class: "small muted", text: c.desc })]),
           ]);
         }))));
-    } else if (!won) {
-      out.push(h("div", { class: "card" }, [
-        h("h2", { text: "ヒント" }),
-        h("div", { class: "small muted", text: G.stage.hint }),
-      ]));
     }
+
+    // what actually happened — the same table the dry run shows, because
+    // after a loss this is the only thing that helps you fix the deck
+    out.push(h("div", { class: "card" }, [
+      h("h2", { text: "この たたかいの きろく" }),
+      h("div", { class: "result-stats" }, [
+        stat("ターン", String(sum.turns)),
+        stat("のこりHP", sum.php + " / " + PLAYER_MAX_HP),
+        stat("さいだい こうげき力", String(sum.peak)),
+        stat("てきHP", sum.ehp + " / " + G.stage.hp),
+      ]),
+      h("div", { style: "margin-top:10px" }, [planTable(G.stage, sum.deck)]),
+    ]));
+
+    const hint = h("div", { class: "card push" }, [
+      h("h2", { text: "ヒント" }),
+      h("div", { class: "small muted",
+                 text: won ? "カードを入れ替えれば、もっと少ないターンで倒せます。" : G.stage.hint }),
+    ]);
+    out.push(hint);
     return out;
+  }
+
+  function stat(k, v) {
+    return h("div", { class: "stat-row" }, [
+      h("span", { class: "k", text: k }), h("span", { class: "v", text: v }),
+    ]);
   }
 
   function viewEnding() {
@@ -1617,25 +1770,28 @@
         h("h2", { text: "ぜんステージ クリア！" }),
         h("div", { class: "sub", text: "作戦だけで 竜を たおした" }),
       ]),
-      h("div", { class: "card", style: "text-align:center" }, [spriteImg("dragon", 128)]),
+      h("div", { class: "card art-frame" }, [spriteImg("dragon", 128)]),
       h("div", { class: "card" }, [
-        h("div", { class: "small muted", text: "強さはステータスではなく、組み立てた作戦のことでした。カードを変えれば、別の答えも見つかります。" }),
+        h("div", { class: "thesis", text: "強さは ステータスでは なく" }),
+        h("div", { class: "thesis", text: "組み立てた さくせんの ことだった。" }),
+        h("div", { class: "small muted", style: "margin-top:10px",
+                   text: "カードを変えれば、別の答えも見つかります。" }),
       ]),
     ];
   }
 
   // ------------------------------------------------------------- rendering
   const SCREENS = {
-    title:  { title: "オートバトルRPG", view: viewTitle, back: null },
+    title:  { title: "オートバトルRPG", view: viewTitle, back: null, mode: "fill" },
     howto:  { title: "あそびかた", view: viewHowto, back: "title" },
-    map:    { title: "ステージ", view: viewMap, back: "title" },
-    info:   { title: "てきの じょうほう", view: viewInfo, back: "map" },
+    map:    { title: "ステージ", view: viewMap, back: "title", mode: "fill" },
+    info:   { title: "てきの じょうほう", view: viewInfo, back: "map", mode: "center" },
     deck:   { title: "さくせん", view: viewDeck, back: "map" },
     pick:   { title: "カードを えらぶ", view: viewPick, back: "deck" },
-    plan:   { title: "ためしうち", view: viewPlan, back: "deck" },
-    battle: { title: "バトル", view: viewBattle, back: null },
-    result: { title: "けっか", view: viewResult, back: null },
-    ending: { title: "おわり", view: viewEnding, back: null },
+    plan:   { title: "ためしうち", view: viewPlan, back: "deck", mode: "fill" },
+    battle: { title: "バトル", view: viewBattle, back: null, mode: "fill" },
+    result: { title: "けっか", view: viewResult, back: null, mode: "fill" },
+    ending: { title: "おわり", view: viewEnding, back: null, mode: "center" },
   };
 
   function render() {
@@ -1645,6 +1801,7 @@
     backEl.hidden = !sc.back;
     backEl.onclick = sc.back ? () => { Snd.init(); Snd.back(); go(sc.back); } : null;
 
+    viewEl.className = sc.mode || "";
     viewEl.innerHTML = "";
     sc.view().forEach((n) => n && viewEl.appendChild(n));
     viewEl.scrollTop = 0;
