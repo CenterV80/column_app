@@ -1,52 +1,105 @@
-const { chromium } = require('playwright');
-// Verifies the touch gestures that replaced the D-pad: tap-to-edit a slot,
-// drag-to-reorder, tap-to-delete, and that progression still persists.
+#!/usr/bin/env node
+// Interaction check for apps/auto-battle-rpg.
+//
+// The deck screen carries the game: tapping a slot swaps the card, dragging
+// the handle reorders it, and order is what decides a battle. This drives
+// those gestures for real and asserts the deck that comes out.
+//
+//   node dev-scripts/check-touch-gestures.js [url]
+
+const { chromium } = require("playwright");
+
+const URL = process.argv[2] || "http://localhost:8123/apps/auto-battle-rpg/index.html";
+const CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+
+let failures = 0;
+function check(label, got, want) {
+  const ok = JSON.stringify(got) === JSON.stringify(want);
+  if (!ok) failures++;
+  console.log(`  ${ok ? "✓" : "✗"} ${label}: ${JSON.stringify(got)}${ok ? "" : "  期待: " + JSON.stringify(want)}`);
+}
+
 (async () => {
-  const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--headless=new','--no-sandbox'] });
-  const page = await browser.newPage({ viewport: { width: 390, height: 780 }, hasTouch: true, isMobile: true });
-  const errors = []; page.on('pageerror', e => errors.push(String(e)));
-  await page.goto('http://localhost:8123/apps/auto-battle-rpg/index.html');
-  await page.evaluate(() => localStorage.setItem('abrpg.save.v2', JSON.stringify({
-    cleared: [1,2,3,4], seen: [1,2,3,4,5], decks: { 5: ['attack','heal','guard'] } })));
-  await page.reload(); await page.waitForTimeout(1500);
+  const browser = await chromium.launch({ executablePath: CHROME, args: ["--headless=new", "--no-sandbox"] });
+  const page = await browser.newPage({ viewport: { width: 390, height: 800 }, hasTouch: true, isMobile: true });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
 
-  const cv = page.locator('#screen');
-  const L = async (lx, ly) => { const b = await cv.boundingBox(); return [b.x + lx/320*b.width, b.y + ly/512*b.height]; };
-  const tap = async (lx, ly, w=300) => { const [x,y] = await L(lx,ly); await page.mouse.click(x,y); await page.waitForTimeout(w); };
-  const drag = async (lx, ly, ly2) => {
-    const [x,y] = await L(lx,ly); const [,y2] = await L(lx,ly2);
-    await page.mouse.move(x,y); await page.mouse.down();
-    await page.mouse.move(x, y-6, {steps:3}); await page.mouse.move(x, y2, {steps:14});
-    await page.mouse.up(); await page.waitForTimeout(350);
-  };
-  const deck = () => page.evaluate(() => window.__abrpgDeck);
-  const screen = () => page.evaluate(() => window.__abrpgScreen);
+  await page.goto(URL);
+  await page.evaluate(() => localStorage.setItem("abrpg.save.v2", JSON.stringify({
+    cleared: [1, 2, 3, 4], seen: [1, 2, 3, 4, 5],
+    decks: { 5: ["attack", "heal", "guard"] },
+  })));
+  await page.reload();
+  await page.waitForTimeout(400);
 
-  await tap(160, 384);                 // はじめる
-  await tap(160, 93 + 4*74);           // stage 5
-  await tap(238, 426);                 // さくせんへ
-  console.log('1. 初期デッキ:', (await deck()).join(','));
+  const state = () => page.evaluate(() => window.__abrpg);
+  const deck = async () => (await state()).deck;
+  const byName = async (n, w = 320) => { await page.getByRole("button", { name: n }).first().click(); await page.waitForTimeout(w); };
 
-  await drag(120, 144, 240);           // slot1 -> position 3
-  console.log('2. ドラッグ後  :', (await deck()).join(','), '(attack が下がれば成功)');
+  await byName("はじめる");
+  await page.locator(".stage").nth(4).click();
+  await page.waitForTimeout(300);
+  await byName("さくせんへ");
+  check("保存されたデッキを読み込む", await deck(), ["attack", "heal", "guard"]);
 
-  await drag(120, 240, 140);           // back up
-  console.log('3. 戻す        :', (await deck()).join(','));
+  // drag slot 1 down past slot 3
+  async function dragSlot(from, dy) {
+    const handle = page.locator(".slot .handle").nth(from);
+    const b = await handle.boundingBox();
+    const cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx, cy + 6, { steps: 3 });
+    await page.mouse.move(cx, cy + dy, { steps: 14 });
+    await page.mouse.up();
+    await page.waitForTimeout(350);
+  }
+  const rowH = await page.locator(".slot").first().evaluate((el) => el.getBoundingClientRect().height + 8);
+  await dragSlot(0, rowH * 2);
+  check("ハンドルを下へドラッグして並べ替え", await deck(), ["heal", "guard", "attack"]);
+  await dragSlot(2, -rowH * 2);
+  check("元に戻す", await deck(), ["attack", "heal", "guard"]);
 
-  await tap(120, 288);                 // slot 4 (empty) -> picker
-  console.log('4. 画面        :', await screen());
-  await tap(83, 306);                  // ためる? tile (row 5, col 1 => i=8)
-  console.log('5. カード追加  :', (await deck()).join(','));
+  // tap a slot body -> picker -> choose a card replaces that slot
+  await page.locator(".slot .main").nth(1).click();
+  await page.waitForTimeout(300);
+  check("スロットをタップでカード選択へ", (await state()).screen, "pick");
+  await page.locator(".pick:not(.locked)").first().click();
+  await page.waitForTimeout(300);
+  check("選んだカードがそのスロットに入る", (await deck())[1], "attack");
 
-  await tap(285, 288);                 // けす on slot 4
-  console.log('6. 削除後      :', (await deck()).join(','));
+  // add into the empty slot at the end
+  await page.getByText("＋ カードを追加").click();
+  await page.waitForTimeout(300);
+  await page.locator(".pick:not(.locked)").nth(1).click();
+  await page.waitForTimeout(300);
+  check("空きスロットへの追加", (await deck()).length, 4);
 
-  await tap(80, 485);                  // ためしうち
-  console.log('7. 画面        :', await screen());
-  await tap(80, 470);                  // さくせんへ
-  await page.reload(); await page.waitForTimeout(1400);
-  console.log('8. リロード後の保存:', JSON.stringify((await page.evaluate(() => JSON.parse(localStorage.getItem('abrpg.save.v2')).decks['5']))));
+  // delete
+  await page.locator(".slot .del").nth(3).click();
+  await page.waitForTimeout(300);
+  check("削除", (await deck()).length, 3);
 
-  console.log('ERRORS:', errors.length ? errors : 'none');
+  // persistence
+  await page.reload();
+  await page.waitForTimeout(500);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("abrpg.save.v2")).decks["5"]);
+  check("リロード後も保存されている", saved, ["attack", "attack", "guard"]);
+
+  // a battle still runs end to end from the rebuilt deck
+  await byName("はじめる");
+  await page.locator(".stage").nth(0).click();
+  await page.waitForTimeout(300);
+  await byName("さくせんへ");
+  await byName("たたかう", 600);
+  await byName("さいごまで", 600);
+  await byName("けっかを見る", 400);
+  check("バトルが最後まで進む", (await state()).screen, "result");
+
+  if (errors.length) { failures++; console.log("  ✗ JSエラー:", errors); }
   await browser.close();
+
+  console.log(failures ? `\n${failures} 件失敗` : "\n✓ タップ・ドラッグ・削除・保存すべて期待どおり");
+  process.exit(failures ? 1 : 0);
 })();

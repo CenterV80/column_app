@@ -2,85 +2,366 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>オートバトルRPG</title>
 <style>
-  /* DotGothic16 (c) Fontworks Inc. — SIL Open Font License 1.1.
-     Subset to the characters this game draws so the screen needs no network. */
-  @font-face {
-    font-family: 'DotGothic16';
-    font-style: normal;
-    font-weight: 400;
-    src: url(data:font/woff2;base64,d09GMgABAAAAACuoABAAAAAAl7AAACtIAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGYFWG4E6HINmBmAAg2IRCAqChXiB2CwLhUAAATYCJAOGfAQgBYQiByAXJBiJRBsLfUUkJ7U9VERiPmSqFgmZF6z++PXnn//+IjBu4mOd5xsqqplFzowWyEiyz5KBykwLjLL2kF4MPEeE7TdTP8l+McPoJV8sQzBBeEXQL90YbSn9lK3l9NnDKauqkpLsABxSfFzt8eU6u+wqhTLGNlBZxav6LcB/QWCSxZJ+4H05RD2Sko6LR8pheinH3XdRFh0iFc5FKtlYAE7aBS+oBPwYHTKD5Do8kvoqcx94UeClpKPzjwr2LwEUJfn4IF2Ch28t/TNBRbykwox7z8dGXcJCQQFVXVR7CoUpS6L/MzVtSUXynkXnqFA6FI1SoBy7Bvh/ZvYws4vVLQDS3CVICyBP74CLgCKpMDO74JsdLJnfmRcdYjzyIqlMybkKsejsMsTOtTtXpdvKTeHei6izSt8j7GTlB8dTXUdThCqMZwLLmOKd7jx3H2Ups6gUM4gxRHqO/dQPzje/sqY1OGIVDjimJnbt753/h/tUv64o2rXrKgFSSJD9janfh/f0enTbsTWDICGW4Nz0D387COgljfsISNmRW1zNmq4D9kwQ79uzZ4h4f0dygDVDHckO1iQ69k4SJ4XVqXwC5hNnFtOf9XrrTWQsI8lCNAf9byT/UUSM1sB97tN+d1RP0Zbc9QQDXb2dA129ew909wzvObwrGbc9gyjrUMQwjeAMO5xbbw7C6+9I7M3Yffs7EuQ8Q6IYI9pGyqnps5CpPFoyyODv/yEHbtvjS/Rr719RGmmLPR6/8zfu+YuZXo24FEcO3I5nOaDL87svDKqt9JB++7PIv8B/WviJgb4Oovv27Lk3k/fdc+9ljG1VOOzyta/mTsnj/3HT8HifhDz5ChRRilKVpnRlKFNZylaORmikRmm0xmisxmm8JmiiJmmypmiqpmm6ZiiqmZql3TRbMcU1R3M1T/O1QAu1SIu1RKalWqblWqGVWqXVWqO1Wqf12qCN2qTN2qKt2qbt2qGdylWe8lWgQhWpWCUqVZnKVaFKValaNapVnerVoEY1qVktauV3/uBP/uJvhkmSYBf/8C//8T9O4JGOaAU66aGVBMN0cjzH08u1XEsf13M9/dzIjQxwD/cwyAu8wBACpPkQZjOCCCNixGJXJ110AzhGkgzD9Gu5nhu5hxd0gkBVMVnwzbJIoRmPAprwyFXnXNsJ/Cd0EhHwjvHqJ25RcwW1skw7JjwvnZvXPxzvh8En//0HPvrxWXLriqrYQtTN8Hd3R03OHhylaPtoIrwK3lR/DCCiyQJGALNEY/H1/3/CWAK9APSzhQhz2Uw5TbRwEIfwRjQ+89TYRbFbY/fFnoy9aJ5l2zbbYbmWb0N2vJ1op9lldoXdZLfZPfaoPW3P2hv2nn1k39mv9m8ppZmliyrPrXyt6pfqtJbPO4sO+OfoK53cDOeAKFuppIU2DuaNaHzmSbGLYrfE7os9GXvRPMuybbbDci3fCi1pJ9opdoldYdfYrXanPWhP2LP2or1jH9hX9ov9U0ppRumiynMrX6v6pTqt5fPOogP+OfpKJzfDOfeR+9B94N5374E74sON8PZT8PaNb1/09plhc1gfLg4XhQvDBeH8cG44B8IJ4fhwTDgqHBFmhulhWhgJvVAv/v3ib3DLN3DL4zc03jD9ur+u+/zS9AsuP+KH/UrUrq0IbkTrn0LzfEXtVIMsxFuxTgBRIw3mKiSWUwYZ4E7uUu7Z1clPfLdryDkyOgVq+7XDe2DRs2ff0tzKyt5g5y/sjQhvBzkVrKCtTK+Bvef7smeAkjw0NfPKJgf75funjlFpP7YvynaPBCMKjS1C3vNps4r4+r6PJ4cnWYg8IqjgJCKFQPg1tJFwaZ+8IpJGyovFXFJU0qZQA+JeAExwP6KWFCPtcWR8DpdK6nNJtP/U6v9eBiNHjhwZBEEQTZsdBBYEQTwjKxg71sMJFUjG7qguda9wWchCAFqAkmFiIoVC3SNs7FIyLmQpVSylmgYRsO+MxThIzIABkAOszFiHTLHTw+ZshghEVIIFmxN1Xbldkfuc0+R396moRclyNFGLlQjY1buslezlQGCk3cZjIiWyyFVIHusk2oM9CZ5dZSo8wXpNDgOZZdUJOF3KgpgFJwLcjrcfA0xkQiIpSGSdn4gVUlAFOFv+Fk5wn3sRd1XH8fpV3l4kZMi63sT1ETfvXl9aPijT0W1YAa6/hKZw/capV1/i6UfsVRAqYH2C3owEzOKUY7iD3vrbxDDiQJFdhhhX0/uQ8ew+Vjbj6+mTvYq3EiHYg02Cg4ERmLAYNHeUrnLGIfxHpPEqEzJ7SkSGxoOlvoUUgxa0b3e6xYUP9XPpgrtp+OxzIFTeT5erMIT/J1o9jW2AuuB0Gxr9Ehr9oF3rwQf3A7vgHv6Cf3nldqfuw7zZqtf23HjBPDSb4EJzVjh/4ct6379Wm8uX91o/0iNaUX+pKnyBN914dZ9abd45KGeHtJBSfnEeAVYH94kb8Cn+IVdSRwx8Sxvfb9IP2tfilwFiYSVyFOF59p6ThxARm+6IfsDc8UNw+oGZyo/W4x90JpUHifiHy4jZeXfgYpbq0DSa6QV2aojlUCW0k3k7KJunJrDc6fmnXWvCwdPP2c4dmzBUKgtHN61bPoMT8RD6uRQpTzuequ8h4Q9hMMFkiiS63crqJpXxbffGVoHG/1OMRtfotJCBU74KFUToJXr8TlqA7MXqWSXNZHM4EbYLFNd2tSv/sqwXFfPXxMqecmbNAwmBEpRlbq3AZQ3pD+c+KwXKQVF1PFFmo5ZLsmJgQUnC+4XQR5HZmN7KYkINIbgjQdsJYrwkmzvAKeFWF1wuZ+fSiLAn1IcMyaeVlsRgDl0q6SzpXIMproIxmZlQsTkxRDKkwo1MWfL4bkn8mWVS0WIqVhVT/RjPljxTJt3V1CMZ5FWZgcqIms5Hz2fBKQiOwxAkMfKEApt8C+QRlhxzyruwpElni+WBvhdVo0ruMWQXOBF+KQEkS5tiUgqAMPaojC1QkI3rogSCeV9YopCnF8MMAZbq27Pn3hhzbO1EeQKQO8fsKJyHSwDyKzaSwk3NnPTVWHnNeU6Ml052USy1wU5QFEEw8zhi+KmoEYUhJNHJsJDIjo4vY5G2JX2ue3bO2nTFzK2UsThTAxdhuw8ZMu1tjQUYdJefYP8gm2mN4+3V17aB31y/8fDjeAF0WU2wflxcV1gGaMm4quISRmq9ny9KAXwO+s7MZ22nU6CSph0uBW3goB3DEH2LqJ9c9NRSpC9nTFmKS8M/q/t/KIM8DJ9CrspujLSSbkZ3hCmuZxkqsotTKNOsHcJYvARYjQbwPlfaK2U6Px1zNM/XOutDbaThgPa05ipVCc34julLEsydvxyYOv0RpNIiZb30nRUt+B9DKAO1kt5Go7InUpaNrOOCgYKrNmFTeYwkjXzl4roAJBpJeLMVa3gDDDR4gsSF8+mTMFJHVs6INTlmUUsjLZJg8B2iG409apFRacq/6BXNrlhJK8yPRxvAI5wymRWRZuthS4mnf7/EjZbsMV07RJjrx+bvvTgOG/QfnzrXo9gFXOVo6pK+BNKvP7G+e8cBfJ+x0AatY2a+wye9f//eEXqiviAnk1XOq7oya5UYlTPaKgnWue8khGLYUh+/G6NLJzXhlbTd3HM26R4lpV9WyJ7Ij5/DKbCincjPeShSlRnnAAvtnbcAUy43VDdDgvsmsSVT7BGOsfXmCegkuoYwFhCwb8f2Go5xntMUGaY6+1gjmVL7wrpx67D7ih6FnGiXJUfCWkNtyr8S75MeFRLNLJYO1vQAxY+VzZWgiWO2rAoJnFWZ3MxI7fawlRGvQrxWetA42CoCoTHo2JiAWAj/oQyUIuUyAfrIIwlMWdo4pSP3MCkmdW7LeyVaNKbxhDEl0yqUrLCiIY0jRjJpONpmVyWstkHTE7qPNnNGzaia/icFadTv53FGgUzpNlcXmBntNEhPCNmVkWBw71QnnDT1DYHZLOPKY5WJXPJ3vg5uOvJBHlFCX+pI8E7QkjE10O4mR5ELPiWSNu/2ZlZqEv2R94Xjo7l+uDNbae/NfgNuru9LpiR8VWmgWTcr4ZjrCzTROOb84IecciifoGH0r41t/tab45vadNGlLgGE4fzCVoXL/ncAvObsQQVQO1LVW6ljSlTrs0wmGtlPqInRCCUiSYsDnzAB42BfJ5IDOvB9/rZoNYKGK9Q+YxSH3O4EgvrQVptEXuD4nSS10Ba6ktSq4GL+YlCUuhvsXazvTLRVQUqbotYcF6Dxo3Q8UxRC8Tx0Yc4OKEJaB0/ckpYuCK4RJyuyjGQ0VbXgsCXBDlNuppMUnmU5VRgskOlyJDXybs6uctFPaw8mh1CjJDQSTsbYEhHFl1wBg71TsoIqpxQaUun68AHF0NOyPjUZFMEX26J7IWHbUN2t6GWKcsL36sKtOWtDGzZCzW9gnPKkF++AlJdI3uTetF7r6xi6QNmSSTGPOypcmNOHujdkB6rM2nxr/XAC101hiIVLpLTdVecZJTvfJd0iK1ZX/xFTjiSCAS3bEp2+lyErP9tQw0tmL6t5y3Qe6XMbW6/rBncQsIHEaitNhwprvRgKj8ER+o/PMX9TKwm9laIEuw8iSzpzbNOtPQBzZgJCmYuHG/sHCgiyY1lbAnfpYUfvDbXtxImRlayuJJcj0AU2NnR4zt/PvIOYo9LVxNJs5jNbLfhU9mnxo7dYjDRr7eIYMeC0Zv9WORTTmqGi4g/7SlfuFGk3fAjDSmqrZZ3lHf0sY8b26ccnGlTQ/fA4tlqXzulLGGQuHjBgAFuulc/InT0TddFoSj1yM53sdH0ntrHF9Mhk6DRJ8mi6WGc2rGSoCeUXWRTPT9l+fbTdY6u17ZaTWQl0Ry6U0pM4m20LNMffKb+11TZdP4iN1fc0Medy5YUcMtmoQmOEl9N9MjmA3x5HT0jHObGLPwf/nD5ZHP16szuF/TWWMYSdb5FNPjfQufBuL+zTSBexsHhJ0BHxYUOvfWHHMk2iWgqajXKsLNrJXs+33v2SDKPegW6ycro6CX//AVIFXbFB81VJjVwkjnYfUWCfy+S4pZ1Q0mrQYRCEyP6Wm+ASldoyiosF88DzOf+zKnSnVkpAX39JTnFM9rTD11NUfvjKoTUYnP0AuVN6oulTObl9UotNk5tuPcFAzitXmn8lInjYPXvK7IFiw00WqqMPJlKBowsu377+HGpqdUDLsmJq4pTtbPwohuzXaGGtraxlWyLFwgnfd7ln4PJpFUvL3Foq8TQde3vOjnvs7Z/0fZclU4mVppldxlbWNWW117lGXNHOZg2WtUn/mTtV3mwe0mZZHkoqhua5fJq1mY7rto8BZ5M5MweUzs3SAtQMpLOTtSTMsNk0S5tTuBdv+ykBYUSIuj86jcUWaXKGxPbmROoPWhMtRjp1ad1kYxMjZ9Jwe2uiUh6ktsGIc/Zc/i9jSwig3XyAiN3tDdAfottv7YcVhsWhsxBG6lDTpnSzNF+KJ2+5w0/GnpnpJipNCK4nU00miBma16jbE7erTKK9/KQh4vf8G6JceVvgUyvBylykAXY66EtJ7qwJawdka/ZNtLXjzU0PEJjGHfwoWnOMOlXqKKT8rHkoN+9poLinM/BQMhSp5n7H99Xc/vNAs6U1pY/abzEYbfWcjze8p7EiSWu4nXWukZPqd4LmhFQRaFkiOp/okFntkZmMDqeD7U2k+BhD9iT75abHskrLtm0s7Om2mS7sL4Og3PQAtngbC17L0jlmTbSUI35S1sTv4GcB3ODTAd5vB9o0M5ZJns7UADBqWJu5yO6guPLTVFoq1Vvdzlbms2wzIyOJw6GWBHxaaEkXTonGlHSYtDbPopIILDPti60NDLEHkQprJGbG47flhJ5hZkWGjSbVTB1/ZttDmWoxd9X0qAN5EUslVkaJoctsz2dpfijV1GzaITUJkkXyVZO6QXHPrSUNM3k3lVOjs5nwoJtZpTCw8rFm1tZyovpLNaVqMrNJP/1sgQyzqSiZ2DgBmnyDlz8WmhY3N/WePixKPM1mLiqJIaG4+8JjZ24CCIRT1p7XnEvf5IjtSGFNdZyM9Th4zQdcYjx0ShkLlaRrN/lNNfKdOTLtI2D4Twc1ImHPfGaK41TaZqY9eHRoGRPp1pA+43jOOnSvE7CTohqCNB0dFROoLQ21vtTReRO4CW0suTKBHE9LX1tkPBucZ46Nn+6vHcuc/fhs2E+wBOgTGiALmjWABfEhDhiAtFgm2J2gi1186AqbzW43gCa/KwRkWevWDpVXaVVSbMWBLTIp9ydUUrEHXxJSWGhIxDLWsYwhYUmTpIqq6IqcTVpobaFZ5+nAZUYMRFKQgYIhlKTVngEGIAzSH1oIF9Uz9XWhpz32eRiyN/NngAHQAaJGr81aSUqyZIqm0gCJA4LiXpqtCXV0ztvnHSLey0+nvX0eO4/kcNZJEv030TzRzYM74Gb0WlmMv0sgRa/Y9KM5osXU8Jd1ojezmk6mohc311jr1i3R6/svoQIHyHtFNE4OgSQvZrbd8ahgEzhUUAFkwDp/LMDaQMiACNwowwEqR1BxhwU/BhECtvBBpKJYxU65hmK2naNYnG/jR7zpmoIqMEwWi0XWuRuWLAwsLBlVhOUJrM+GgmQPbhP9AqAq0aLQ//snFFWBu+6ikHAVEIKuYqv+wcjqBsU6TwuIuoTw9rgLqtV6qwIKUStng7kma8XAUhM94ZhTjv5tbVDy+BYeGbLEpGo9tZsNWbJEd+4mSYU7C/v23jXee815o8+VAUS9sfshuDgq0x7Pi8lmVJaikrR0thoFYZG08aTq7AeTFMHBguflXBGWnFSQPxB/chwQ1X4PLReYmwyJ+liGM6W3QchpDw8xAHZzOQF42ck9AjvaWSqW6qViab85jXEUS/OACtiDHwglBCCsKuSj7SC4DgmBEeXjNdlNrxRUISzIAvszPakDlt8EpUJdrBtA6eZWYUTA3tpB2E83hzfjl7jZqhKAduhfjvxbxzNOpg+WDrLOSdGAI6ccHDUwLyteJfCTIRx3CFniWMdmUKLN/lw2WfPOZHcJxCKu4s6CSOKANuX2NyEUFoPai0VT5mTWS6u0p2TS6YrzQasfXY9UciBfL8h6WblB5r184JRKG5SMS0FEeciknMlKPlfsIswQ92CiACrooS+NIuL54H7v1DvbQmAoQsxjRDByg1ziDUMYbfAlmqLRyxa+W26QIgcdPWbeE/xjHAJl/sMh7gv8UaAG1EYkwSNJ7YOr5YP/Wv1MQ7UZ53rCRRGiaQtfidSccod49XZngskf7QefRSySQUwxIh4hRiyTiMmhoAqE3B+uP+jmMTVUAzHvlv1oyAYavIGGZJ270/tb4mRgRZEvnOeBkbo4YsD/NSxKssAhzl1YoxCwhfto7hDVwNFGTlbd21BetQcFe3SfnJNHqMe5eM7SfmBLVZrPmqDKXPtnF5tX36wG7NwGuSRZ/BWAiublKse3ZhzWbFAUSIKmBL6xFlUh4hRB18qscyFomHaVCErW4CIoFqERXTDyLn6VBsT/OxFBSdxC/hG3zuwWpfhsvCHPS8FlHt8Inw84avUondB3bUGzt44XZCEiqkoXOumWOFxJiwZHk+A+6Z+EmKeBEiAg/IGwFq5La08Ph/+ZeDcOQTMB+88FVVJcbVJs1X7KULfaBBQDyp5pMkkgOpIj4DCHLPQD9iXeqN1yXrHOzqBr9PsnwCW5xIEZtRRVZoJibafqkNMDxsBAkSuhRjyoCl4J/CocfECYbHhJaBuQT8nKvYdgecXb4QOdsoVNpANmJOucDIxX9k0jn7cUpfXCdN1JIYTg77Nk5Ph4MOT0HqNKMC2P6rTcBPMe9oMPYBEKuCUEkEiMov0lUQhyPLKtrRHPyQIq+iq4/6n+mTAOVVhPIgxXhYEYeA0TBGHgzSec838dEbCFdk0GkRGJqDsRER6RGjAf4MCDLfMQ8Jhlc6EbLfF9UMiy+zAmB46cCYoAc+0nvbKZhUJe9mBDe/b9C9jjRproZvpLeTQ8Ko8u3dl9TpYkl5vk7Smrjm+QGyT7vKjA9wBqpijcTIQnMNbqk5IWciJQmo9ypCkUw6QS8Hn5ro3l5jAMWfYVUJEwDD2MpnYAWrBtPSdGIjkfB7jo2XC/poVxKl0qldjaC+NSfvzvkzCvLKklZl4ploojxWKpmC4WPLnrjmxJSHetZOn2q9W+ZMDsJZEMs8BnkQyhzq5FGCRhlStk734AZCDUCfMeEUGt1VPGcyF8shC3y/KuMhQsqwtEOlvEISvYn4Q1ndiyd99etnZ3zwR+4QOkswdYyMO9A1IntPkS2WSWut4oW/PZq0iowxNw5vnoMA8EGP3FaZ6ie4Mt6SGI8nOAn2bxJUgCpUJmeEqdGsqdpGL/8iYvcKrlf2MrB/KPFFv9tyrGex175wD2UkbXiEewYaxiI820mtYR2oLNCCiZtQigGrhGt9eJpzmQT5k7D6YOqsYUHXYd3E/o4tIJqcaeewn9sgcmzMuqGCpbaGQKhrIc4c7BPhxYe65jlJyqInfLC9lW6yEw5kh45XHuvLxajCiwb/7DS8ReX4n0o3hAHk/wKZkf2Z1Ew6UDIeDKb91ZSPbINlE02cCWJ/6t0kUq0v5jKFvPTQZx3cLLucewa6bY0HpKwcCcuJJCj51QM3oyOHGEjFNxLOMIVMggdDcMRmrGWjRRkCfPipYIEowJpDUD1YLx05YdIlAhEFRDcs6feL0S1aYuBEL0pIi504RpDizKKQ5klc/tDvAgqiqHUbDJbjTu+pORJTpR7g76BTFTp1zjCkdEn8nVDcZPuZx8gkxNLH+WSrqQNtM9GOcFVmeufa3lwUOxiQ+/fAnsnQ8Ak2o9UhEv/760PyWNoK8Ra2l/c62RnMo56ZxyWUSHKFtKT8Tw9/pIsvrrsLScf/hmFJXttcryUL7dLeRVnsaGq2lLJzY0EBePlvdmvXzFAuwcTy3SogW7uqOpTnmEPXf6HS54A3RWTfsificbxSM0InCtqSrGn3HMtpP44o4c45yzR/R9WrdO7AyPnxU1gE64bPzasQ45WUahm1FIpeuaoquT18r1LqShkCRrAeMI2XT7IFwXkBDA56gSL59VZ51yaZVevMFlLs0uQ/SDKofsW7JeuaAf4pj0eK+Nte/edYpzLhYd1OLjkSzww5FYhvk5GqCqjOoju0BTQeXDONi7b+oBkKGuXPJPz/VuvIzNKgLrJM/J/mKyafmijL+3UpmQCwrjWiFbY8D5+y70vjSyK2ZMK6n9vRrI2D0pe3g3IorBnXLLthkQw6Eg9cWKrNxSo8VcTxMRRlZ7Qazi1eu3XgtUw/r44bFcdrDWcs80mRAYhg34moF2TiAcpvCcmjLQPB/CEueTtaLCZlV9D5LWRZNF170+nUmW7vFzDz4Wu0apQkoIshYW9/jkPvM6ZBtjaFKN1AA7zU1Csce9N9u4dQuwl+l6X92fmgoe4ZJZ0PWkH1T8V6jCXfhZtVfFhzQQ3D9HkB8MCGPB1rydNEoF5pp70+2UzGkMSL9+UkNoCVUBU8pmW2MoyZsq7ipbWGU02bQa5vHC8wgJsBzMibrs6kvITV9OjwFxLP20jzwDGjWUFE4DdD1k5oFse7M9cvnIRXVxRFpQLhjN0bjlFDjfwII8w2dIY1e0qAYRDO/6H2iXzuAlUWQcQheZIYUZ5TMY6mKrJwHfw2rLyEiaQmA2P/3aIdmlCqvSxq1YK4fqgq4Txs+NVPRcBIpTZBpxeSFeSoeCbvPdkwWa4zP5u2KC2ZS+VT/SGX1sl3HpkVeoW5M31JyKhHCm0H6CC+B5WQ2AiWRoRUvxzhuIm/y7bfyMq44mAlpkdisz2kFr71X9OqP/FPa1jp0d1VBZT0lEcDSkqEb2JNZEyFIjKeAOtggCWdrcWjBRUCcDsvZIFuyyXEeVQpLESf0SvRkxsMbvANfVyznv67a78G8W2EoUHqtSxu8AN5LRGd23aG+CrhE2kxfFL5SaFy0M5YclaJzPiWbANt79dmiTGHOwTw2bV3dX5EEKESGY/P45wXrlvxzs3WdcPbB384DWmj38fY/ZZLYK+GFO5sKcyqtahr3uX0E2BegFy5NyGBuVJLsCWD0nMD//k+c45wcnrDg771iK4PpB71X+df7Bp2wmgXSYlVmdVVmnnK987Uu/DleggYBSQh+VOXGX5tAL2domO7fL1eC+Gi1FQOESEEbgEmWKzN2EUmB5W50b1JkuxKZQuBSO7dD8Q0Bl1rIvCTI6fbZPIRwDygjLq0O2V4ACjYcHD6E90PTaUletruuMdgggK2ON2Ml4KNiDNFMhgYx7FKsOuIJu+nLjOILcsTG18jKhLmcrpqeOOMhj8X2RispmMi1+2Ve+l2qRj3GLKEMwXIYQjz6zAxojE5yMHqEbJ9KNKSljIPRg6mTwBVnA5P00JPPvEzyDf6CMlRyuo0ajqAxsAgVKJqzhWjYEjZDRaFCVtMGee0DGFXX4AsHAbTkPJysLc7kJT4XI0wKMcDKZ0KiTXgVpTSKeRZr9yvEOmXUAv09ijDIG1tJAao5zMmExrlk2tIWCkRUy3Pu/eWYamj03SYinVRTLuM426oES5jrRxklBPKVrmj18Gkh3q3gZSZlBgFk30PbTOjpV9sqs9UDHaBeonHuR4LR5MCgmGS0P94spSFDtX9oRQWv7iHBrhRpEHTFnKsKOAoFCaDEqpkM4JAPmJtMu8GS8llUcW0/WRJjkU6qv6hFa7n85ZRHWioqg5ZQO2w+RpXJ3y5uqeIC9+gBq5by/p7ozSV65EVKfUX28Flx9rqc7b6tGKPVJyHC9WcLKxg3Pnl/Ytzx6TAzT5GDcFY5YwQEKgCAXplaACMW7bPHa3ZT1Ks8NVYIlF9b9GjxWvpPOV7lFaRgOQ1ymxYJi5Sq0bYvBRWAeCpWwHO9CyehMRXRZIyerZIfrPdEoAn75BupW+GNvVcDPVHtqhYAF4YB+PnlK9lS5TB2yfmaceyx8OYCrJVEsq9kxKeVurQQsqXyGuE+wh64pII7UmKI8KCd20yG1niPSnVFi2XY4G60WtSFfjs45yA3MhRzDd3eoBuzHYjzkuRrvUXsKmHcq1yM+OhHEJ/kgpA9VMj332iwctL+QQa5/7NBPqOOkZ5aIVkGsP5br4pVUWXZrYoT/vhldk6/lVV8sXU75tSmVzau+abb2hSVGeO1imENhrHfzpSbGKEu3VxlJY2RIj22BpzaGXL2o8ukqNoIUwukgsGWjLiNnZY3d8JOccQNmeiaunFBL5xUm2I9vu0zoTVyrMDH3aOs/WG4Dz93JzD7qyG0e24U0bHY7Ub2lu28Mdt6/ZSf/weJ7Q4X0g9dbPAcnN+Gs9OMC9FFpuoHuVvl5mI63gSNWaYXC9aHDllhdx77rqP9QFXhkJ+q99fxi4K7GSg3OgdQh7rAoj4UMZtQErGxVe5PsKdn3c77GRdwaW32nRPAYMvkv64TTcjrMqizF/bo2V8/KbBTegbDt+EzvqoCfAJwJ4VsEYzB8cheoK/+6sgUCVZmKGw6dj7IUqyTwhqpLvayToaiYXVhSS7MvtMXvCKfl3smcBw2bHR/v7W4wZZzQ6Gv+tuv7LvSmufH3T7hesRVHnqtedWyn98B0xI8bxMT+Buy578+oGbqiJ+hhPxYo13RoqGSbEvolpVM5HyQFCrj8mkVpwbpzHfXL2wGT+nRQliaMg/2Ny4g2HH725TOb0hm9tGsEbSuOdMisDqSgqN76YzpYb3fwpCA274krGTkoG4zPQGfRDQdG4nuSQEJkMf1EXmc0cz0uwHBKe8MJtZTEHey6RuyRnk+4hz8+hZNqMvzAGUkpqEwij15HKuzSRpYQ6Q3YYvuVWZWNVZxV2Z7qfRDvv57o0rqDN1V2F+rTcLng8ZLsX9WP0Nn02ehAHyJzjnYHZdR62q4NNBiZsGbXfXj47kJ19Eqop2eFVYIiMAcHOCpX4RBml3l0G7IfF4YafDeZDamjqWvkp1v7kLBx/K2dviALI2Ku2iyaihbmwFE1bsae2KIfl2aInC4aMV+gWfgkkjW/3pGXef5+R/OuFuGEXEoOZDeEhQhGm7EsGetW/WXFtGTQdPxq2S9n0LxTzTQszOiUSgMkSlPzPDBVMJlVBeRqEYzBlk/pdGVieoieEElZG5uFpfNKDAk5Xrxq6CqW/t3S1JOjP3sk2dlfJCHSNI0iVQ3KR9KBqjmmoRLXTrDkmi5ivJRde+21woIXZBRGsjEyXa7r09xtpIlLjdf3AuJS+VwrBgYtPaEbfiG47izCrHaLJRPkI303eI0Xl7UoeNOY0xKvhsc539+afwziNc7WvnpYHWZrPyoYmrTm1bRTbmrEcS0QX/wzhTGovAKPWDqVqY3V2L/+47Q8LKdCE9XClI+VtT85HELrzBuSymaPRkVOpQaqEJh91F2m/w8Fn7FeKo+V2SPrs7UaJvBJbbmB7lN5J92i6jakFxtOP2Kwh/1rmzetpstpldZpmUVSxqGv/PKUmurLHhuyxfzVMpeTuZHF4DB7+Ac94Z9W9qIkr0/1eSRPHvQ8T3mex9a0aScddwOON1SDO+lPuAeg7m8jlnH8lKD93JXlLCqwtkIZm4PFLl7ms/UecmNE+47z/igyyzX3eIY/YXiGK645+1Ybj3xTqQiGM9/mpImVr5Epjk+NOr7OLH3aTwCCC/gFjAbxBNd8neEePymkyPZyza8wfIy/4fSYZlFbxpmEpUwhE12kwuxbZDDeA6Nt73agFLDdC6Y1wTx1O4Pl1Hx18C+fmEGsEX5SKpXKpVIpnGp+WnR6b5OsXMOaTnQE7iq1lw2fTo+pi/FplWLFHAdqizuxNz5Lka58a5GM+DwTTmd48e7WpIpB5XW9N6wKJsBSu40HSB8a+6/Qv50CitQl1eDZG3IGxLKwJhQBxYeF9WMYj8rDFXLg7J+uCeMpOZjg1nIiTAS72ugiSK/ojfad2bGcoZzNF4eB72GgWOIrBdHukpwddpk4MFQbuvaA9zaoLrZAmmzFsY7CIFk162UaL0I+uFSGj07Xs8fj4blaPS+jKddnEWzYe+Wlynhs08zzi1Gffcu33t2W2H8sl+VW40By9lhXXxjE/shtC9cdz9TOx53+uaP9dGhb+vSxrziy0Vmo1puhDmcPmafW2C3fep7c4pobb3H4/HG7ducg3mTrD280fD787HEfw1Udv4lH3cYH8dhav70aR9O9j+BxWn1hEEHoTNMjr+p4HG90114ItnOqUWwG6CCueBvEdEgHVVhWTjghvUlieeDbbnjYLE3l3V+PefVtq8nYld/28ZhTOwedW/3+W0da1TGIA0n/HW06MnjJnD+QPZMgdvSUiSIwoPy32XRkUPqch8TBqvRtNh0ZhOIqDxjXMRT2nEmA/RHgNSmQbcmg42zKdMTMVAdGfU1sSOBc6zPrTCxUHdt493MI3HF00N98G1JxUnrc2/ggDvpff8gCTEZfcMu3nhkYPrrtrsIhG+9+BrE8jKfPSMXHlj4xiKC1Tqm8TzKqCSaGDiTSN/tbb4FOOqD9A/629DpFJdl0tOXbz6lN6nxlXxl+2GA1OLX/M7DOhNlqmP7F83iU624bRLpFe2zNT09guqocJtGbVH1oncTQm6xYPmTdbWvwqFd1DCI51wpAOOPooLe+DSeVlEIRP9PXt2r4h5AuOqG3+K9P3+LwUShh83Bzv3X+G+nvlpvkeVmS/mHvuR6Apt1MX8/cHU9cbvDZ5x6//WuvDbXf8l+/3tz0sV/9wx1IvTzr1K3/fcD/f6Hp46YMiF9dPw453vWpL/zfzwAYP6//v9T0MUsc8YpDTR8zm/jklIlP2ELiE/aDxCfsN9wLk7Cpt2GKzfBh81Do1fJ1U9wLn3oKb2I2BWZr392Ry8IPsq6NxVYobzZW2d0GeLTgvZRp2vW5VenxnlKxiUU8wMSUi5iUoLtg95T0ibADKGEYE9CDuwsvwRv+CIfQOR0uALZZ2uCbfN6wYF+XQnZ7w8TX30ZKOHOIK842ekMsI8O8tJhwZvumAGAiIsXZk3hhEUnwBqpIssWZVTV5+eKbykv3JMTtJXJR2MSd+MIN6X1d+OxwfQ2/2+Q99KPBW48WSL+vNdHFmTfOEmeMWdw7OiIFzRbIU7zSk8RgH7JNbRP8V8r2UR4SgrKOmnIHkIMRX2YgEJ7/UbL6ij8flwrCeHupxA/XpR4UcX6pJzHsXOpFFEOXehNDTsHPhjUln/gWW6yxSQGppLLJJBvMs8bW9bNT2Nz6EimsssEsqbRSQxNVrLJF7dMPN8c8k6STQzIdTDPLNkuMs0EP0xfADSty/qkYpJNCOmmkXV2dIbH+pSikhl4a6aRQruZLAvb2SlZZY19VMauFpkEGae43z6CLOaYxwhm1sbG6YzTNJFdUzvZO0NLH38QgTq+FWQBrs20mSGGSVZZJZUYz0Ra7XIVFx0/2Hs0mqbKjVOLXCM1ffuD/52RUJaEIYK3bYY/3pb8FJxAeXqgzvi6P9wx7vEd/YeRKep/o6pP3ZdkIKlsnAHyO69rIjJDOIesp0PCXPa4JyrWdgjH8Veuq4dZB4l2K3hQd9Msj81inrs112MwSPtdFdogw4n0Hs2R3ltO4ipPrsMbumq0e/54eZtMlJlaU7ZQvy2lYTBe/Vo7tlGRxvShxn0i1LC69aC2bS17WU5bZnHoTqa5VL3FaZjw9Wlm8ebmEocQu8LqHAOnMUT9ezjrii8cadqwoNVG7xM4PSr9USyl8Yzt85b736eEUCjcQsNs9WgDhqyUW4hVy2ay8/sBmBs2XlGIPJZcAAA==) format('woff2');
+  :root {
+    color-scheme: dark;
+    --bg: #0e1118;
+    --surface: #171c28;
+    --surface-2: #1f2637;
+    --line: #2d3648;
+    --text: #e9edf7;
+    --muted: #98a2b8;
+    --dim: #6b7690;
+    --accent: #7c6cff;
+    --accent-soft: #7c6cff26;
+    --teal: #34d8a8;
+    --coral: #ff6b7a;
+    --amber: #ffc24b;
+    --sky: #5bc8ff;
+    --radius: 14px;
+    --tap: 48px;
   }
-
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  :root {
-    --page: #171a14;
-    --bezel: #2f3328;
-    --bezel-edge: #444a3a;
-    --screen-on: #9bbc0f;
-    --muted: #7d8570;
-  }
+  [hidden] { display: none !important; }
 
   html, body { height: 100%; }
 
   body {
-    background: var(--page);
-    color: var(--muted);
-    font-family: "DotGothic16", "Hiragino Sans", monospace;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
     display: flex;
-    align-items: center;
     justify-content: center;
-    padding: 8px;
     overscroll-behavior: none;
-    touch-action: manipulation;
   }
 
   #app {
+    width: 100%;
+    max-width: 440px;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ---------- chrome ---------- */
+  #topbar {
+    flex: none;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    max-height: 100%;
-    min-height: 0;
+    gap: 10px;
+    padding: max(10px, env(safe-area-inset-top)) 14px 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
   }
-
-  #bezel {
-    background: var(--bezel);
-    border: 2px solid var(--bezel-edge);
+  #topbar .back {
+    width: 40px; height: 40px;
+    flex: none;
     border-radius: 10px;
-    padding: 8px;
-    box-shadow: inset 0 2px 6px rgba(0,0,0,.5);
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 17px;
+    cursor: pointer;
+  }
+  #topbar .back:active { background: var(--line); }
+  #topbar h1 { font-size: 16px; font-weight: 650; letter-spacing: .01em; flex: 1; min-width: 0;
+               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #topbar .meta { font-size: 12px; color: var(--muted); flex: none; }
+  #topbar .icon-btn {
+    width: 40px; height: 40px; flex: none;
+    border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface-2); color: var(--muted); font-size: 15px; cursor: pointer;
+  }
+
+  #view {
+    flex: 1;
     min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
-  canvas#screen {
-    display: block;
-    aspect-ratio: 320 / 512;
-    max-width: 100%;
-    max-height: calc(100dvh - 60px);
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    background: var(--screen-on);
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
+  #actionbar {
+    flex: none;
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+  }
+  #actionbar:empty { display: none; }
+
+  /* ---------- primitives ---------- */
+  .btn {
+    flex: 1;
+    min-height: var(--tap);
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform .06s ease, background .12s ease;
+  }
+  .btn:active { transform: scale(.985); background: var(--line); }
+  .btn.primary { background: var(--accent); border-color: transparent; color: #fff; }
+  .btn.primary:active { background: #6a5aee; }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .btn:disabled:active { transform: none; background: var(--surface-2); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+  .card h2 { font-size: 13px; font-weight: 650; color: var(--muted); letter-spacing: .04em; margin-bottom: 10px; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+    background: var(--surface-2); color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .chip.teal  { color: var(--teal);   border-color: #34d8a840; background: #34d8a814; }
+  .chip.coral { color: var(--coral);  border-color: #ff6b7a40; background: #ff6b7a14; }
+  .chip.amber { color: var(--amber);  border-color: #ffc24b40; background: #ffc24b14; }
+  .chip.violet{ color: var(--accent); border-color: #7c6cff40; background: var(--accent-soft); }
+  .chip.sky   { color: var(--sky);    border-color: #5bc8ff40; background: #5bc8ff14; }
+
+  .sprite { image-rendering: pixelated; display: block; }
+
+  .bar { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--line); }
+  .bar > i { display: block; height: 100%; border-radius: 999px; transition: width .32s cubic-bezier(.4,0,.2,1); }
+  .bar.enemy > i { background: linear-gradient(90deg, #ff8b7a, var(--coral)); }
+  .bar.player > i { background: linear-gradient(90deg, #4be3b5, var(--teal)); }
+
+  .stat-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 13px; }
+  .stat-row .k { color: var(--muted); }
+  .stat-row .v { font-variant-numeric: tabular-nums; font-weight: 650; }
+
+  .muted { color: var(--muted); }
+  .dim { color: var(--dim); }
+  .small { font-size: 13px; }
+  .tiny { font-size: 12px; }
+
+  /* ---------- title ---------- */
+  .hero {
+    border-radius: 18px;
+    background: radial-gradient(120% 90% at 78% 12%, #2a2150 0%, #141a28 58%, #10131d 100%);
+    border: 1px solid var(--line);
+    padding: 22px 116px 18px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero .dragon { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); opacity: .9; }
+  .hero .kicker { font-size: 12px; letter-spacing: .18em; color: var(--accent); font-weight: 700; }
+  .hero h2 { font-size: 27px; line-height: 1.2; margin: 6px 0 8px; font-weight: 750; letter-spacing: -.01em; }
+  .hero p { font-size: 13px; color: var(--muted); }
+
+  .feature { display: flex; gap: 10px; align-items: flex-start; }
+  .feature + .feature { margin-top: 12px; }
+  .feature .ico {
+    width: 30px; height: 30px; flex: none; border-radius: 9px;
+    display: grid; place-items: center; font-size: 15px;
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .feature .t { font-size: 14px; font-weight: 650; }
+  .feature .d { font-size: 12.5px; color: var(--muted); }
+
+  /* ---------- stage list ---------- */
+  .stage {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; text-align: left;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 12px; cursor: pointer;
+    font: inherit; color: var(--text);
+    transition: transform .06s ease, border-color .12s ease;
+  }
+  .stage:active { transform: scale(.99); border-color: var(--accent); }
+  .stage.locked { opacity: .5; cursor: default; }
+  .stage.locked:active { transform: none; border-color: var(--line); }
+  .stage .thumb {
+    width: 56px; height: 56px; flex: none; border-radius: 11px;
+    background: var(--surface-2); display: grid; place-items: center; overflow: hidden;
+  }
+  .stage .body { flex: 1; min-width: 0; }
+  .stage .name { font-weight: 650; font-size: 15px; }
+  .stage .sub { font-size: 12.5px; color: var(--muted); }
+  .stage .go { color: var(--dim); font-size: 18px; flex: none; }
+
+  /* ---------- schedule ---------- */
+  .sched { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+  .sched::-webkit-scrollbar { display: none; }
+  .sched .t {
+    flex: none; min-width: 58px; border-radius: 10px; padding: 6px 8px;
+    background: var(--surface-2); border: 1px solid var(--line); text-align: center;
+  }
+  .sched .t.strong { border-color: #ffc24b66; background: #ffc24b1a; }
+  .sched .t.safe { border-color: #34d8a855; background: #34d8a814; }
+  .sched .t .n { font-size: 10.5px; color: var(--dim); font-weight: 700; letter-spacing: .06em; }
+  .sched .t .a { font-size: 12.5px; font-weight: 650; white-space: nowrap; }
+  .sched .t.strong .a { color: var(--amber); }
+  .sched .t.safe .a { color: var(--teal); }
+
+  /* ---------- deck slots ---------- */
+  .slots { display: flex; flex-direction: column; gap: 8px; }
+  .slot {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 8px 8px 8px 4px;
+    touch-action: pan-y;
+  }
+  .slot.indent { margin-left: 18px; border-left: 3px solid var(--amber); }
+  .slot.dragging { opacity: .92; border-color: var(--accent); box-shadow: 0 10px 24px #0008; position: relative; z-index: 5; }
+  .slot.drop-target { border-color: var(--accent); background: var(--accent-soft); }
+  .slot .handle {
+    width: 34px; min-height: 44px; flex: none;
+    display: grid; place-items: center; color: var(--dim);
+    cursor: grab; touch-action: none; font-size: 15px;
+  }
+  .slot .main { flex: 1; min-width: 0; }
+  .slot .name { font-weight: 650; font-size: 14.5px; display: flex; align-items: center; gap: 7px; }
+  .slot .desc { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .slot .del {
+    width: 42px; height: 42px; flex: none; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--surface-2);
+    color: var(--muted); font-size: 15px; cursor: pointer;
+  }
+  .slot .del:active { background: var(--line); color: var(--coral); }
+  .slot.empty { border-style: dashed; justify-content: center; padding: 0; }
+  .slot.empty button {
+    width: 100%; min-height: var(--tap); background: none; border: 0;
+    color: var(--muted); font: inherit; font-size: 13.5px; cursor: pointer;
   }
 
-  #footer { font-size: 11px; text-align: center; }
-  #footer a { color: #8f9a78; text-decoration: none; }
+  .kind-dot { width: 8px; height: 8px; border-radius: 3px; flex: none; }
+
+  .verdict {
+    display: flex; align-items: center; gap: 10px;
+    border-radius: 12px; padding: 11px 13px;
+    border: 1px solid var(--line); background: var(--surface);
+    font-size: 13.5px;
+  }
+  .verdict.win  { border-color: #34d8a855; background: #34d8a812; }
+  .verdict.lose { border-color: #ff6b7a55; background: #ff6b7a12; }
+  .verdict b { font-variant-numeric: tabular-nums; }
+
+  /* ---------- card picker ---------- */
+  .pick-group + .pick-group { margin-top: 14px; }
+  .pick-group h3 { font-size: 12px; color: var(--muted); font-weight: 650; letter-spacing: .05em; margin-bottom: 8px; }
+  .pick {
+    display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 11px 12px; min-height: var(--tap); cursor: pointer; font: inherit; color: var(--text);
+  }
+  .pick + .pick { margin-top: 8px; }
+  .pick:active { border-color: var(--accent); background: var(--accent-soft); }
+  .pick.locked { opacity: .42; cursor: default; }
+  .pick.locked:active { border-color: var(--line); background: var(--surface); }
+  .pick .n { font-weight: 650; font-size: 14.5px; }
+  .pick .d { font-size: 12.5px; color: var(--muted); }
+
+  /* ---------- plan table ---------- */
+  table.plan { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  table.plan th { text-align: left; font-size: 11.5px; color: var(--dim); font-weight: 650; padding: 0 6px 8px; letter-spacing: .04em; }
+  table.plan td { padding: 9px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+  table.plan tr.hit td { background: #ff6b7a0d; }
+  table.plan .turn { color: var(--dim); font-weight: 700; width: 20px; }
+  table.plan .mine { font-weight: 600; }
+  table.plan .num { text-align: right; width: 34px; }
+  table.plan .efoe { color: var(--muted); font-size: 12px; }
+
+  /* ---------- battle ---------- */
+  .fighter { display: flex; gap: 12px; align-items: center; }
+  .fighter .art {
+    width: 92px; height: 92px; flex: none; border-radius: 13px;
+    background: radial-gradient(70% 70% at 50% 35%, var(--surface-2), var(--surface));
+    border: 1px solid var(--line);
+    display: grid; place-items: center; position: relative; overflow: hidden;
+  }
+  .fighter.small .art { width: 72px; height: 72px; }
+  .fighter .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+  .fighter .row1 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .fighter .nm { font-weight: 650; font-size: 15px; }
+
+  @keyframes hit { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .art.shake { animation: hit .22s ease; }
+  .art.flash > .sprite { filter: brightness(2.6) saturate(.3); }
+  .art.down > .sprite { opacity: .25; filter: grayscale(1); transition: opacity .4s ease; }
+
+  .pop {
+    position: absolute; left: 50%; top: 24%;
+    transform: translateX(-50%);
+    font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums;
+    pointer-events: none; animation: rise .9s ease-out forwards;
+    text-shadow: 0 2px 8px #000a;
+  }
+  .pop.dmg { color: var(--coral); }
+  .pop.heal { color: var(--teal); }
+  @keyframes rise { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.8); }
+                    22% { opacity: 1; transform: translate(-50%, -4px) scale(1.08); }
+                    100% { opacity: 0; transform: translate(-50%, -34px) scale(1); } }
+
+  .trace { display: flex; gap: 5px; }
+  .trace .s {
+    flex: 1; height: 7px; border-radius: 999px;
+    background: var(--surface-2); border: 1px solid var(--line);
+  }
+  .trace .s.on { background: var(--accent); border-color: transparent; }
+  .trace .s.ghost { opacity: .35; }
+
+  #log { display: flex; flex-direction: column; gap: 6px; }
+  #log .ln { font-size: 13.5px; color: var(--muted); }
+  #log .ln.turn { color: var(--dim); font-size: 11.5px; font-weight: 700; letter-spacing: .07em;
+                  margin-top: 4px; text-transform: uppercase; }
+  #log .ln.now { color: var(--text); font-weight: 600; }
+  #log .ln.good { color: var(--teal); }
+  #log .ln.bad { color: var(--coral); }
+  #log .ln.warn { color: var(--amber); }
+
+  /* ---------- result ---------- */
+  .banner { border-radius: 16px; padding: 20px 16px; text-align: center; border: 1px solid var(--line); }
+  .banner.win { background: linear-gradient(180deg, #34d8a81f, transparent); border-color: #34d8a855; }
+  .banner.lose { background: linear-gradient(180deg, #ff6b7a1a, transparent); border-color: #ff6b7a55; }
+  .banner h2 { font-size: 24px; font-weight: 750; }
+  .banner .sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+  .reward { display: flex; gap: 10px; align-items: flex-start; }
+  .reward + .reward { margin-top: 10px; }
+
+  #footer { display: none; }
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="bezel">
-    <canvas id="screen" width="320" height="512"></canvas>
-  </div>
-  <p id="footer"><a href="../../categories/mini-apps/index.html">← ミニアプリ一覧</a></p>
+  <header id="topbar">
+    <button class="back" id="backBtn" aria-label="もどる" hidden>←</button>
+    <h1 id="title">オートバトルRPG</h1>
+    <span class="meta" id="meta"></span>
+    <button class="icon-btn" id="sndBtn" aria-label="サウンド切り替え">♪</button>
+  </header>
+  <main id="view"></main>
+  <footer id="actionbar"></footer>
 </div>
+<p id="footer"><a href="../../categories/mini-apps/index.html">← ミニアプリ一覧</a></p>
 
 <script>
 (function () {
@@ -283,9 +564,6 @@
   // ENGINE END
   // =====================================================================
 
-  // ---------------------------------------------------------------- art
-  // 32x32 sprites. '.'=transparent, 0=outline, 1=shadow, 2=mid, 3=light.
-  // Boundaries between tones are dithered so the 4-tone ramp reads as volume.
   const SPRITES = {
     slime: [
       "................................",
@@ -493,178 +771,52 @@
     ],
   };
 
-  const SPR = 32;
+  // --------------------------------------------------------------- sprites
+  // The pixel art stays — it is the one retro thing worth keeping — but each
+  // creature now gets its own colour ramp instead of the four greens.
+  const RAMPS = {
+    slime:  ["#0f3524", "#1f7a55", "#3ddc97", "#b7f5d8"],
+    goblin: ["#37220f", "#8a5a1f", "#d99b3a", "#f8dda6"],
+    golem:  ["#1a2130", "#45506b", "#8593b0", "#cfd8e8"],
+    witch:  ["#241542", "#5b3a9e", "#9b7ae8", "#e2d5ff"],
+    dragon: ["#3d1018", "#9c2432", "#e8545f", "#ffb9bd"],
+    hero:   ["#0d2739", "#1d5f8a", "#46a8dc", "#c6eaff"],
+  };
+  const TONE_OF = { "0": 0, "1": 1, "2": 2, "3": 3 };
+  const spriteCache = {};
 
-  // ------------------------------------------------------------ renderer
-  const W = 320, H = 512;
-  const PAL = [[15,56,15], [48,98,48], [139,172,15], [155,188,15]];
-  const cv = document.getElementById("screen");
-  const ctx = cv.getContext("2d", { willReadFrequently: true });
-
-  const rgb = (t) => `rgb(${PAL[t][0]},${PAL[t][1]},${PAL[t][2]})`;
-  function rect(x, y, w, h, tone) { ctx.fillStyle = rgb(tone); ctx.fillRect(x | 0, y | 0, w | 0, h | 0); }
-
-  // 2px checkerboards give the mid tones real texture instead of flat fills.
-  function makePat(a, b) {
-    const p = document.createElement("canvas");
-    p.width = p.height = 4;
-    const c = p.getContext("2d");
-    c.fillStyle = rgb(a); c.fillRect(0, 0, 4, 4);
-    c.fillStyle = rgb(b); c.fillRect(0, 0, 2, 2); c.fillRect(2, 2, 2, 2);
-    return ctx.createPattern(p, "repeat");
-  }
-  let PAT_FIELD, PAT_GROUND, PAT_DARK, PAT_ARENA;
-  function initPatterns() {
-    PAT_FIELD = makePat(2, 1);   // page field: dark enough for windows to read
-    PAT_GROUND = makePat(1, 0);  // empty slots and locked tiles
-    PAT_DARK = makePat(1, 0);    // night sky
-    PAT_ARENA = makePat(3, 2);   // lit ground: sprites are dark figures on it
-  }
-  function patFill(pat, x, y, w, h) { ctx.fillStyle = pat; ctx.fillRect(x | 0, y | 0, w | 0, h | 0); }
-
-  // Every screen sits on a dithered field so windows have figure/ground.
-  function field() { patFill(PAT_FIELD, 0, 0, W, H); }
-
-  const FONT = 16, FONT_BIG = 32;
-  function setFont(size) { ctx.font = `${size}px "DotGothic16", monospace`; }
-  function txt(s, x, y, tone, size) {
-    setFont(size || FONT);
-    ctx.fillStyle = rgb(tone === undefined ? 0 : tone);
-    ctx.textBaseline = "top";
-    ctx.fillText(s, (x | 0), (y | 0));
-  }
-  function txtW(s, size) { setFont(size || FONT); return ctx.measureText(s).width; }
-  function txtMid(s, y, tone, size) { txt(s, ((W - txtW(s, size)) / 2) | 0, y, tone, size); }
-  // Right-aligned, for stat numerals.
-  function txtR(s, right, y, tone, size) { txt(s, (right - txtW(s, size)) | 0, y, tone, size); }
-
-  // Console window: solid light interior, hard frame, inner rule.
-  function win(x, y, w, h) {
-    rect(x, y, w, h, 3);
-    rect(x, y, w, 2, 0); rect(x, y + h - 2, w, 2, 0);
-    rect(x, y, 2, h, 0); rect(x + w - 2, y, 2, h, 0);
-    rect(x + 4, y + 4, w - 8, 1, 1); rect(x + 4, y + h - 5, w - 8, 1, 1);
-    rect(x + 4, y + 4, 1, h - 8, 1); rect(x + w - 5, y + 4, 1, h - 8, 1);
-  }
-
-  // A window with an inverted title strip: the console equivalent of a header.
-  function titledWin(x, y, w, h, title) {
-    win(x, y, w, h);
-    rect(x + 2, y + 2, w - 4, 20, 0);
-    txt(title, x + 8, y + 3, 3);
-  }
-
-  // Page header: one solid bar, no hollow body beneath it.
-  function header(title, right) {
-    rect(8, 8, 304, 36, 0);
-    txtClip(title, 18, 15, right ? 180 : 286, 3);
-    if (right) txtR(fitStr(right, 110, 14), 302, 19, 2, 14);
-  }
-
-  // Inverted plate — the GB convention for a status tag.
-  function plate(s, x, y) {
-    const w = txtW(s) + 10;
-    rect(x, y, w, 20, 0);
-    txt(s, x + 5, y + 2, 3);
-    return w;
-  }
-
-  // Button prompt: a key cap plus its label. Returns the next free x.
-  function keyHint(x, y, key, labelText) {
-    const kw = Math.max(18, txtW(key) + 8);
-    rect(x, y, kw, 18, 0);
-    txt(key, x + (kw - txtW(key)) / 2, y + 1, 3);
-    txt(labelText, x + kw + 5, y + 1, 0);
-    return x + kw + 5 + txtW(labelText) + 12;
-  }
-
-  // Button prompts belong on a framed strip, never loose on the field.
-  function hintWin(y, pairs) {
-    win(8, y, 304, 26);
-    let x = 16;
-    pairs.forEach((p) => { x = keyHint(x, y + 4, p[0], p[1]); });
-  }
-
-  function bar(x, y, w, ratio) {
-    const h = 12;
-    rect(x, y, w, h, 0);
-    rect(x + 2, y + 2, w - 4, h - 4, 3);
-    const inner = Math.max(0, Math.round((w - 4) * Math.max(0, Math.min(1, ratio))));
-    rect(x + 2, y + 2, inner, h - 4, 0);
-    if (inner > 2) rect(x + 2, y + 2, inner, 1, 1);
-  }
-
-  function sprite(name, x, y, scale, flash) {
-    const art = SPRITES[name];
-    if (!art) return;
-    const s = scale || 2;
-    for (let r = 0; r < art.length; r++) {
+  function spriteURL(name, scale) {
+    const key = name + "@" + scale;
+    if (spriteCache[key]) return spriteCache[key];
+    const art = SPRITES[name], ramp = RAMPS[name] || RAMPS.golem;
+    const size = art.length;
+    const c = document.createElement("canvas");
+    c.width = c.height = size * scale;
+    const x = c.getContext("2d");
+    for (let r = 0; r < size; r++) {
       const row = art[r];
-      for (let c = 0; c < row.length; c++) {
-        const ch = row[c];
-        if (ch === ".") continue;
-        let tone = ch.charCodeAt(0) - 48;
-        if (flash) tone = 3 - tone;
-        rect(x + c * s, y + r * s, s, s, tone);
+      for (let i = 0; i < row.length; i++) {
+        const t = TONE_OF[row[i]];
+        if (t === undefined) continue;
+        x.fillStyle = ramp[t];
+        x.fillRect(i * scale, r * scale, scale, scale);
       }
     }
+    return (spriteCache[key] = c.toDataURL());
   }
 
-  // A lit stage for a fighter: light interior, hard frame, dark floor strip.
-  function arena(x, y, w, h) {
-    rect(x, y, w, h, 0);
-    patFill(PAT_ARENA, x + 2, y + 2, w - 4, h - 4);
-    patFill(PAT_GROUND, x + 2, y + h - 14, w - 4, 12);
-    rect(x + 2, y + h - 16, w - 4, 2, 0);
+  function spriteImg(name, px) {
+    const art = SPRITES[name];
+    const scale = Math.max(1, Math.round(px / art.length));
+    const img = new Image();
+    img.className = "sprite";
+    img.src = spriteURL(name, scale);
+    img.width = img.height = art.length * scale;
+    img.alt = "";
+    return img;
   }
 
-  // Sprites need something to stand on or they float in a void.
-  function shadow(cx, y, w) {
-    rect(cx - w / 2, y, w, 4, 1);
-    rect(cx - w / 2 + 4, y - 2, w - 8, 2, 1);
-    rect(cx - w / 2 + 4, y + 4, w - 8, 2, 1);
-  }
-
-  function cursor(x, y, tone) {
-    const t = tone === undefined ? 0 : tone;
-    for (let i = 0; i < 6; i++) {
-      rect(x, y + i, 6 - i, 1, t);
-      rect(x, y + 11 - i, 6 - i, 1, t);
-    }
-  }
-
-  // Card kind glyphs drawn as pixels, not font characters.
-  function kindIcon(kind, x, y, tone) {
-    const t = tone === undefined ? 0 : tone;
-    if (kind === "cond") {           // diamond
-      for (let i = 0; i < 5; i++) { rect(x + 5 - i, y + i, 1 + i * 2, 1, t); rect(x + 5 - i, y + 9 - i, 1 + i * 2, 1, t); }
-    } else if (kind === "boost") {   // up triangle
-      for (let i = 0; i < 5; i++) rect(x + 5 - i, y + 4 + i, 1 + i * 2, 1, t);
-    } else if (kind === "state") {   // filled square
-      rect(x + 1, y + 3, 9, 7, t);
-    } else {                          // action: filled circle
-      rect(x + 3, y + 2, 5, 9, t); rect(x + 2, y + 3, 7, 7, t);
-    }
-  }
-
-  function quantize() {
-    const img = ctx.getImageData(0, 0, W, H);
-    const d = img.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const lum = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
-      let best = 0, bestD = 1e9;
-      for (let p = 0; p < 4; p++) {
-        const c = PAL[p];
-        const pl = c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
-        const dist = Math.abs(pl - lum);
-        if (dist < bestD) { bestD = dist; best = p; }
-      }
-      d[i] = PAL[best][0]; d[i + 1] = PAL[best][1]; d[i + 2] = PAL[best][2]; d[i + 3] = 255;
-    }
-    ctx.putImageData(img, 0, 0);
-  }
-
-  // --------------------------------------------------------------- audio
+  // ----------------------------------------------------------------- audio
   const Snd = {
     ac: null, on: true,
     init() {
@@ -672,37 +824,36 @@
       const AC = window.AudioContext || window.webkitAudioContext;
       if (AC) this.ac = new AC();
     },
-    tone(freq, dur, when, vol) {
+    tone(freq, dur, when, vol, type) {
       if (!this.on || !this.ac) return;
       const t0 = this.ac.currentTime + (when || 0);
-      const osc = this.ac.createOscillator();
-      const g = this.ac.createGain();
-      osc.type = "square";
+      const osc = this.ac.createOscillator(), g = this.ac.createGain();
+      osc.type = type || "triangle";
       osc.frequency.setValueAtTime(freq, t0);
-      g.gain.setValueAtTime(vol === undefined ? 0.05 : vol, t0);
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(vol === undefined ? 0.06 : vol, t0 + 0.012);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       osc.connect(g); g.connect(this.ac.destination);
-      osc.start(t0); osc.stop(t0 + dur + 0.01);
+      osc.start(t0); osc.stop(t0 + dur + 0.02);
     },
-    move() { this.tone(520, 0.05); },
-    ok() { this.tone(700, 0.06); this.tone(950, 0.08, 0.06); },
-    back() { this.tone(320, 0.08); },
-    hit() { this.tone(200, 0.06); this.tone(130, 0.1, 0.04); },
-    hurt() { this.tone(150, 0.14, 0, 0.06); },
-    buff() { this.tone(600, 0.05); this.tone(800, 0.05, 0.05); this.tone(1050, 0.08, 0.1); },
-    win() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.16, i * 0.12)); },
-    lose() { [392, 330, 262, 196].forEach((f, i) => this.tone(f, 0.22, i * 0.16)); },
+    tap() { this.tone(620, 0.06, 0, 0.04); },
+    ok() { this.tone(700, 0.07); this.tone(1040, 0.09, 0.05); },
+    back() { this.tone(360, 0.09, 0, 0.045); },
+    hit() { this.tone(190, 0.1, 0, 0.07, "square"); this.tone(120, 0.13, 0.04, 0.05, "square"); },
+    hurt() { this.tone(150, 0.16, 0, 0.06, "sawtooth"); },
+    buff() { [660, 880, 1170].forEach((f, i) => this.tone(f, 0.08, i * 0.05, 0.05)); },
+    win() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.2, i * 0.11, 0.06)); },
+    lose() { [392, 330, 262, 196].forEach((f, i) => this.tone(f, 0.24, i * 0.15, 0.055)); },
   };
 
-  // ---------------------------------------------------------------- save
+  // ------------------------------------------------------------------ save
   const SAVE_KEY = "abrpg.save.v2";
   const save = { cleared: [], seen: [], decks: {} };
 
   function loadSave() {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
-      if (!raw) return;
-      const o = JSON.parse(raw);
+      const o = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+      if (!o) return;
       if (Array.isArray(o.cleared)) save.cleared = o.cleared;
       if (Array.isArray(o.seen)) save.seen = o.seen;
       if (o.decks && typeof o.decks === "object") save.decks = o.decks;
@@ -715,36 +866,20 @@
   function ownedCards() {
     const owned = START_CARDS.slice();
     STAGES.forEach((st) => {
-      if (save.cleared.indexOf(st.id) >= 0) {
+      if (save.cleared.indexOf(st.id) >= 0)
         st.reward.forEach((c) => { if (owned.indexOf(c) < 0) owned.push(c); });
-      }
     });
     return owned;
   }
   const stageUnlocked = (st) => st.id === 1 || save.cleared.indexOf(st.id - 1) >= 0;
-  const isCleared = (st) => save.cleared.indexOf(st.id) >= 0;
   const hasSeen = (st) => save.seen.indexOf(st.id) >= 0;
-  function deckOf(stageId) {
-    const d = save.decks[stageId];
-    return Array.isArray(d) ? d.slice() : ["attack"];
-  }
-
-  // ---------------------------------------------------------------- game
-  const G = {
-    screen: "title", frame: 0,
-    mapCur: 0, stage: null,
-    deck: [], deckCur: 0, pickCur: 0, planTop: 0,
-    held: null, drag: null,
-    howtoPage: 0,
-    battle: null, result: null, gained: [],
-  };
-  const setScreen = (s) => { G.screen = s; };
+  const deckOf = (id) => (Array.isArray(save.decks[id]) ? save.decks[id].slice() : ["attack"]);
 
   function actName(a) {
-    if (a.t === "attack") return "こうげき" + a.v;
-    if (a.t === "strong") return "つよこうげき" + a.v;
+    if (a.t === "attack") return "こうげき " + a.v;
+    if (a.t === "strong") return "つよこうげき " + a.v;
     if (a.t === "charge") return "ためる";
-    if (a.t === "heal") return "かいふく" + a.v;
+    if (a.t === "heal") return "かいふく " + a.v;
     return "？";
   }
   function actShort(a) {
@@ -755,48 +890,6 @@
     return "？";
   }
 
-  // ---------------------------------------------------------- text helpers
-  // helper: center text inside a box
-  function txtMidIn(x, w, y, s, tone) { txt(s, (x + (w - txtW(s)) / 2) | 0, y, tone); }
-
-  // Drop trailing characters until the string fits maxW pixels. Card names and
-  // descriptions vary a lot in width, so every bounded string goes through this.
-  function fitStr(s, maxW, size) {
-    let t = s;
-    while (t.length > 1 && txtW(t, size) > maxW) t = t.slice(0, -1);
-    return t;
-  }
-
-  function txtClip(s, x, y, maxW, tone, size) {
-    txt(fitStr(s, maxW, size), x, y, tone, size);
-  }
-
-  // Flow a long string over up to `lines` rows, breaking on spaces where it can.
-  function wrapClip(s, x, y, maxW, tone, lines, size) {
-    let rest = s;
-    for (let i = 0; i < lines && rest.length; i++) {
-      let take = fitStr(rest, maxW, size);
-      if (take.length < rest.length && i < lines - 1) {
-        const sp = take.lastIndexOf(" ");
-        if (sp > take.length / 2) take = take.slice(0, sp);
-      }
-      txt(take.trim(), x, y + i * 22, tone, size);
-      rest = rest.slice(take.length).replace(/^ +/, "");
-    }
-  }
-
-  // Label left, value right, both inside [x, x+w). The value only gets the
-  // space the label leaves, so the two can never overlap.
-  function txtPair(labelStr, valueStr, x, y, w, labelTone, valueTone, size) {
-    const lw = txtW(labelStr, size);
-    txt(labelStr, x, y, labelTone, size);
-    const v = fitStr(valueStr, w - lw - 8, size);
-    txt(v, x + w - txtW(v, size), y, valueTone, size);
-  }
-
-  // Rolls the event list up into one row per turn: what you did, and where
-  // both HP bars ended up. This is the whole point of a deterministic battle —
-  // the player can read the fight off a table instead of guessing.
   function planRows(stage, deck) {
     const sim = simulate(stage, deck);
     const rows = [];
@@ -821,17 +914,6 @@
     return { rows, result: sim.result };
   }
 
-  // One-line verdict for the deck screen.
-  function planSummary(stage, deck) {
-    const { rows, result } = planRows(stage, deck);
-    const last = rows[rows.length - 1];
-    const n = last ? last.turn : 0;
-    if (result === "win") return { s: n + "ターンめに しょうり  のこりHP" + Math.max(0, last.php), ok: true };
-    if (result === "lose") return { s: n + "ターンめに はいぼく  てきHP" + Math.max(0, last.ehp) + "のこり", ok: false };
-    return { s: "きまらない (" + n + "ターン ひきわけ)", ok: false };
-  }
-
-  // ---- deck edit
   // Depth per card, so conditional blocks read as indented groups.
   function deckIndents(deck) {
     const out = [];
@@ -845,387 +927,14 @@
     return out;
   }
 
-  // --------------------------------------------------------- touch widgets
-  // Everything the finger can hit is at least TAP_MIN tall. The screen is
-  // 320x512 logical pixels shown at roughly 1.2x on a phone, so 44 here is
-  // about 54 real pixels — a comfortable target.
-  const TAP_MIN = 44;
-
-  // A pressable slab. Draws itself and registers its own hit area, so the
-  // picture and the touch target are always the same rectangle.
-  function button(x, y, w, h, labelText, fn, opts) {
-    const o = opts || {};
-    const held = G.held === labelText + "@" + y;
-    rect(x, y, w, h, 0);
-    rect(x + 2, y + 2, w - 4, h - 4, o.disabled ? 1 : (held || o.primary) ? 0 : 3);
-    if (!o.disabled && !o.primary && !held) rect(x + 4, y + h - 6, w - 8, 2, 1);
-    const tone = o.disabled ? 2 : (held || o.primary) ? 3 : 0;
-    const size = o.small ? 14 : FONT;
-    const lbl = fitStr(labelText, w - 16, size);
-    txt(lbl, (x + (w - txtW(lbl, size)) / 2) | 0, y + (h - size) / 2 - 1, tone, size);
-    if (!o.disabled) {
-      tapArea(x, y, w, h, {
-        down: () => { G.held = labelText + "@" + y; },
-        cancel: () => { G.held = null; },
-        tap: () => { G.held = null; Snd.ok(); fn(); },
-      });
-    }
-  }
-
-  // Row-shaped target: a list entry the whole width of its box.
-  function rowButton(x, y, w, h, fn, drawFn, held) {
-    drawFn(held);
-    tapArea(x, y, w, h, { tap: () => { Snd.ok(); fn(); } });
-  }
-
-  // ---- title
-  function drawTitle() {
-    field();
-    patFill(PAT_DARK, 0, 0, W, 210);
-    rect(0, 210, W, 3, 0);
-    patFill(PAT_ARENA, 0, 213, W, 26);
-
-    sprite("dragon", 196, 96, 3);
-    txt("オートバトル", 27, 47, 1, FONT_BIG);
-    txt("オートバトル", 24, 44, 3, FONT_BIG);
-    txt("RPG", 27, 87, 1, FONT_BIG);
-    txt("RPG", 24, 84, 3, FONT_BIG);
-    txt("- TACTICS -", 26, 132, 2, 14);
-
-    win(8, 250, 304, 92);
-    wrapClip("カードを ならべて さくせんを くみ、あとは じどうで たたかう。" +
-             "らんすうは いっさい なし。", 22, 262, 276, 0, 3);
-
-    button(24, 356, 272, 56, "はじめる", () => setScreen("map"), { primary: true });
-    button(24, 424, 272, 52, "あそびかた", () => { G.howtoPage = 0; setScreen("howto"); });
-    rect(8, 484, 304, 22, 0);
-    txtMid("がめんを さわって あそびます", 486, 3, 14);
-  }
-
-  // ---- how to play
-  const HOWTO = [
-    { title: "1. さくせんの くみかた", lines: [
-      "スロットを おすと カードを えらべる。",
-      "スロットを ドラッグすると",
-      "じゅんばんを いれかえられる。",
-      "うえから じゅんに よまれる。",
-      "",
-      "◇じょうけん  △きょうか",
-      "■まもり    ●こうどう",
-    ] },
-    { title: "2. 1ターンの ながれ", lines: [
-      "じょうけん:せいりつで つぎへ",
-      "  ふせいりつなら この ブロックを",
-      "  とばして つぎの さくせんへ",
-      "きょうか/まもり:はつどうして つぎへ",
-      "こうどう:じっこうして ターンおわり",
-    ] },
-    { title: "3. ブロックの かたち", lines: [
-      "◇ピンチ?    ←じょうけん",
-      "  △るいじょう ←きょうか",
-      "  ●こうげき   ←こうどう",
-      "●こうげき    ←ふだんは これ",
-      "うえが だめなら したが つかわれる。",
-    ] },
-    { title: "4. たいせつな ルール", lines: [
-      "きょうか と まもりは",
-      "  1バトルに 1かいだけ。",
-      "  じゅんばんで けっかが かわる。",
-      "  +2→×2 は 8  ×2→+2 は 6",
-      "HP2いかで かくせい。るいじょうは",
-      "  かくせい中しか うてない。",
-    ] },
-    { title: "5. けいさんして くむ", lines: [
-      "さくせん画面の うえに「てきの手」が",
-      "ターンじゅんに ならんでいる。",
-      "なんターンめに なにが くるか",
-      "さきに わかる。",
-      "",
-      "「ためしうち」を おせば",
-      "けっかを ぜんぶ けいさんできる。",
-    ] },
-  ];
-
-  function drawHowto() {
-    const p = HOWTO[G.howtoPage];
-    field();
-    titledWin(8, 8, 304, 396, p.title);
-    p.lines.forEach((l, i) => txtClip(l, 22, 48 + i * 26, 276, 0, 15));
-
-    for (let i = 0; i < HOWTO.length; i++) {
-      const x = 118 + i * 18;
-      rect(x, 414, 12, 12, 0);
-      rect(x + 2, 416, 8, 8, i === G.howtoPage ? 0 : 3);
-    }
-
-    const first = G.howtoPage === 0, last = G.howtoPage === HOWTO.length - 1;
-    button(8, 440, 148, 52, first ? "とじる" : "まえへ",
-      () => { if (first) setScreen("title"); else G.howtoPage--; });
-    button(164, 440, 148, 52, last ? "とじる" : "つぎへ",
-      () => { if (last) setScreen("title"); else G.howtoPage++; }, { primary: !last });
-  }
-
-  // ---- map
-  function drawMap() {
-    field();
-    header("ステージ", ownedCards().length + "/" + Object.keys(CARDS).length + "まい");
-
-    STAGES.forEach((st, i) => {
-      const y = 60 + i * 74, open = stageUnlocked(st), clear = save.cleared.indexOf(st.id) >= 0;
-      const draw = () => {
-        rect(8, y, 304, 66, 0);
-        if (open) rect(10, y + 2, 300, 62, 3); else patFill(PAT_GROUND, 10, y + 2, 300, 62);
-        arena(16, y + 6, 58, 54);
-        if (open) sprite(st.sprite, 22, y + 8, 1.5);
-        else txt("？", 38, y + 22, 3, FONT_BIG);
-        txtClip(open ? st.id + ". " + st.name : st.id + ". ？？？？", 84, y + 12, 150, open ? 0 : 3);
-        txtClip(open ? "HP " + st.hp : "まだ いけない", 84, y + 36, 150, 1, 14);
-        if (clear) { rect(244, y + 22, 58, 22, 0); txt("クリア", 250, y + 22, 3, 14); }
-        else if (open) txt("▶", 284, y + 22, 0);
-      };
-      if (!open) { draw(); return; }
-      rowButton(8, y, 304, 66, () => {
-        G.stage = st; G.deck = deckOf(st.id); G.deckCur = 0; setScreen("info");
-      }, draw);
-    });
-
-    button(8, 440, 304, 52, "タイトルへ", () => setScreen("title"));
-  }
-
-  // ---- enemy info
-  function drawInfo() {
-    const st = G.stage, seen = hasSeen(st);
-    field();
-    header("てきの じょうほう");
-
-    arena(16, 60, 132, 96);
-    sprite(st.sprite, 48, 68, 2);
-    shadow(82, 142, 50);
-
-    win(156, 60, 156, 96);
-    txtPair("なまえ", fitStr(st.name, 90), 166, 68, 136, 1, 0);
-    txtPair("HP", String(st.hp), 166, 96, 136, 1, 0);
-    txtPair("まもり", st.armor ? "-" + st.armor : "なし", 166, 124, 136, 1, 0);
-
-    titledWin(8, 168, 304, 132, "こうどう パターン");
-    if (seen) {
-      txtClip("この じゅんばんで くりかえす", 20, 192, 276, 1, 12);
-      st.pattern.forEach((a, i) => {
-        const x = 20 + (i % 2) * 148, y = 210 + Math.floor(i / 2) * 44;
-        rect(x, y, 136, 38, 0);
-        rect(x + 2, y + 2, 132, 34, a.t === "strong" ? 0 : 3);
-        txt(String(i + 1), x + 8, y + 8, a.t === "strong" ? 2 : 1, 14);
-        txtClip(actShort(a), x + 30, y + 8, 98, a.t === "strong" ? 3 : 0, 15);
-      });
-    } else {
-      txt("？？？", 20, 206, 0, FONT_BIG);
-      txtClip("1どでも たたかえば わかる。", 20, 252, 276, 1);
-    }
-
-    win(8, 312, 304, 76);
-    wrapClip(seen ? st.hint : "まずは たたかって かんさつしよう。", 20, 324, 276, 0, 3);
-
-    button(8, 400, 148, 52, "もどる", () => setScreen("map"));
-    button(164, 400, 148, 52, "さくせんへ", () => setScreen("deck"), { primary: true });
-  }
-
-  // ---- deck edit: tap a slot to change it, drag it to reorder
-  function drawDeck() {
-    const st = G.stage, known = hasSeen(st);
-    field();
-    header("さくせん", "VS " + st.name);
-
-    // enemy schedule across the top: which turn brings what
-    win(8, 54, 304, 58);
-    txt("てきの手", 16, 58, 1, 12);
-    for (let i = 0; i < 7; i++) {
-      const x = 14 + i * 43, y = 74;
-      const a = st.pattern[i % st.pattern.length], strong = a.t === "strong";
-      rect(x, y, 40, 32, 0);
-      rect(x + 1, y + 1, 38, 30, strong ? 0 : 3);
-      txt(String(i + 1), x + 3, y + 1, strong ? 2 : 1, 12);
-      const lbl = known ? (a.t === "charge" ? "ため" : a.t === "heal" ? "回ふく"
-                   : (a.t === "strong" ? "つよ" : "こう") + a.v) : "？";
-      const f = fitStr(lbl, 36, 12);
-      txt(f, x + (40 - txtW(f, 12)) / 2, y + 15, strong ? 3 : 0, 12);
-    }
-
-    // slots
-    const ind = deckIndents(G.deck);
-    const SLOT_H = 48, SLOT_Y = 120;
-    for (let i = 0; i < MAX_DECK; i++) {
-      const y = SLOT_Y + i * SLOT_H;
-      if (G.drag && G.drag.from === i) continue;   // drawn under the finger
-      drawSlot(i, y, ind[i]);
-    }
-
-    if (G.drag) {
-      const y = Math.max(SLOT_Y - 8, Math.min(SLOT_Y + (MAX_DECK - 1) * SLOT_H + 8, G.drag.y - SLOT_H / 2));
-      const to = dragTargetIndex(G.drag.y);
-      rect(10, SLOT_Y + to * SLOT_H + 1, 240, 3, 0);
-      drawSlot(G.drag.from, y, ind[G.drag.from], true);
-    }
-
-    // prediction
-    win(8, 414, 304, 42);
-    if (known && G.deck.length) {
-      const p = planSummary(st, G.deck);
-      txt("よそく", 18, 425, 1, 14);
-      txtClip(p.s, 68, 425, 236, p.ok ? 0 : 1, 14);
-    } else {
-      txtClip("1どでも たたかうと てきの手が わかる", 18, 425, 286, 1, 14);
-    }
-
-    button(8, 462, 148, 46, "ためしうち",
-      () => { G.planTop = 0; setScreen("plan"); }, { disabled: !G.deck.length || !known });
-    button(164, 462, 148, 46, "たたかう",
-      () => { saveDeck(); startBattle(); }, { primary: true, disabled: !G.deck.length });
-  }
-
-  function drawSlot(i, y, indent, floating) {
-    const filled = i < G.deck.length;
-    const x = 8 + (filled && indent ? 16 : 0);
-    const w = 244 - (filled && indent ? 16 : 0);
-    rect(x, y, w, 44, 0);
-    if (filled) {
-      const c = CARDS[G.deck[i]];
-      rect(x + 2, y + 2, w - 4, 40, floating ? 0 : 3);
-      const tone = floating ? 3 : 0;
-      kindIcon(c.kind, x + 8, y + 15, tone);
-      txtClip(c.name, x + 28, y + 12, w - 80, tone);
-      if (c.kind === "boost" || c.kind === "state") txtR("1かい", x + w - 8, y + 15, floating ? 2 : 1, 12);
-      if (indent) rect(x - 12, y + 6, 4, 32, 1);
-      if (!floating) {
-        tapArea(x, y, w, 44, {
-          down: () => {},
-          drag: (p) => { if (!G.drag) { G.drag = { from: i, y: p.y }; Snd.move(); } else G.drag.y = p.y; },
-          drop: () => {
-            if (!G.drag) return;
-            const to = dragTargetIndex(G.drag.y);
-            const card = G.deck.splice(G.drag.from, 1)[0];
-            G.deck.splice(Math.min(to, G.deck.length), 0, card);
-            G.drag = null; saveDeck(); Snd.ok();
-          },
-          cancel: () => { G.drag = null; },
-          tap: () => { G.deckCur = i; G.pickCur = 0; setScreen("pick"); },
-        });
-        // remove button
-        button(258, y, 54, 44, "けす", () => {
-          if (G.deck.length <= 1) { Snd.back(); return; }
-          G.deck.splice(i, 1);
-          saveDeck();
-        }, { small: true });
-      }
-    } else {
-      patFill(PAT_GROUND, x + 2, y + 2, w - 4, 40);
-      rect(x + 8, y + 12, 20, 20, 3);
-      txt(String(i + 1), x + 13, y + 11, 0, 14);
-      txtClip("＋ カードを いれる", x + 36, y + 12, w - 44, 3, 14);
-      tapArea(x, y, w, 44, { tap: () => { Snd.ok(); G.deckCur = i; G.pickCur = 0; setScreen("pick"); } });
-    }
-  }
-
-  function dragTargetIndex(y) {
-    const idx = Math.round((y - 120 - 22) / 48);
-    return Math.max(0, Math.min(G.deck.length - 1, idx));
-  }
-
-  // ---- card picker
-  const ALL_CARDS = ["attack", "heal", "reckless", "guard",
-                     "plus2", "times2", "power",
-                     "ifHalf", "ifStrong", "ifCharge", "ifPinch"];
-
-  function drawPick() {
-    const owned = ownedCards();
-    field();
-    header("カードを えらぶ", owned.length + "/" + ALL_CARDS.length);
-
-    ALL_CARDS.forEach((id, i) => {
-      const c = CARDS[id], have = owned.indexOf(id) >= 0;
-      const x = 8 + (i % 2) * 154, y = 56 + Math.floor(i / 2) * 56;
-      const sel = i === G.pickCur;
-      rect(x, y, 150, 50, 0);
-      if (!have) {
-        patFill(PAT_GROUND, x + 2, y + 2, 146, 46);
-        txt("？？？", x + 40, y + 15, 3, 14);
-        return;
-      }
-      rect(x + 2, y + 2, 146, 46, sel ? 0 : 3);
-      kindIcon(c.kind, x + 8, y + 18, sel ? 3 : 0);
-      txtClip(c.name, x + 28, y + 6, 114, sel ? 3 : 0, 15);
-      txtClip(c.desc, x + 8, y + 28, 134, sel ? 2 : 1, 12);
-      tapArea(x, y, 150, 50, { tap: () => {
-        Snd.ok();
-        G.pickCur = i;
-        if (G.deckCur < G.deck.length) G.deck[G.deckCur] = id;
-        else if (G.deck.length < MAX_DECK) G.deck.push(id);
-        saveDeck();
-        setScreen("deck");
-      } });
-    });
-
-    win(8, 396, 304, 60);
-    wrapClip("◇じょうけん  △きょうか  ■まもり  ●こうどう", 20, 406, 276, 1, 1, 14);
-    txtClip("えらぶと スロットに はいります。", 20, 428, 276, 0, 14);
-    button(8, 462, 304, 46, "やめる", () => setScreen("deck"));
-  }
-
-  // ---- dry run
-  function drawPlan() {
-    const st = G.stage;
-    field();
-    header("ためしうち", "VS " + G.stage.name);
-
-    const { rows, result } = planRows(st, G.deck);
-    const PER = 8;
-    const shown = Math.min(PER, rows.length - G.planTop);
-    win(8, 54, 304, 330);
-
-    txt("T", 18, 60, 1, 14);
-    txt("じぶんの て", 40, 60, 1, 14);
-    txt("HP", 196, 60, 1, 14);
-    txt("てき", 226, 60, 1, 14);
-    txtR("HP", 302, 60, 1, 14);
-    rect(14, 80, 292, 1, 1);
-
-    for (let i = 0; i < shown; i++) {
-      const r = rows[G.planTop + i], y = 88 + i * 36;
-      if (i % 2) patFill(PAT_ARENA, 14, y - 4, 292, 34);
-      txt(String(r.turn), 18, y, 0, 14);
-      const mine = (r.boosts.length ? r.boosts.join("+") + "→" : "") + (r.act || "-");
-      txtClip(mine, 40, y, 150, 0, 14);
-      txtClip(String(Math.max(0, r.php)), 196, y, 26, 0, 14);
-      if (r.enemy) txtClip(r.enemy, 226, y, 50, 1, 14);
-      txtR(String(Math.max(0, r.ehp)), 302, y, 0, 14);
-    }
-
-    if (rows.length > PER) {
-      button(240, 336, 32, 40, "▲", () => { if (G.planTop > 0) G.planTop--; },
-             { small: true, disabled: G.planTop === 0 });
-      button(276, 336, 32, 40, "▼", () => { if (G.planTop < rows.length - PER) G.planTop++; },
-             { small: true, disabled: G.planTop >= rows.length - PER });
-    }
-
-    const label = result === "win" ? "しょうり！" : result === "lose" ? "はいぼく…" : "ひきわけ";
-    rect(8, 392, 304, 40, result === "win" ? 1 : 0);
-    txtMid(label + "  " + rows.length + "ターン", 402, 3);
-
-    button(8, 444, 148, 52, "さくせんへ", () => setScreen("deck"));
-    button(164, 444, 148, 52, "たたかう", () => { saveDeck(); startBattle(); }, { primary: true });
-  }
-
-  // ---- battle
-  // ---- battle
-  function startBattle() {
-    const sim = simulate(G.stage, G.deck);
-    G.battle = {
-      events: sim.events, result: sim.result, i: -1,
-      state: { php: PLAYER_MAX_HP, patk: PLAYER_BASE_ATK, ehp: G.stage.hp, awaken: false, used: {}, eidx: 0 },
-      msg: ["", ""], cardIdx: -1, turn: 1, timer: 0, speed: 30,
-      flashE: 0, flashP: 0, lungeP: 0, lungeE: 0, pop: null, done: false,
-    };
-    if (!hasSeen(G.stage)) { save.seen.push(G.stage.id); writeSave(); }
-    setScreen("battle");
+  // One-line verdict for the deck screen.
+  function planSummary(stage, deck) {
+    const { rows, result } = planRows(stage, deck);
+    const last = rows[rows.length - 1];
+    const n = last ? last.turn : 0;
+    if (result === "win") return { s: n + "ターンめに しょうり  のこりHP" + Math.max(0, last.php), ok: true };
+    if (result === "lose") return { s: n + "ターンめに はいぼく  てきHP" + Math.max(0, last.ehp) + "のこり", ok: false };
+    return { s: "きまらない (" + n + "ターン ひきわけ)", ok: false };
   }
 
   function eventText(e) {
@@ -1250,280 +959,637 @@
     }
   }
 
-  function stepBattle() {
-    const b = G.battle;
-    b.i++;
-    if (b.i >= b.events.length) { finishBattle(); return; }
-    const e = b.events[b.i];
-    b.state = e.s;
-    b.msg = eventText(e);
-    b.cardIdx = e.idx === undefined ? -1 : e.idx;
-    if (e.t === "turn") b.turn = e.turn;
-    if (e.t === "attack") { b.flashE = 6; b.lungeP = 8; b.pop = { v: "-" + e.dmg, x: 228, y: 96, life: 16 }; Snd.hit(); }
-    if (e.t === "enemyAtk" && e.dmg > 0) { b.flashP = 6; b.lungeE = 8; b.pop = { v: "-" + e.dmg, x: 30, y: 226, life: 16 }; Snd.hurt(); }
-    if (e.t === "boost" || e.t === "awaken") Snd.buff();
-    if (e.t === "reckless") { b.pop = { v: "-2", x: 30, y: 226, life: 14 }; Snd.hurt(); }
-    if (e.t === "heal") { b.pop = { v: "+" + e.amt, x: 30, y: 226, life: 14 }; Snd.move(); }
-    if (e.t === "enemyHeal") { b.pop = { v: "+" + e.amt, x: 228, y: 96, life: 14 }; Snd.move(); }
-    if (e.t === "guard") Snd.move();
-    if (e.t === "end") { b.done = true; if (e.result === "win") Snd.win(); else Snd.lose(); }
+  const KIND = {
+    cond:   { label: "じょうけん", cls: "amber",  color: "var(--amber)" },
+    boost:  { label: "きょうか",   cls: "violet", color: "var(--accent)" },
+    state:  { label: "まもり",     cls: "sky",    color: "var(--sky)" },
+    action: { label: "こうどう",   cls: "teal",   color: "var(--teal)" },
+  };
+
+  // ------------------------------------------------------------------ view
+  const G = {
+    screen: "title", stage: null, deck: [], slotIndex: 0,
+    battle: null, result: null, gained: [],
+  };
+
+  const el = (id) => document.getElementById(id);
+  const viewEl = el("view"), barEl = el("actionbar"), titleEl = el("title"),
+        metaEl = el("meta"), backEl = el("backBtn");
+
+  function h(tag, attrs, kids) {
+    const n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach((k) => {
+      if (k === "class") n.className = attrs[k];
+      else if (k === "html") n.innerHTML = attrs[k];
+      else if (k === "text") n.textContent = attrs[k];
+      else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] !== null && attrs[k] !== false) n.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach((c) => { if (c) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function button(label, fn, opts) {
+    const o = opts || {};
+    return h("button", {
+      class: "btn" + (o.primary ? " primary" : ""),
+      disabled: o.disabled ? "" : null,
+      onclick: () => { Snd.init(); Snd.ok(); fn(); },
+    }, [label]);
   }
 
-  function finishBattle() {
-    const b = G.battle;
-    G.result = b.result;
-    G.gained = [];
-    if (b.result === "win" && !isCleared(G.stage)) {
-      save.cleared.push(G.stage.id);
-      G.gained = G.stage.reward.slice();
-      writeSave();
-    }
-    setScreen("result");
+  function go(screen) { G.screen = screen; render(); }
+
+  function bar(cls, ratio) {
+    return h("div", { class: "bar " + cls }, [h("i", { style: "width:" + Math.max(0, Math.min(1, ratio)) * 100 + "%" })]);
   }
 
-  function drawBattle() {
-    const b = G.battle, s = b.state, st = G.stage;
-    field();
-    const sx = b.shake > 0 ? (b.shake % 2 ? 3 : -3) : 0;
+  function kindDot(kind) {
+    return h("span", { class: "kind-dot", style: "background:" + KIND[kind].color });
+  }
 
-    // enemy
-    arena(168, 56, 144, 120);
-    const dead = s.ehp <= 0;
-    const ex = 200 + (b.lungeE > 0 ? -8 : 0) + sx;
-    if (!dead || Math.floor(G.frame / 3) % 2 === 0) {
-      if (!dead) shadow(ex + 40, 158, 56);
-      sprite(st.sprite, ex, 72, 2.5, b.flashE > 0);
+  // ---- title
+  function viewTitle() {
+    const dragon = spriteImg("dragon", 112);
+    dragon.classList.add("dragon");
+    return [
+      h("div", { class: "hero" }, [
+        dragon,
+        h("div", { class: "kicker", text: "AUTO BATTLE" }),
+        h("h2", { html: "カードで<br>さくせんを<br>組む" }),
+        h("p", { text: "戦闘中の操作はなし。組んだ作戦どおりに自動で戦います。乱数は一切なし。" }),
+      ]),
+      h("div", { class: "card" }, [
+        feature("◇", "条件で 分岐する", "「ピンチなら」「敵が強攻撃なら」で作戦を切り替える"),
+        feature("△", "強化は 1回だけ", "使う順番で結果が変わる。+2→×2 は 8、×2→+2 は 6"),
+        feature("⏱", "敵の手は 読める", "何ターン目に何が来るか表示される。計算して組める"),
+      ]),
+    ];
+  }
+  function feature(ico, t, d) {
+    return h("div", { class: "feature" }, [
+      h("div", { class: "ico", text: ico }),
+      h("div", {}, [h("div", { class: "t", text: t }), h("div", { class: "d", text: d })]),
+    ]);
+  }
+
+  // ---- how to play
+  const HOWTO = [
+    { t: "作戦の組みかた", d: "カードを上から順に並べると、それがそのまま作戦になります。スロットを押すとカードを選べ、左のハンドルをドラッグすると順番を入れ替えられます。" },
+    { t: "1ターンの流れ", d: "上から順にカードを読みます。条件は、成立したら次へ、不成立ならそのブロックを飛ばして次の作戦へ。強化・守りは発動して次へ進み、行動を1枚実行するとターンが終わります。" },
+    { t: "ブロックの形", d: "［ピンチ?］→［るいじょう］→［こうげき］と並べると「ピンチのときだけ必殺」になります。その下に［こうげき］を置けば、条件を満たさない普段はそちらが使われます。" },
+    { t: "大事なルール", d: "強化と守りは1バトルに1回だけ。使う順番で結果が変わります。HP2以下で「かくせい」し、るいじょうはかくせい中しか撃てません。" },
+    { t: "計算して組む", d: "作戦画面の上に敵の手がターン順に並びます。「ためしうち」を押せば、戦う前に結果を全部計算できます。" },
+  ];
+  function viewHowto() {
+    return HOWTO.map((p, i) => h("div", { class: "card" }, [
+      h("h2", { text: (i + 1) + ". " + p.t }),
+      h("div", { class: "small muted", text: p.d }),
+    ]));
+  }
+
+  // ---- stage select
+  function viewMap() {
+    return STAGES.map((st) => {
+      const open = stageUnlocked(st), clear = save.cleared.indexOf(st.id) >= 0;
+      const thumb = h("div", { class: "thumb" }, [open ? spriteImg(st.sprite, 48) : h("span", { class: "dim", text: "?" })]);
+      const chip = clear ? h("span", { class: "chip teal", text: "クリア" })
+                 : open ? h("span", { class: "chip violet", text: "ちょうせん" })
+                        : h("span", { class: "chip", text: "ロック" });
+      return h("button", {
+        class: "stage" + (open ? "" : " locked"),
+        disabled: open ? null : "",
+        onclick: open ? () => {
+          Snd.init(); Snd.ok();
+          G.stage = st; G.deck = deckOf(st.id); go("info");
+        } : null,
+      }, [
+        thumb,
+        h("div", { class: "body" }, [
+          h("div", { class: "name", text: open ? st.id + ". " + st.name : st.id + ". ？？？" }),
+          h("div", { class: "sub", text: open ? "HP " + st.hp + (st.armor ? " ・ ダメージ-" + st.armor : "") : "前のステージをクリアで解放" }),
+        ]),
+        chip,
+        open ? h("span", { class: "go", text: "›" }) : null,
+      ]);
+    });
+  }
+
+  // ---- enemy info
+  function viewInfo() {
+    const st = G.stage, seen = hasSeen(st);
+    const out = [
+      h("div", { class: "card" }, [
+        h("div", { class: "fighter" }, [
+          h("div", { class: "art" }, [spriteImg(st.sprite, 80)]),
+          h("div", { class: "info" }, [
+            h("div", { class: "nm", text: st.name }),
+            h("div", { class: "stat-row" }, [h("span", { class: "k", text: "HP" }), h("span", { class: "v", text: String(st.hp) })]),
+            h("div", { class: "stat-row" }, [h("span", { class: "k", text: "まもり" }),
+              h("span", { class: "v", text: st.armor ? "ダメージ -" + st.armor : "なし" })]),
+          ]),
+        ]),
+      ]),
+      h("div", { class: "card" }, [
+        h("h2", { text: "こうどう パターン" }),
+        seen ? h("div", { class: "sched" }, st.pattern.map((a, i) => schedCell(i + 1, a)))
+             : h("div", { class: "small muted", text: "？？？　1度でも戦えばわかります。" }),
+        seen ? h("div", { class: "tiny dim", style: "margin-top:8px", text: "この順番でくりかえす" }) : null,
+      ]),
+      h("div", { class: "card" }, [
+        h("h2", { text: "ヒント" }),
+        h("div", { class: "small muted", text: seen ? st.hint : "まずは戦って観察しよう。" }),
+      ]),
+    ];
+    return out;
+  }
+
+  function schedCell(n, a) {
+    const cls = a.t === "strong" ? " strong" : (a.t === "charge" ? " safe" : "");
+    return h("div", { class: "t" + cls }, [
+      h("div", { class: "n", text: "T" + n }),
+      h("div", { class: "a", text: actShort(a) }),
+    ]);
+  }
+
+  // ---- deck
+  function viewDeck() {
+    const st = G.stage, known = hasSeen(st);
+    const ind = deckIndents(G.deck);
+
+    const sched = h("div", { class: "card" }, [
+      h("h2", { text: "てきの手" }),
+      h("div", { class: "sched" },
+        known ? Array.from({ length: 7 }, (_, i) => schedCell(i + 1, st.pattern[i % st.pattern.length]))
+              : [h("div", { class: "small muted", text: "1度でも戦うと、何ターン目に何が来るかわかります。" })]),
+    ]);
+
+    const slots = h("div", { class: "slots", id: "slots" });
+    G.deck.forEach((id, i) => slots.appendChild(slotRow(id, i, ind[i])));
+    if (G.deck.length < MAX_DECK) {
+      slots.appendChild(h("div", { class: "slot empty" }, [
+        h("button", {
+          text: "＋ カードを追加",
+          onclick: () => { Snd.init(); Snd.ok(); G.slotIndex = G.deck.length; go("pick"); },
+        }),
+      ]));
     }
 
-    header(st.name, "ターン " + b.turn);
+    const out = [sched, h("div", { class: "card" }, [h("h2", { text: "さくせん（上から順に実行）" }), slots])];
 
-    win(8, 56, 152, 120);
-    bar(18, 74, 132, Math.max(0, s.ehp) / st.hp);
-    txtPair("HP", Math.max(0, s.ehp) + "/" + st.hp, 18, 94, 132, 1, 0);
-    const na = nextEnemyAct(st, s.eidx), known = hasSeen(st);
-    txt("つぎの て", 18, 122, 1, 14);
-    txtClip(known ? actShort(na) : "？？？", 18, 144, 132,
-            na.t === "strong" && known ? 0 : 1);
-
-    // player
-    arena(8, 192, 104, 112);
-    const px = 20 + (b.lungeP > 0 ? 10 : 0);
-    shadow(px + 32, 288, 46);
-    sprite("hero", px, 208, 2, b.flashP > 0);
-
-    win(120, 192, 192, 112);
-    txt("ゆうしゃ", 130, 200, 0);
-    if (s.awaken && Math.floor(G.frame / 6) % 2 === 0) plate("かくせい!", 232, 199);
-    bar(130, 226, 172, Math.max(0, s.php) / PLAYER_MAX_HP);
-    txtPair("HP", Math.max(0, s.php) + "/" + PLAYER_MAX_HP, 130, 246, 172, 1, 0);
-    txtPair("ATK", String(s.patk), 130, 274, 172, 1, 0);
-
-    // deck trace
-    win(8, 314, 304, 36);
-    txt("さくせん", 16, 322, 1, 14);
-    for (let i = 0; i < MAX_DECK; i++) {
-      const x = 96 + i * 34, y = 320;
-      rect(x, y, 30, 24, 0);
-      if (i < G.deck.length) {
-        const active = i === b.cardIdx;
-        rect(x + 1, y + 1, 28, 22, active ? 0 : 3);
-        if (!active) kindIcon(CARDS[G.deck[i]].kind, x + 8, y + 6);
-        else rect(x + 9, y + 8, 12, 8, 3);
-      } else patFill(PAT_GROUND, x + 1, y + 1, 28, 22);
+    if (known && G.deck.length) {
+      const p = planSummary(st, G.deck);
+      out.push(h("div", { class: "verdict " + (p.ok ? "win" : "lose") }, [
+        h("span", { class: "chip " + (p.ok ? "teal" : "coral"), text: "よそく" }),
+        h("span", { html: p.s.replace(/(\d+)/g, "<b>$1</b>") }),
+      ]));
     }
+    return out;
+  }
 
-    // message
-    win(8, 358, 304, 90);
-    wrapClip(b.msg[0], 20, 372, 280, 0, 1);
-    wrapClip(b.msg[1], 20, 402, 280, 0, 2);
+  function slotRow(id, i, indent) {
+    const c = CARDS[id];
+    const row = h("div", { class: "slot" + (indent ? " indent" : ""), "data-i": i }, [
+      h("div", { class: "handle", text: "⠿" }),
+      h("div", { class: "main", onclick: () => { Snd.init(); Snd.ok(); G.slotIndex = i; go("pick"); } }, [
+        h("div", { class: "name" }, [
+          kindDot(c.kind), c.name,
+          (c.kind === "boost" || c.kind === "state") ? h("span", { class: "chip", text: "1回" }) : null,
+        ]),
+        h("div", { class: "desc", text: c.desc }),
+      ]),
+      h("button", {
+        class: "del", text: "✕", "aria-label": "けす",
+        onclick: (ev) => {
+          ev.stopPropagation();
+          if (G.deck.length <= 1) { Snd.back(); return; }
+          Snd.init(); Snd.back();
+          G.deck.splice(i, 1);
+          saveDeck(); render();
+        },
+      }),
+    ]);
+    enableDrag(row, i);
+    return row;
+  }
 
-    if (b.pop && b.pop.life > 0) {
-      const rise = (16 - b.pop.life) / 2, y = b.pop.y - rise;
-      txt(b.pop.v, b.pop.x + 3, y + 3, 3, FONT_BIG);
-      txt(b.pop.v, b.pop.x, y, 0, FONT_BIG);
-    }
-
-    if (b.done) {
-      button(8, 456, 304, 48, "けっかへ", () => finishBattle(), { primary: true });
-    } else {
-      button(8, 456, 304, 48, b.fast ? "はやおくり中" : "はやおくり",
-             () => { b.fast = true; b.speed = 8; }, { primary: b.fast });
-      // tapping the screen also advances, the way a message box should
-      tapArea(0, 48, W, 400, { tap: () => stepBattle() });
+  // Ordering is the whole game, so reordering gets a real drag gesture.
+  function enableDrag(row, index) {
+    const handle = row.querySelector(".handle");
+    let st = null;
+    handle.addEventListener("pointerdown", (ev) => {
+      ev.preventDefault();
+      Snd.init();
+      handle.setPointerCapture(ev.pointerId);
+      st = { y0: ev.clientY, dy: 0, h: row.getBoundingClientRect().height + 8 };
+      row.classList.add("dragging");
+    });
+    handle.addEventListener("pointermove", (ev) => {
+      if (!st) return;
+      st.dy = ev.clientY - st.y0;
+      row.style.transform = "translateY(" + st.dy + "px)";
+      const to = target(st);
+      [].forEach.call(row.parentNode.children, (c, i) => c.classList.toggle("drop-target", i === to && to !== index));
+    });
+    const finish = () => {
+      if (!st) return;
+      const to = target(st);
+      row.style.transform = "";
+      row.classList.remove("dragging");
+      st = null;
+      if (to !== index) {
+        const card = G.deck.splice(index, 1)[0];
+        G.deck.splice(to, 0, card);
+        saveDeck(); Snd.ok();
+      }
+      render();
+    };
+    handle.addEventListener("pointerup", finish);
+    handle.addEventListener("pointercancel", finish);
+    function target(s) {
+      return Math.max(0, Math.min(G.deck.length - 1, index + Math.round(s.dy / s.h)));
     }
   }
 
-  // ---- result
-  function drawResult() {
-    const won = G.result === "win";
-    field();
-    rect(8, 8, 304, 44, won ? 1 : 0);
-    txtMid(won ? "しょうり！" : G.result === "lose" ? "はいぼく…" : "じかんぎれ", 18, 3, FONT_BIG);
-
-    arena(104, 68, 112, 104);
-    sprite(won ? "hero" : G.stage.sprite, 120, 76, 2.5);
-    shadow(160, 158, 50);
-
-    if (won) {
-      titledWin(8, 188, 304, 196, G.gained.length ? "カードを おぼえた！" : "クリアずみ");
-      if (G.gained.length) {
-        G.gained.forEach((id, i) => {
-          const c = CARDS[id], y = 228 + i * 52;
-          rect(24, y, 272, 46, 0);
-          rect(26, y + 2, 268, 42, 3);
-          kindIcon(c.kind, 34, y + 16);
-          txtClip(c.name, 56, y + 4, 232, 0);
-          txtClip(c.desc, 56, y + 24, 232, 1, 13);
-        });
-      } else txtClip("この ステージは クリアずみ。", 24, 232, 276, 0);
-    } else {
-      titledWin(8, 188, 304, 196, "ヒント");
-      wrapClip("さくせんを くみなおして もういちど いどもう。", 24, 228, 268, 0, 2);
-      wrapClip(G.stage.hint, 24, 292, 268, 1, 3);
-    }
-
-    button(8, 396, 304, 52, "さくせんを なおす", () => {
-      if (won && G.stage.id === STAGES[STAGES.length - 1].id) { setScreen("ending"); return; }
-      setScreen("deck");
-    }, { primary: true });
-    button(8, 456, 304, 48, "ステージへ", () => setScreen("map"));
-  }
-
-  // ---- ending
-  function drawEnding() {
-    field();
-    patFill(PAT_DARK, 0, 0, W, 180);
-    rect(8, 12, 304, 44, 0);
-    txtMid("ぜんステージ クリア！", 22, 3);
-    sprite("dragon", 112, 72, 3);
-
-    win(8, 200, 304, 200);
-    wrapClip("さくせんだけで りゅうを たおした。", 22, 216, 276, 0, 2);
-    wrapClip("つよさは ステータスでは なく、くみたてた さくせんの ことだった。",
-             22, 274, 276, 0, 3);
-    txtClip("カードを かえて べつの こたえも さがせる。", 22, 360, 276, 1, 14);
-
-    button(8, 430, 304, 56, "タイトルへ", () => setScreen("title"), { primary: true });
-  }
-
-  // ------------------------------------------------------------- drawing
-  function draw() {
-    clearHits();
-    if (window.__abrpgProbe !== false) { window.__abrpgScreen = G.screen; window.__abrpgDeck = G.deck.slice(); }
-    switch (G.screen) {
-      case "title": drawTitle(); break;
-      case "howto": drawHowto(); break;
-      case "map": drawMap(); break;
-      case "info": drawInfo(); break;
-      case "deck": drawDeck(); break;
-      case "plan": drawPlan(); break;
-      case "pick": drawPick(); break;
-      case "battle": drawBattle(); break;
-      case "result": drawResult(); break;
-      case "ending": drawEnding(); break;
-    }
-    quantize();
-  }
-
-  // --------------------------------------------------------------- input
   function saveDeck() {
     if (!G.stage) return;
     save.decks[G.stage.id] = G.deck.slice();
     writeSave();
   }
 
-  // ---------------------------------------------------------------- touch
-  // Every screen registers its tappable areas while it draws, so a hit region
-  // can never drift away from the thing the player actually sees.
-  let HITS = [];
-  function clearHits() { HITS = []; }
-  function tapArea(x, y, w, h, handlers) { HITS.push({ x, y, w, h, h_: handlers }); }
+  // ---- card picker
+  const ALL_CARDS = ["attack", "heal", "reckless", "guard", "plus2", "times2", "power",
+                     "ifHalf", "ifStrong", "ifCharge", "ifPinch"];
 
-  function toScreen(ev) {
-    const r = cv.getBoundingClientRect();
-    return { x: (ev.clientX - r.left) * (W / r.width), y: (ev.clientY - r.top) * (H / r.height) };
+  function viewPick() {
+    const owned = ownedCards();
+    const groups = [["action", "こうどう（実行してターン終了）"], ["boost", "きょうか（1バトル1回）"],
+                    ["state", "まもり（1バトル1回）"], ["cond", "じょうけん（分岐）"]];
+    return groups.map(([kind, label]) => {
+      const ids = ALL_CARDS.filter((id) => CARDS[id].kind === kind);
+      return h("div", { class: "pick-group" }, [h("h3", { text: label })].concat(
+        ids.map((id) => {
+          const c = CARDS[id], have = owned.indexOf(id) >= 0;
+          return h("button", {
+            class: "pick" + (have ? "" : " locked"),
+            disabled: have ? null : "",
+            onclick: have ? () => {
+              Snd.init(); Snd.ok();
+              if (G.slotIndex < G.deck.length) G.deck[G.slotIndex] = id;
+              else if (G.deck.length < MAX_DECK) G.deck.push(id);
+              saveDeck(); go("deck");
+            } : null,
+          }, [
+            kindDot(c.kind),
+            h("div", {}, [
+              h("div", { class: "n", text: have ? c.name : "？？？" }),
+              h("div", { class: "d", text: have ? c.desc : "まだ手に入れていないカード" }),
+            ]),
+          ]);
+        })));
+    });
   }
-  function hitAt(p) {
-    for (let i = HITS.length - 1; i >= 0; i--) {
-      const h = HITS[i];
-      if (p.x >= h.x && p.x <= h.x + h.w && p.y >= h.y && p.y <= h.y + h.h) return h;
+
+  // ---- dry run
+  function viewPlan() {
+    const { rows, result } = planRows(G.stage, G.deck);
+    const table = h("table", { class: "plan" }, [
+      h("thead", {}, [h("tr", {}, [
+        h("th", { text: "T" }), h("th", { text: "じぶんの手" }), h("th", { class: "num", text: "HP" }),
+        h("th", { text: "てきの手" }), h("th", { class: "num", text: "HP" }),
+      ])]),
+      h("tbody", {}, rows.map((r) => h("tr", { class: r.enemy && r.enemy.indexOf("つよ") === 0 ? "hit" : "" }, [
+        h("td", { class: "turn", text: String(r.turn) }),
+        h("td", { class: "mine", text: (r.boosts.length ? r.boosts.join("+") + " → " : "") + (r.act || "—") }),
+        h("td", { class: "num", text: String(Math.max(0, r.php)) }),
+        h("td", { class: "efoe", text: r.enemy || "—" }),
+        h("td", { class: "num", text: String(Math.max(0, r.ehp)) }),
+      ]))),
+    ]);
+    const verdict = h("div", { class: "verdict " + (result === "win" ? "win" : "lose") }, [
+      h("span", { class: "chip " + (result === "win" ? "teal" : "coral"),
+                  text: result === "win" ? "しょうり" : result === "lose" ? "はいぼく" : "ひきわけ" }),
+      h("span", { html: "<b>" + rows.length + "</b> ターンで決着" }),
+    ]);
+    return [verdict, h("div", { class: "card" }, [table])];
+  }
+
+  // ---- battle
+  function startBattle() {
+    const sim = simulate(G.stage, G.deck);
+    G.battle = {
+      events: sim.events, result: sim.result, i: -1, done: false, fast: false,
+      state: { php: PLAYER_MAX_HP, patk: PLAYER_BASE_ATK, ehp: G.stage.hp, awaken: false, eidx: 0 },
+      turn: 1, cardIdx: -1, timer: null,
+    };
+    if (!hasSeen(G.stage)) { save.seen.push(G.stage.id); writeSave(); }
+    go("battle");
+    scheduleStep(520);
+  }
+
+  function scheduleStep(ms) {
+    const b = G.battle;
+    if (!b) return;
+    clearTimeout(b.timer);
+    b.timer = setTimeout(() => { stepBattle(); if (!b.done) scheduleStep(b.fast ? 130 : 520); }, ms);
+  }
+
+  function stepBattle() {
+    const b = G.battle;
+    if (!b || b.done) return;
+    b.i++;
+    if (b.i >= b.events.length) { b.done = true; renderBattleBar(); return; }
+    const e = b.events[b.i];
+    const prev = b.state;
+    b.state = e.s;
+    b.cardIdx = e.idx === undefined ? b.cardIdx : e.idx;
+    if (e.t === "turn") b.turn = e.turn;
+    applyBattleEvent(e, prev);
+    if (e.t === "end") { b.done = true; renderBattleBar(); }
+  }
+
+  function applyBattleEvent(e, prev) {
+    const b = G.battle, s = b.state;
+    const enemyArt = el("enemyArt"), playerArt = el("playerArt");
+    const line = eventText(e);
+
+    if (e.t === "turn") pushLog("ターン " + e.turn, "turn");
+    else {
+      let cls = "";
+      if (e.t === "attack" || e.t === "boost") cls = "good";
+      else if (e.t === "enemyAtk" || e.t === "reckless") cls = "bad";
+      else if (e.t === "awaken" || e.t === "cond") cls = e.t === "cond" && !e.ok ? "" : "warn";
+      pushLog(line.filter(Boolean).join("　"), cls);
     }
-    return null;
+
+    if (e.t === "attack") { punch(enemyArt, "-" + e.dmg, "dmg"); Snd.hit(); }
+    if (e.t === "enemyAtk" && e.dmg > 0) { punch(playerArt, "-" + e.dmg, "dmg"); Snd.hurt(); }
+    if (e.t === "reckless") { punch(playerArt, "-2", "dmg"); Snd.hurt(); }
+    if (e.t === "heal" && e.amt > 0) { pop(playerArt, "+" + e.amt, "heal"); Snd.tap(); }
+    if (e.t === "enemyHeal" && e.amt > 0) { pop(enemyArt, "+" + e.amt, "heal"); Snd.tap(); }
+    if (e.t === "boost" || e.t === "awaken") Snd.buff();
+    if (e.t === "end") { (e.result === "win" ? Snd.win() : Snd.lose()); }
+
+    syncBattleStats();
   }
-  const call = (h, name, arg) => {
-    const fn = h && h.h_ && (typeof h.h_ === "function" ? (name === "tap" ? h.h_ : null) : h.h_[name]);
-    if (fn) fn(arg);
-    return !!fn;
+
+  function punch(art, txt, kind) {
+    if (!art) return;
+    art.classList.add("shake", "flash");
+    setTimeout(() => art.classList.remove("shake", "flash"), 220);
+    pop(art, txt, kind);
+  }
+  function pop(art, txt, kind) {
+    if (!art) return;
+    const n = h("div", { class: "pop " + kind, text: txt });
+    art.appendChild(n);
+    setTimeout(() => n.remove(), 950);
+  }
+  function pushLog(text, cls) {
+    const log = el("log");
+    if (!log || !text) return;
+    [].forEach.call(log.children, (c) => c.classList.remove("now"));
+    log.appendChild(h("div", { class: "ln now " + (cls || ""), text }));
+    while (log.children.length > 40) log.firstChild.remove();
+    log.parentNode.scrollTop = log.parentNode.scrollHeight;
+  }
+
+  function syncBattleStats() {
+    const b = G.battle, s = b.state, st = G.stage;
+    const set = (id, fn) => { const n = el(id); if (n) fn(n); };
+    set("ehpBar", (n) => { n.style.width = Math.max(0, s.ehp) / st.hp * 100 + "%"; });
+    set("ehpTxt", (n) => { n.textContent = Math.max(0, s.ehp) + " / " + st.hp; });
+    set("phpBar", (n) => { n.style.width = Math.max(0, s.php) / PLAYER_MAX_HP * 100 + "%"; });
+    set("phpTxt", (n) => { n.textContent = Math.max(0, s.php) + " / " + PLAYER_MAX_HP; });
+    set("patkTxt", (n) => { n.textContent = String(s.patk); });
+    set("turnTxt", (n) => { n.textContent = "ターン " + b.turn; });
+    set("awakenChip", (n) => { n.hidden = !s.awaken; });
+    set("nextRow", (n) => { n.hidden = s.ehp <= 0; });
+    set("nextTxt", (n) => {
+      const na = nextEnemyAct(st, s.eidx);
+      n.textContent = hasSeen(st) ? actShort(na) : "？？？";
+      n.className = "chip " + (na.t === "strong" ? "amber" : na.t === "charge" ? "teal" : "");
+    });
+    set("enemyArt", (n) => { n.classList.toggle("down", s.ehp <= 0); });
+    set("playerArt", (n) => { n.classList.toggle("down", s.php <= 0); });
+    const trace = el("trace");
+    if (trace) [].forEach.call(trace.children, (c, i) => {
+      c.classList.toggle("on", i === b.cardIdx);
+      c.classList.toggle("ghost", i >= G.deck.length);
+    });
+  }
+
+  function viewBattle() {
+    const st = G.stage, s = G.battle.state;
+    const enemy = h("div", { class: "card" }, [
+      h("div", { class: "fighter" }, [
+        h("div", { class: "art", id: "enemyArt" }, [spriteImg(st.sprite, 80)]),
+        h("div", { class: "info" }, [
+          h("div", { class: "row1" }, [
+            h("span", { class: "nm", text: st.name }),
+            h("span", { class: "tiny dim", id: "turnTxt", text: "ターン 1" }),
+          ]),
+          h("div", { class: "bar enemy" }, [h("i", { id: "ehpBar", style: "width:100%" })]),
+          h("div", { class: "stat-row" }, [
+            h("span", { class: "k", text: "HP" }),
+            h("span", { class: "v", id: "ehpTxt", text: st.hp + " / " + st.hp }),
+          ]),
+          h("div", { class: "row1", id: "nextRow" }, [
+            h("span", { class: "tiny dim", text: "つぎの手" }),
+            h("span", { class: "chip", id: "nextTxt", text: "…" }),
+          ]),
+        ]),
+      ]),
+    ]);
+
+    const player = h("div", { class: "card" }, [
+      h("div", { class: "fighter small" }, [
+        h("div", { class: "art", id: "playerArt" }, [spriteImg("hero", 64)]),
+        h("div", { class: "info" }, [
+          h("div", { class: "row1" }, [
+            h("span", { class: "nm", text: "ゆうしゃ" }),
+            h("span", { class: "chip amber", id: "awakenChip", hidden: "", text: "かくせい" }),
+          ]),
+          h("div", { class: "bar player" }, [h("i", { id: "phpBar", style: "width:100%" })]),
+          h("div", { class: "stat-row" }, [
+            h("span", { class: "k", text: "HP" }),
+            h("span", { class: "v", id: "phpTxt", text: PLAYER_MAX_HP + " / " + PLAYER_MAX_HP }),
+          ]),
+          h("div", { class: "stat-row" }, [
+            h("span", { class: "k", text: "こうげき力" }),
+            h("span", { class: "v", id: "patkTxt", text: String(PLAYER_BASE_ATK) }),
+          ]),
+        ]),
+      ]),
+      h("div", { class: "trace", id: "trace", style: "margin-top:12px" },
+        Array.from({ length: MAX_DECK }, (_, i) =>
+          h("div", { class: "s" + (i >= G.deck.length ? " ghost" : "") }))),
+    ]);
+
+    const log = h("div", { class: "card", style: "flex:1;min-height:150px;overflow-y:auto" },
+      [h("div", { id: "log" })]);
+
+    return [enemy, player, log];
+  }
+
+  function renderBattleBar() {
+    const b = G.battle;
+    barEl.innerHTML = "";
+    if (b.done) barEl.appendChild(button("けっかを見る", () => finishBattle(), { primary: true }));
+    else {
+      barEl.appendChild(button("1つ進める", () => { stepBattle(); scheduleStep(b.fast ? 130 : 520); }));
+      barEl.appendChild(button("さいごまで", () => {
+        b.fast = true;
+        clearTimeout(b.timer);
+        while (!b.done) stepBattle();
+        renderBattleBar();
+      }, { primary: true }));
+    }
+  }
+
+  function finishBattle() {
+    const b = G.battle;
+    clearTimeout(b.timer);
+    G.result = b.result;
+    G.gained = [];
+    if (b.result === "win" && save.cleared.indexOf(G.stage.id) < 0) {
+      save.cleared.push(G.stage.id);
+      G.gained = G.stage.reward.slice();
+      writeSave();
+    }
+    go("result");
+  }
+
+  // ---- result
+  function viewResult() {
+    const won = G.result === "win";
+    const out = [
+      h("div", { class: "banner " + (won ? "win" : "lose") }, [
+        h("h2", { text: won ? "しょうり！" : G.result === "lose" ? "はいぼく…" : "ひきわけ" }),
+        h("div", { class: "sub", text: won ? G.stage.name + " を たおした" : "作戦を組み直して もう一度" }),
+      ]),
+    ];
+    if (won && G.gained.length) {
+      out.push(h("div", { class: "card" }, [h("h2", { text: "カードを おぼえた！" })].concat(
+        G.gained.map((id) => {
+          const c = CARDS[id];
+          return h("div", { class: "reward" }, [
+            kindDot(c.kind),
+            h("div", {}, [h("div", { class: "n", style: "font-weight:650", text: c.name }),
+                          h("div", { class: "d small muted", text: c.desc })]),
+          ]);
+        }))));
+    } else if (!won) {
+      out.push(h("div", { class: "card" }, [
+        h("h2", { text: "ヒント" }),
+        h("div", { class: "small muted", text: G.stage.hint }),
+      ]));
+    }
+    return out;
+  }
+
+  function viewEnding() {
+    return [
+      h("div", { class: "banner win" }, [
+        h("h2", { text: "ぜんステージ クリア！" }),
+        h("div", { class: "sub", text: "作戦だけで 竜を たおした" }),
+      ]),
+      h("div", { class: "card", style: "text-align:center" }, [spriteImg("dragon", 128)]),
+      h("div", { class: "card" }, [
+        h("div", { class: "small muted", text: "強さはステータスではなく、組み立てた作戦のことでした。カードを変えれば、別の答えも見つかります。" }),
+      ]),
+    ];
+  }
+
+  // ------------------------------------------------------------- rendering
+  const SCREENS = {
+    title:  { title: "オートバトルRPG", view: viewTitle, back: null },
+    howto:  { title: "あそびかた", view: viewHowto, back: "title" },
+    map:    { title: "ステージ", view: viewMap, back: "title" },
+    info:   { title: "てきの じょうほう", view: viewInfo, back: "map" },
+    deck:   { title: "さくせん", view: viewDeck, back: "map" },
+    pick:   { title: "カードを えらぶ", view: viewPick, back: "deck" },
+    plan:   { title: "ためしうち", view: viewPlan, back: "deck" },
+    battle: { title: "バトル", view: viewBattle, back: null },
+    result: { title: "けっか", view: viewResult, back: null },
+    ending: { title: "おわり", view: viewEnding, back: null },
   };
 
-  // A press becomes a drag once the finger travels far enough. Only the deck
-  // slots use that, but ordering is the whole game, so it earns the gesture.
-  const DRAG_SLOP = 10;
-  let touch = null;
+  function render() {
+    const sc = SCREENS[G.screen];
+    titleEl.textContent = sc.title;
+    metaEl.textContent = metaFor(G.screen);
+    backEl.hidden = !sc.back;
+    backEl.onclick = sc.back ? () => { Snd.init(); Snd.back(); go(sc.back); } : null;
 
-  cv.addEventListener("pointerdown", (ev) => {
-    ev.preventDefault();
+    viewEl.innerHTML = "";
+    sc.view().forEach((n) => n && viewEl.appendChild(n));
+    viewEl.scrollTop = 0;
+
+    barEl.innerHTML = "";
+    actionsFor(G.screen).forEach((b) => barEl.appendChild(b));
+
+    if (G.screen === "battle") { syncBattleStats(); renderBattleBar(); }
+  }
+
+  function metaFor(screen) {
+    if (screen === "map") return ownedCards().length + " / " + ALL_CARDS.length + " まい";
+    if (screen === "deck" || screen === "plan") return "VS " + G.stage.name;
+    if (screen === "info") return "ステージ " + G.stage.id;
+    return "";
+  }
+
+  function actionsFor(screen) {
+    switch (screen) {
+      case "title":
+        return [button("あそびかた", () => go("howto")), button("はじめる", () => go("map"), { primary: true })];
+      case "howto":
+        return [button("とじる", () => go("title"), { primary: true })];
+      case "map":
+        return [];
+      case "info":
+        return [button("さくせんへ", () => go("deck"), { primary: true })];
+      case "deck":
+        return [
+          button("ためしうち", () => go("plan"), { disabled: !G.deck.length || !hasSeen(G.stage) }),
+          button("たたかう", () => { saveDeck(); startBattle(); }, { primary: true, disabled: !G.deck.length }),
+        ];
+      case "pick":
+        return [button("やめる", () => go("deck"))];
+      case "plan":
+        return [button("さくせんへ", () => go("deck")), button("たたかう", () => { saveDeck(); startBattle(); }, { primary: true })];
+      case "battle":
+        return [];
+      case "result":
+        return [
+          button("ステージへ", () => go("map")),
+          button(G.result === "win" && G.stage.id === STAGES[STAGES.length - 1].id ? "エンディング" : "さくせんへ",
+            () => {
+              if (G.result === "win" && G.stage.id === STAGES[STAGES.length - 1].id) go("ending");
+              else go("deck");
+            }, { primary: true }),
+        ];
+      case "ending":
+        return [button("タイトルへ", () => go("title"), { primary: true })];
+      default:
+        return [];
+    }
+  }
+
+  el("sndBtn").addEventListener("click", () => {
     Snd.init();
-    const p = toScreen(ev);
-    touch = { p0: p, p, hit: hitAt(p), moved: false };
-    if (cv.setPointerCapture) { try { cv.setPointerCapture(ev.pointerId); } catch (e) { /* older iOS */ } }
-    call(touch.hit, "down", p);
+    Snd.on = !Snd.on;
+    el("sndBtn").textContent = Snd.on ? "♪" : "🔇";
+    el("sndBtn").style.color = Snd.on ? "" : "var(--dim)";
+    if (Snd.on) Snd.ok();
   });
 
-  cv.addEventListener("pointermove", (ev) => {
-    if (!touch) return;
-    const p = toScreen(ev);
-    touch.p = p;
-    if (!touch.moved && Math.hypot(p.x - touch.p0.x, p.y - touch.p0.y) > DRAG_SLOP) touch.moved = true;
-    if (touch.moved) call(touch.hit, "drag", p);
-  });
-
-  function endTouch() {
-    if (!touch) return;
-    const t = touch;
-    touch = null;
-    if (t.moved) {
-      if (!call(t.hit, "drop", t.p)) call(t.hit, "cancel");
-      return;
-    }
-    // a tap only fires if it lifts on the region it started in
-    if (t.hit && hitAt(t.p) === t.hit) call(t.hit, "tap", t.p);
-    else call(t.hit, "cancel");
-  }
-  cv.addEventListener("pointerup", (ev) => { ev.preventDefault(); endTouch(); });
-  cv.addEventListener("pointercancel", () => { call(touch && touch.hit, "cancel"); touch = null; });
-
-  // ---------------------------------------------------------------- loop
-  let last = 0;
-  function loop(t) {
-    requestAnimationFrame(loop);
-    if (t - last < 33) return;
-    last = t;
-    G.frame++;
-
-    const b = G.battle;
-    if (b) {
-      if (b.flashE > 0) b.flashE--;
-      if (b.flashP > 0) b.flashP--;
-      if (b.lungeP > 0) b.lungeP--;
-      if (b.lungeE > 0) b.lungeE--;
-      if (b.pop && b.pop.life > 0) b.pop.life--;
-      if (G.screen === "battle" && !b.done) {
-        b.timer++;
-        if (b.i < 0 || b.timer >= b.speed / 2) { b.timer = 0; stepBattle(); }
-      }
-    }
-    draw();
-  }
+  // test hook: lets the automated checks assert what a tap actually did
+  const probe = () => { window.__abrpg = { screen: G.screen, deck: G.deck.slice() }; };
+  const origRender = render;
+  render = function () { origRender(); probe(); };
 
   loadSave();
-  const boot = () => { initPatterns(); draw(); requestAnimationFrame(loop); };
-  if (document.fonts && document.fonts.load) {
-    Promise.race([
-      document.fonts.load('16px "DotGothic16"').then(() => document.fonts.ready),
-      new Promise((r) => setTimeout(r, 1500)),
-    ]).then(boot, boot);
-  } else boot();
+  render();
 })();
 </script>
 </body>
