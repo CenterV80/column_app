@@ -98,6 +98,44 @@ STAGES.forEach((stage, si) => {
   }
 });
 
+// A card that never actually fires in any winning deck is a trap: it reads as
+// an option but cannot be played. かいふく was exactly that before it became a
+// once-per-battle resource, so this is now checked every run.
+console.log("\nカードごとの実効性（勝ちデッキの中で実際に発動した回数）");
+const FIRE = {
+  attack: (e) => e.t === "attack",
+  heal: (e) => e.t === "heal" && e.amt > 0,
+  guard: (e) => e.t === "guard",
+  reckless: (e) => e.t === "reckless",
+  plus2: (e) => e.t === "boost" && e.card === "plus2",
+  times2: (e) => e.t === "boost" && e.card === "times2",
+  power: (e) => e.t === "boost" && e.card === "power",
+  ifHalf: (e) => e.t === "cond" && e.card === "ifHalf" && e.ok,
+  ifStrong: (e) => e.t === "cond" && e.card === "ifStrong" && e.ok,
+  ifCharge: (e) => e.t === "cond" && e.card === "ifCharge" && e.ok,
+  ifPinch: (e) => e.t === "cond" && e.card === "ifPinch" && e.ok,
+};
+const fired = {};
+Object.keys(FIRE).forEach((id) => { fired[id] = 0; });
+STAGES.forEach((stage, si) => {
+  const pool = poolFor(si);
+  const maxLen = Math.min(MAX_DECK, pool.length >= 8 ? 5 : 6);
+  for (const deck of decks(pool, maxLen)) {
+    const r = simulate(stage, deck);
+    if (r.result !== "win") continue;
+    Object.keys(FIRE).forEach((id) => {
+      if (deck.indexOf(id) >= 0 && r.events.some(FIRE[id])) fired[id]++;
+    });
+  }
+});
+Object.keys(FIRE).forEach((id) => {
+  const n = fired[id];
+  const ok = n > 0;
+  if (!ok) allOk = false;
+  console.log(`  ${ok ? "✓" : "✗"} ${CARDS[id].name.padEnd(12, "　")} ${n} 通りの勝ちデッキで発動` +
+    (ok ? "" : "  ← 使いようのない罠カードです"));
+});
+
 // The boss should demand the 累乗 combo, not raw attrition.
 const boss = STAGES[STAGES.length - 1];
 const noPower = poolFor(STAGES.length - 1).filter((c) => c !== "power");

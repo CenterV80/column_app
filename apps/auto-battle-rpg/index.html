@@ -6,22 +6,32 @@
 <title>オートバトルRPG</title>
 <style>
   :root {
-    color-scheme: dark;
-    --bg: #0e1118;
-    --surface: #171c28;
-    --surface-2: #1f2637;
-    --line: #2d3648;
-    --text: #e9edf7;
-    --muted: #98a2b8;
-    --dim: #6b7690;
-    --accent: #7c6cff;
-    --accent-soft: #7c6cff26;
-    --teal: #34d8a8;
-    --coral: #ff6b7a;
-    --amber: #ffc24b;
-    --sky: #5bc8ff;
-    --radius: 14px;
+    color-scheme: light;
+    --bg: #eef0ee;
+    --paper: #fbfaf8;
+    --surface: #ffffff;
+    --surface-2: #f2f4f4;
+    --line: #e0e2e0;
+    --line-soft: #ebedec;
+    --text: #303c44;
+    --muted: #6f7d87;
+    --dim: #9aa6ad;
+
+    /* the knight: steel-ice blue — the player, and every control you press */
+    --accent: #5b8ea6;
+    --accent-soft: #5b8ea616;
+    --accent-deep: #47758b;
+    /* the winged one: coral — the enemy, damage, anything against you */
+    --coral: #e0726a;
+    /* leather and hair, kept for a single warm highlight */
+    --amber: #c89042;
+    --teal: #5b8ea6;
+    --sky: #7fa8bd;
+
+    --radius: 16px;
     --tap: 48px;
+    --shadow: 0 1px 2px #303c440d, 0 6px 18px #303c440f;
+    --shadow-lift: 0 2px 6px #303c4414, 0 14px 30px #303c441a;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -59,7 +69,7 @@
     gap: 10px;
     padding: max(10px, env(safe-area-inset-top)) 14px 10px;
     border-bottom: 1px solid var(--line);
-    background: var(--surface);
+    background: var(--paper);
   }
   #topbar .back {
     width: 40px; height: 40px;
@@ -98,7 +108,7 @@
     gap: 10px;
     padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--line);
-    background: var(--surface);
+    background: var(--paper);
   }
   #actionbar:empty { display: none; }
 
@@ -120,16 +130,17 @@
     transition: transform .06s ease, background .12s ease;
   }
   .btn:active { transform: scale(.985); background: var(--line); }
-  .btn.primary { background: var(--accent); border-color: transparent; color: #fff; }
-  .btn.primary:active { background: #6a5aee; }
+  .btn.primary { background: var(--accent); border-color: transparent; color: #fff; box-shadow: var(--shadow); }
+  .btn.primary:active { background: var(--accent-deep); }
   .btn:disabled { opacity: .4; cursor: default; }
   .btn:disabled:active { transform: none; background: var(--surface-2); }
 
   .card {
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-soft);
     border-radius: var(--radius);
     padding: 14px;
+    box-shadow: var(--shadow);
   }
   .card h2 { font-size: 13px; font-weight: 650; color: var(--muted); letter-spacing: .04em; margin-bottom: 10px; }
 
@@ -140,18 +151,18 @@
     background: var(--surface-2); color: var(--muted);
     border: 1px solid var(--line);
   }
-  .chip.teal  { color: var(--teal);   border-color: #34d8a840; background: #34d8a814; }
-  .chip.coral { color: var(--coral);  border-color: #ff6b7a40; background: #ff6b7a14; }
-  .chip.amber { color: var(--amber);  border-color: #ffc24b40; background: #ffc24b14; }
-  .chip.violet{ color: var(--accent); border-color: #7c6cff40; background: var(--accent-soft); }
-  .chip.sky   { color: var(--sky);    border-color: #5bc8ff40; background: #5bc8ff14; }
+  .chip.teal  { color: var(--accent); border-color: #5b8ea640; background: #5b8ea614; }
+  .chip.coral { color: var(--coral);  border-color: #e0726a40; background: #e0726a14; }
+  .chip.amber { color: var(--amber);  border-color: #c8904240; background: #c8904214; }
+  .chip.violet{ color: var(--accent); border-color: #5b8ea640; background: var(--accent-soft); }
+  .chip.sky   { color: var(--sky);    border-color: #7fa8bd40; background: #7fa8bd14; }
 
   .sprite { image-rendering: pixelated; display: block; }
 
-  .bar { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--line); }
+  .bar { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--line-soft); }
   .bar > i { display: block; height: 100%; border-radius: 999px; transition: width .32s cubic-bezier(.4,0,.2,1); }
-  .bar.enemy > i { background: linear-gradient(90deg, #ff8b7a, var(--coral)); }
-  .bar.player > i { background: linear-gradient(90deg, #4be3b5, var(--teal)); }
+  .bar.enemy > i { background: linear-gradient(90deg, #f0978d, var(--coral)); }
+  .bar.player > i { background: linear-gradient(90deg, #7fb0c4, var(--accent)); }
 
   .stat-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 13px; }
   .stat-row .k { color: var(--muted); }
@@ -165,14 +176,15 @@
   /* ---------- title ---------- */
   .hero {
     border-radius: 18px;
-    background: radial-gradient(120% 90% at 78% 12%, #2a2150 0%, #141a28 58%, #10131d 100%);
-    border: 1px solid var(--line);
-    padding: 22px 116px 18px 18px;
+    background: radial-gradient(115% 95% at 80% 18%, #fde4de 0%, #f4eef0 46%, #eef2f3 100%);
+    border: 1px solid var(--line-soft);
+    box-shadow: var(--shadow);
+    padding: 22px 104px 18px 18px;
     position: relative;
     overflow: hidden;
   }
   .hero .dragon { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); opacity: .9; }
-  .hero .kicker { font-size: 12px; letter-spacing: .18em; color: var(--accent); font-weight: 700; }
+  .hero .kicker { font-size: 12px; letter-spacing: .18em; color: var(--coral); font-weight: 700; }
   .hero h2 { font-size: 27px; line-height: 1.2; margin: 6px 0 8px; font-weight: 750; letter-spacing: -.01em; }
   .hero p { font-size: 13px; color: var(--muted); }
 
@@ -190,9 +202,9 @@
   .stage {
     display: flex; align-items: center; gap: 12px;
     width: 100%; text-align: left;
-    background: var(--surface); border: 1px solid var(--line);
+    background: var(--surface); border: 1px solid var(--line-soft);
     border-radius: var(--radius); padding: 12px; cursor: pointer;
-    font: inherit; color: var(--text);
+    font: inherit; color: var(--text); box-shadow: var(--shadow);
     transition: transform .06s ease, border-color .12s ease;
   }
   .stage:active { transform: scale(.99); border-color: var(--accent); }
@@ -214,12 +226,12 @@
     flex: none; min-width: 58px; border-radius: 10px; padding: 6px 8px;
     background: var(--surface-2); border: 1px solid var(--line); text-align: center;
   }
-  .sched .t.strong { border-color: #ffc24b66; background: #ffc24b1a; }
-  .sched .t.safe { border-color: #34d8a855; background: #34d8a814; }
+  .sched .t.strong { border-color: #e0726a66; background: #e0726a14; }
+  .sched .t.safe { border-color: #5b8ea655; background: #5b8ea612; }
   .sched .t .n { font-size: 10.5px; color: var(--dim); font-weight: 700; letter-spacing: .06em; }
   .sched .t .a { font-size: 12.5px; font-weight: 650; white-space: nowrap; }
-  .sched .t.strong .a { color: var(--amber); }
-  .sched .t.safe .a { color: var(--teal); }
+  .sched .t.strong .a { color: var(--coral); }
+  .sched .t.safe .a { color: var(--accent); }
 
   /* ---------- deck slots ---------- */
   .slots { display: flex; flex-direction: column; gap: 8px; }
@@ -230,7 +242,7 @@
     touch-action: pan-y;
   }
   .slot.indent { margin-left: 18px; border-left: 3px solid var(--amber); }
-  .slot.dragging { opacity: .92; border-color: var(--accent); box-shadow: 0 10px 24px #0008; position: relative; z-index: 5; }
+  .slot.dragging { opacity: .96; border-color: var(--accent); box-shadow: var(--shadow-lift); position: relative; z-index: 5; }
   .slot.drop-target { border-color: var(--accent); background: var(--accent-soft); }
   .slot .handle {
     width: 34px; min-height: 44px; flex: none;
@@ -246,6 +258,8 @@
     color: var(--muted); font-size: 15px; cursor: pointer;
   }
   .slot .del:active { background: var(--line); color: var(--coral); }
+  .slot.dead { background: var(--surface-2); border-style: dashed; }
+  .slot.dead .name { color: var(--muted); }
   .slot.empty { border-style: dashed; justify-content: center; padding: 0; }
   .slot.empty button {
     width: 100%; min-height: var(--tap); background: none; border: 0;
@@ -260,8 +274,8 @@
     border: 1px solid var(--line); background: var(--surface);
     font-size: 13.5px;
   }
-  .verdict.win  { border-color: #34d8a855; background: #34d8a812; }
-  .verdict.lose { border-color: #ff6b7a55; background: #ff6b7a12; }
+  .verdict.win  { border-color: #5b8ea655; background: #5b8ea610; }
+  .verdict.lose { border-color: #e0726a55; background: #e0726a10; }
   .verdict b { font-variant-numeric: tabular-nums; }
 
   /* ---------- card picker ---------- */
@@ -283,7 +297,7 @@
   table.plan { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
   table.plan th { text-align: left; font-size: 11.5px; color: var(--dim); font-weight: 650; padding: 0 6px 8px; letter-spacing: .04em; }
   table.plan td { padding: 9px 6px; border-top: 1px solid var(--line); vertical-align: top; }
-  table.plan tr.hit td { background: #ff6b7a0d; }
+  table.plan tr.hit td { background: #e0726a0d; }
   table.plan .turn { color: var(--dim); font-weight: 700; width: 20px; }
   table.plan .mine { font-weight: 600; }
   table.plan .num { text-align: right; width: 34px; }
@@ -293,8 +307,8 @@
   .fighter { display: flex; gap: 12px; align-items: center; }
   .fighter .art {
     width: 92px; height: 92px; flex: none; border-radius: 13px;
-    background: radial-gradient(70% 70% at 50% 35%, var(--surface-2), var(--surface));
-    border: 1px solid var(--line);
+    background: radial-gradient(75% 75% at 50% 32%, #ffffff, var(--surface-2));
+    border: 1px solid var(--line-soft);
     display: grid; place-items: center; position: relative; overflow: hidden;
   }
   .fighter.small .art { width: 72px; height: 72px; }
@@ -304,7 +318,7 @@
 
   @keyframes hit { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
   .art.shake { animation: hit .22s ease; }
-  .art.flash > .sprite { filter: brightness(2.6) saturate(.3); }
+  .art.flash > .sprite { filter: brightness(1.9) saturate(.2) contrast(.8); }
   .art.down > .sprite { opacity: .25; filter: grayscale(1); transition: opacity .4s ease; }
 
   .pop {
@@ -312,10 +326,10 @@
     transform: translateX(-50%);
     font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums;
     pointer-events: none; animation: rise .9s ease-out forwards;
-    text-shadow: 0 2px 8px #000a;
+    text-shadow: 0 2px 8px #ffffffcc, 0 1px 2px #303c4433;
   }
   .pop.dmg { color: var(--coral); }
-  .pop.heal { color: var(--teal); }
+  .pop.heal { color: var(--accent); }
   @keyframes rise { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.8); }
                     22% { opacity: 1; transform: translate(-50%, -4px) scale(1.08); }
                     100% { opacity: 0; transform: translate(-50%, -34px) scale(1); } }
@@ -333,14 +347,14 @@
   #log .ln.turn { color: var(--dim); font-size: 11.5px; font-weight: 700; letter-spacing: .07em;
                   margin-top: 4px; text-transform: uppercase; }
   #log .ln.now { color: var(--text); font-weight: 600; }
-  #log .ln.good { color: var(--teal); }
+  #log .ln.good { color: var(--accent-deep); }
   #log .ln.bad { color: var(--coral); }
   #log .ln.warn { color: var(--amber); }
 
   /* ---------- result ---------- */
   .banner { border-radius: 16px; padding: 20px 16px; text-align: center; border: 1px solid var(--line); }
-  .banner.win { background: linear-gradient(180deg, #34d8a81f, transparent); border-color: #34d8a855; }
-  .banner.lose { background: linear-gradient(180deg, #ff6b7a1a, transparent); border-color: #ff6b7a55; }
+  .banner.win { background: linear-gradient(180deg, #5b8ea61f, transparent); border-color: #5b8ea655; }
+  .banner.lose { background: linear-gradient(180deg, #e0726a1a, transparent); border-color: #e0726a55; }
   .banner h2 { font-size: 24px; font-weight: 750; }
   .banner .sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
 
@@ -374,8 +388,8 @@
   const CARDS = {
     attack:   { id:"attack",   name:"こうげき",     kind:"action", short:"こうげき",
                 desc:"こうげき力ぶん てきに ダメージ" },
-    heal:     { id:"heal",     name:"かいふく",     kind:"action", short:"かいふく",
-                desc:"じぶんの HPを 3かいふく する" },
+    heal:     { id:"heal",     name:"かいふく",     kind:"state",  short:"かいふく",
+                desc:"HPを4かいふく 1バトル1かい まんタンなら おんぞん" },
     guard:    { id:"guard",    name:"ぼうぎょ",     kind:"state",  short:"ぼうぎょ",
                 desc:"このターン うけるダメージ-4 1バトル1かい" },
     reckless: { id:"reckless", name:"すてみ",       kind:"action", short:"すてみ",
@@ -400,10 +414,10 @@
 
   const STAGES = [
     {
-      id: 1, name: "スライム", sprite: "slime", hp: 6, armor: 0,
-      pattern: [{ t:"attack", v:2 }],
+      id: 1, name: "スライム", sprite: "slime", hp: 9, armor: 0,
+      pattern: [{ t:"attack", v:3 }],
       reward: ["reckless", "plus2"],
-      hint: "まいターン こうげき2。まずは なぐり合いで かてる。",
+      hint: "なぐり合うだけでは 1ターン たりない。かいふくを 入れて 1回ぶん ねばる。",
     },
     {
       id: 2, name: "ゴブリン", sprite: "goblin", hp: 12, armor: 0,
@@ -433,6 +447,7 @@
 
   const MAX_DECK = 6;
   const MAX_TURNS = 30;
+  const HEAL_AMOUNT = 4;
   const PLAYER_MAX_HP = 10;
   const PLAYER_BASE_ATK = 2;
   const AWAKEN_HP = 2;
@@ -496,9 +511,16 @@
         // Boosts and states are once-per-battle resources: they resolve
         // without ending the turn, so a block can brace and still act.
         if (c.kind === "boost" || c.kind === "state") {
-          const blocked = P.used[c.id] ? "used" : (c.needAwaken && !P.awaken ? "noawaken" : null);
+          const blocked = P.used[c.id] ? "used"
+                        : (c.needAwaken && !P.awaken) ? "noawaken"
+                        : (c.id === "heal" && P.hp >= P.maxHp) ? "full" : null;
           if (blocked) {
             push({ t: "boostFail", card: c.id, idx: i, reason: blocked });
+          } else if (c.id === "heal") {
+            const before = P.hp;
+            P.hp = Math.min(P.maxHp, P.hp + HEAL_AMOUNT);
+            P.used[c.id] = true;
+            push({ t: "heal", card: c.id, idx: i, amt: P.hp - before });
           } else if (c.id === "guard") {
             P.guard = 4;
             P.used[c.id] = true;
@@ -775,12 +797,14 @@
   // The pixel art stays — it is the one retro thing worth keeping — but each
   // creature now gets its own colour ramp instead of the four greens.
   const RAMPS = {
-    slime:  ["#0f3524", "#1f7a55", "#3ddc97", "#b7f5d8"],
-    goblin: ["#37220f", "#8a5a1f", "#d99b3a", "#f8dda6"],
-    golem:  ["#1a2130", "#45506b", "#8593b0", "#cfd8e8"],
-    witch:  ["#241542", "#5b3a9e", "#9b7ae8", "#e2d5ff"],
-    dragon: ["#3d1018", "#9c2432", "#e8545f", "#ffb9bd"],
-    hero:   ["#0d2739", "#1d5f8a", "#46a8dc", "#c6eaff"],
+    slime:  ["#2f5a45", "#5c9b7a", "#8fc9a8", "#e2f2e9"],
+    goblin: ["#6b4423", "#a9743c", "#d5a86a", "#f6e6ce"],
+    golem:  ["#474f58", "#79838e", "#a9b3bd", "#eaedf0"],
+    witch:  ["#4a3663", "#7b5f9e", "#ab92c9", "#ede6f4"],
+    // the winged one from the reference sheet
+    dragon: ["#8a3a35", "#d2665c", "#f09386", "#ffdcd4"],
+    // the knight: steel and ice, with the leather kept as its warm note
+    hero:   ["#3d4f5c", "#6e8c9e", "#a8c4d2", "#eaf3f8"],
   };
   const TONE_OF = { "0": 0, "1": 1, "2": 2, "3": 3 };
   const spriteCache = {};
@@ -927,6 +951,21 @@
     return out;
   }
 
+  // Index from which cards can never execute: once an action runs with no
+  // condition guarding it, the turn ends there, every turn.
+  function deadFrom(deck) {
+    let guarded = false;
+    for (let i = 0; i < deck.length; i++) {
+      const c = CARDS[deck[i]];
+      if (c.kind === "cond") { guarded = true; continue; }
+      if (c.kind === "action") {
+        if (!guarded) return i + 1;
+        guarded = false;
+      }
+    }
+    return deck.length;
+  }
+
   // One-line verdict for the deck screen.
   function planSummary(stage, deck) {
     const { rows, result } = planRows(stage, deck);
@@ -944,7 +983,10 @@
       case "cond": return [c.name, e.ok ? "→ せいりつ！ つぎへ" : "→ ふせいりつ。とばす"];
       case "boost": return [c.name + " はつどう！", "こうげき力 " + e.from + " → " + e.to];
       case "guard": return ["ぼうぎょの かまえ！", "うけるダメージ -4"];
-      case "boostFail": return [c.name + " は つかえない", e.reason === "used" ? "→ もう つかった" : "→ かくせい していない"];
+      case "boostFail": return [c.name + " は つかわない",
+        e.reason === "used" ? "→ もう つかった"
+        : e.reason === "full" ? "→ HPが まんタン。とっておく"
+        : "→ かくせい していない"];
       case "attack": return ["こうげき！", "てきに " + e.dmg + " ダメージ"];
       case "heal": return ["かいふく！", e.amt > 0 ? "HPが " + e.amt + " かいふく" : "HPは まんタン"];
       case "reckless": return ["すてみ！", "HP-2 こうげき力+2"];
@@ -1009,7 +1051,7 @@
 
   // ---- title
   function viewTitle() {
-    const dragon = spriteImg("dragon", 112);
+    const dragon = spriteImg("dragon", 96);
     dragon.classList.add("dragon");
     return [
       h("div", { class: "hero" }, [
@@ -1035,9 +1077,10 @@
   // ---- how to play
   const HOWTO = [
     { t: "作戦の組みかた", d: "カードを上から順に並べると、それがそのまま作戦になります。スロットを押すとカードを選べ、左のハンドルをドラッグすると順番を入れ替えられます。" },
-    { t: "1ターンの流れ", d: "上から順にカードを読みます。条件は、成立したら次へ、不成立ならそのブロックを飛ばして次の作戦へ。強化・守りは発動して次へ進み、行動を1枚実行するとターンが終わります。" },
+    { t: "1ターンの流れ", d: "上から順にカードを読みます。条件は、成立したら次へ、不成立ならそのブロックを飛ばして次の作戦へ。強化・守り・かいふくは発動して次へ進み、行動を1枚実行するとターンが終わります。" },
+    { t: "順番がすべて", d: "行動を実行した時点でターンが終わるので、その下にあるカードには到達しません。かいふくや強化は、こうげきより上に置いてください。到達しないカードは作戦画面で「とどかない」と表示されます。" },
     { t: "ブロックの形", d: "［ピンチ?］→［るいじょう］→［こうげき］と並べると「ピンチのときだけ必殺」になります。その下に［こうげき］を置けば、条件を満たさない普段はそちらが使われます。" },
-    { t: "大事なルール", d: "強化と守りは1バトルに1回だけ。使う順番で結果が変わります。HP2以下で「かくせい」し、るいじょうはかくせい中しか撃てません。" },
+    { t: "大事なルール", d: "強化・守り・かいふくは1バトルに1回だけ。使う順番で結果が変わります。かいふくはHPが満タンのときは温存され、減ってから発動します。HP2以下で「かくせい」し、るいじょうはかくせい中しか撃てません。" },
     { t: "計算して組む", d: "作戦画面の上に敵の手がターン順に並びます。「ためしうち」を押せば、戦う前に結果を全部計算できます。" },
   ];
   function viewHowto() {
@@ -1115,6 +1158,7 @@
   function viewDeck() {
     const st = G.stage, known = hasSeen(st);
     const ind = deckIndents(G.deck);
+    const dead = deadFrom(G.deck);
 
     const sched = h("div", { class: "card" }, [
       h("h2", { text: "てきの手" }),
@@ -1124,7 +1168,7 @@
     ]);
 
     const slots = h("div", { class: "slots", id: "slots" });
-    G.deck.forEach((id, i) => slots.appendChild(slotRow(id, i, ind[i])));
+    G.deck.forEach((id, i) => slots.appendChild(slotRow(id, i, ind[i], i >= dead)));
     if (G.deck.length < MAX_DECK) {
       slots.appendChild(h("div", { class: "slot empty" }, [
         h("button", {
@@ -1134,7 +1178,12 @@
       ]));
     }
 
-    const out = [sched, h("div", { class: "card" }, [h("h2", { text: "さくせん（上から順に実行）" }), slots])];
+    const deckCard = h("div", { class: "card" }, [h("h2", { text: "さくせん（上から順に実行）" }), slots]);
+    if (dead < G.deck.length) {
+      deckCard.appendChild(h("div", { class: "tiny", style: "color:var(--coral);margin-top:10px",
+        text: "※ " + (dead + 1) + "番目より下のカードは実行されません。じょうけんで分けるか、上へ動かしてください。" }));
+    }
+    const out = [sched, deckCard];
 
     if (known && G.deck.length) {
       const p = planSummary(st, G.deck);
@@ -1146,16 +1195,17 @@
     return out;
   }
 
-  function slotRow(id, i, indent) {
+  function slotRow(id, i, indent, dead) {
     const c = CARDS[id];
-    const row = h("div", { class: "slot" + (indent ? " indent" : ""), "data-i": i }, [
+    const row = h("div", { class: "slot" + (indent ? " indent" : "") + (dead ? " dead" : ""), "data-i": i }, [
       h("div", { class: "handle", text: "⠿" }),
       h("div", { class: "main", onclick: () => { Snd.init(); Snd.ok(); G.slotIndex = i; go("pick"); } }, [
         h("div", { class: "name" }, [
           kindDot(c.kind), c.name,
           (c.kind === "boost" || c.kind === "state") ? h("span", { class: "chip", text: "1回" }) : null,
+          dead ? h("span", { class: "chip coral", text: "とどかない" }) : null,
         ]),
-        h("div", { class: "desc", text: c.desc }),
+        h("div", { class: "desc", text: dead ? "上の行動でターンが終わるので、ここまで来ません" : c.desc }),
       ]),
       h("button", {
         class: "del", text: "✕", "aria-label": "けす",
