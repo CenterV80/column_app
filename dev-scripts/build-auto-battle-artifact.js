@@ -34,9 +34,8 @@ cut(/<body>\s*/i, "<body>");
 cut(/<\/body>\s*/i, "</body>");
 cut(/<\/html>\s*/i, "</html>");
 
-// The category link only exists inside the site; drop that line, keep the
-// keyboard help around it.
-cut(/\s*<br>\s*\n\s*<a href="\.\.\/\.\.\/categories\/mini-apps\/index\.html">[^<]*<\/a>\s*\n/, "category link");
+// The category link only exists inside the site, so the whole footer goes.
+cut(/\s*<p id="footer">[\s\S]*?<\/p>\s*\n/, "site footer");
 
 fs.writeFileSync(out, html.trimStart());
 console.log(`wrote ${out} (${(html.length / 1024).toFixed(0)}KB)`);
