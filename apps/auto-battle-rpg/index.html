@@ -32,7 +32,7 @@
     --accent-deep: #2b7fd8;
     --coral: #ff4b3e;    /* the enemy: its damage, its strong attack */
     --amber: #ffd23e;    /* incoming danger being telegraphed. nothing else */
-    --green: #3ad14b;    /* your HP and your healing. nothing else */
+    --green: #3ad14b;    /* your side: HP, healing, your action cards, victory */
     --purple: #b479ff;   /* defensive states */
 
     --fs-xs: 12px;
@@ -220,7 +220,7 @@
       repeating-linear-gradient(45deg, #4ea3ff22 0 12px, transparent 12px 24px),
       repeating-linear-gradient(-45deg, #b479ff1c 0 12px, transparent 12px 24px);
     border: var(--frame) solid var(--line);
-    padding: 24px 108px 24px 20px;
+    padding: 24px 122px 24px 20px;
     position: relative;
     overflow: hidden;
   }
@@ -264,10 +264,11 @@
     background: #000; border: 2px solid var(--line-soft);
     display: grid; place-items: center; overflow: hidden;
   }
-  .stage .body { flex: 1; min-width: 0; overflow: hidden; }
+  .stage .body { flex: 1; min-width: 0; }
   .stage .name { font-family: var(--dot); font-weight: 400; font-size: var(--fs-lg); white-space: nowrap; }
-  .stage .sub { font-size: var(--fs-sm); color: var(--muted); white-space: nowrap; }
+  .stage .sub { font-size: var(--fs-sm); color: var(--muted); }
   .stage .go { color: var(--dim); font-size: var(--fs-xl); flex: none; }
+  .stage .chip { flex: none; }
 
   /* ---------- schedule ---------- */
   .sched { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
@@ -398,7 +399,8 @@
                     100% { opacity: 0; transform: translate(-50%, -34px) scale(1); } }
 
   .odo { font-family: var(--dot); font-variant-numeric: tabular-nums; }
-  .odo.rolling { color: var(--coral); }
+  .odo.rolling.down { color: var(--coral); }
+  .odo.rolling.up { color: var(--green); }
 
   .trace-label { font-family: var(--dot); font-size: var(--fs-sm); color: var(--muted);
                  margin: 12px 0 6px; }
@@ -1226,7 +1228,7 @@
       const open = stageUnlocked(st), clear = save.cleared.indexOf(st.id) >= 0;
       const thumb = h("div", { class: "thumb" }, [open ? spriteImg(st.sprite, 48) : h("span", { class: "dim", text: "?" })]);
       const chip = clear ? h("span", { class: "chip", text: "クリア" })
-                 : open ? h("span", { class: "chip accent", text: "ちょうせん" })
+                 : open ? null
                         : h("span", { class: "chip", text: "ロック" });
       const next = open && !clear;
       return h("button", {
@@ -1560,7 +1562,11 @@
     };
     const from = parseInt(node.dataset.v || node.textContent, 10);
     const to = Math.max(0, value);
-    node._done = () => { clearInterval(node._roll); node.classList.remove("rolling"); set(to); };
+    node._done = () => {
+      clearInterval(node._roll);
+      node.classList.remove("rolling", "up", "down");
+      set(to);
+    };
     if (rollers.indexOf(node) < 0) rollers.push(node);
     if (!isFinite(from) || from === to) { node._done(); return; }
 
@@ -1570,7 +1576,7 @@
     const steps = Math.min(Math.abs(to - from), ROLL_MAX_STEPS);
     const delta = (to - from) / steps;
     let i = 0;
-    node.classList.add("rolling");
+    node.classList.add("rolling", to < from ? "down" : "up");
     node._roll = setInterval(() => {
       i++;
       if (i >= steps) { node._done(); return; }
@@ -1597,7 +1603,7 @@
     set("nextTxt", (n) => {
       const na = nextEnemyAct(st, s.eidx);
       n.textContent = hasSeen(st) ? actShort(na) : "？？？";
-      n.className = "chip " + (na.t === "strong" ? "coral" : na.t === "charge" ? "green" : "");
+      n.className = "chip " + (na.t === "strong" ? "coral" : na.t === "charge" ? "amber" : "");
     });
     set("enemyArt", (n) => { n.classList.toggle("down", s.ehp <= 0); });
     set("playerArt", (n) => { n.classList.toggle("down", s.php <= 0); });
