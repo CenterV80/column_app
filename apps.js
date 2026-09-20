@@ -5,7 +5,7 @@
 const APPS = [
   {
     name: "ComfyUIのパラメータ探索ループを作る",
-    description: "cfgやstepsを手で試し続けるのをやめ、生成はスクリプト・評価は人間・次の候補決めはClaude Codeに分担させる仕組み。全体フロー、リポジトリ構成、そのまま貼れる依頼文とCLAUDE.mdテンプレートをまとめました。",
+    description: "cfgやstepsを手で試し続けるのをやめ、生成はスクリプト・評価は人間・次の候補決めはClaude Codeに分担させる仕組み。全体フロー、リポジトリ構成、そのまま貼れる依頼文とCLAUDE.mdテンプレートを、用語解説つきでまとめました。",
     path: "comfyui-param-sweep-loop.html",
     date: "2026-09-19",
     icon: "🎚️",
