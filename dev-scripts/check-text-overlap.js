@@ -14,7 +14,7 @@ const { chromium } = require("playwright");
 
 const URL = process.argv[2] || "http://localhost:8123/apps/auto-battle-rpg/index.html";
 const CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
-const W = 320, H = 288;
+const W = 320, H = 512;
 
 const RECORDER = `
   window.__texts = [];
@@ -55,6 +55,8 @@ function overlaps(a, b) {
   return ix > 1 && iy > 1;
 }
 
+const HOWTO_PAGES = 5;
+
 (async () => {
   const browser = await chromium.launch({ executablePath: CHROME, args: ["--headless=new", "--no-sandbox"] });
   const page = await browser.newPage({ viewport: { width: 400, height: 900 } });
@@ -70,7 +72,14 @@ function overlaps(a, b) {
   await page.reload();
   await page.waitForTimeout(1500);
 
-  const key = async (k, wait = 260) => { await page.keyboard.press(k); await page.waitForTimeout(wait); };
+  // The game is driven by taps now, so the audit taps too: logical screen
+  // coordinates mapped through the canvas rect.
+  const cv = page.locator("#screen");
+  async function tap(lx, ly, wait = 300) {
+    const b = await cv.boundingBox();
+    await page.mouse.click(b.x + (lx / W) * b.width, b.y + (ly / H) * b.height);
+    await page.waitForTimeout(wait);
+  }
 
   const findings = [];
   async function audit(name) {
@@ -93,29 +102,39 @@ function overlaps(a, b) {
   }
 
   await audit("タイトル");
-  await key("Shift");
-  for (let i = 0; i < 5; i++) { await audit("あそびかた" + (i + 1)); await key("z"); }
-  await key("Enter"); await audit("マップ");
 
-  for (const stage of [0, 1, 2, 3, 4]) {
-    await page.keyboard.press("Enter");
-    await page.waitForTimeout(150);
-    for (let i = 0; i < stage; i++) await key("ArrowDown", 120);
-    await key("z"); await audit("てき情報(" + (stage + 1) + ")");
-    await key("z"); await audit("さくせん(" + (stage + 1) + ")");
-    // walk the whole cursor, including the ためしうち command row
-    for (let i = 0; i < 7; i++) { await key("ArrowDown", 90); await audit("さくせん(" + (stage + 1) + ")-" + i); }
-    await key("z"); await audit("ためしうち(" + (stage + 1) + ")");
-    for (let i = 0; i < 4; i++) { await key("ArrowDown", 90); await audit("ためしうち(" + (stage + 1) + ")-" + i); }
-    await key("x");
-    await key("ArrowDown", 90);
-    await key("z"); await audit("カードえらび(" + (stage + 1) + ")");
-    for (let i = 0; i < 11; i++) { await key("ArrowDown", 90); await audit("カードえらび(" + (stage + 1) + ")-" + i); }
-    await key("x");
-    await key("Enter", 700); await audit("バトル(" + (stage + 1) + ")");
-    await key("Enter", 700); await audit("バトル終了(" + (stage + 1) + ")");
-    await key("z", 500); await audit("リザルト(" + (stage + 1) + ")");
-    await key("x", 300);
+  await tap(160, 452);                       // あそびかた
+  for (let i = 0; i < HOWTO_PAGES; i++) { await audit("あそびかた" + (i + 1)); await tap(238, 466); }
+  await audit("タイトル(もどり)");
+
+  await tap(160, 384);                       // はじめる
+  await audit("ステージ");
+
+  for (let stage = 0; stage < 5; stage++) {
+    await tap(160, 93 + stage * 74);          // stage row
+    await audit("てき情報(" + (stage + 1) + ")");
+    await tap(238, 426);                      // さくせんへ
+    await audit("さくせん(" + (stage + 1) + ")");
+
+    await tap(120, 144);                      // slot 1 -> picker
+    await audit("カードえらび(" + (stage + 1) + ")");
+    for (let i = 0; i < 11; i++) {
+      await tap(8 + (i % 2) * 154 + 75, 56 + Math.floor(i / 2) * 56 + 25, 220);
+      await audit("カードえらび選択(" + (stage + 1) + ")-" + i);
+      if (i < 10) await tap(120, 144, 220);   // back into the picker
+    }
+
+    await tap(80, 485);                       // ためしうち
+    await audit("ためしうち(" + (stage + 1) + ")");
+    await tap(80, 470);                       // さくせんへ
+    await tap(238, 485);                      // たたかう
+    await audit("バトル(" + (stage + 1) + ")");
+    await tap(160, 480, 400);                 // はやおくり
+    await page.waitForTimeout(3500);
+    await audit("バトル終了(" + (stage + 1) + ")");
+    await tap(160, 480);                      // けっかへ
+    await audit("リザルト(" + (stage + 1) + ")");
+    await tap(160, 480);                      // ステージへ
   }
 
   await browser.close();
