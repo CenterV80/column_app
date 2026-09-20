@@ -98,6 +98,29 @@ STAGES.forEach((stage, si) => {
   }
 });
 
+// Hints are written by hand and quote stage numbers. A hint that disagrees
+// with the data it describes is shown to the player next to the real figure,
+// so the numbers are checked here rather than by eye.
+console.log("\nヒント文と実データの照合");
+let hintOk = true;
+STAGES.forEach((st) => {
+  const facts = new Set([String(st.hp)]);
+  if (st.armor) facts.add(String(st.armor));
+  st.pattern.forEach((a) => { if (a.v) facts.add(String(a.v)); });
+  st.pattern.forEach((a, i) => facts.add(String(i + 1)));
+  facts.add(String(st.pattern.length));
+  // small counting words ("1ターン", "1回") are prose, not data
+  ["1", "2", "3"].forEach((n) => facts.add(n));
+  const quoted = st.hint.match(/[0-9]+/g) || [];
+  const bad = quoted.filter((n) => !facts.has(n));
+  if (bad.length) {
+    hintOk = false; allOk = false;
+    console.log(`  ✗ ステージ${st.id} ${st.name}: ヒントの ${bad.join(", ")} が実データに存在しません` +
+      ` (HP${st.hp} まもり${st.armor || 0} ${st.pattern.map((a) => (a.t + (a.v || ""))).join(" ")})`);
+  }
+});
+if (hintOk) console.log("  ✓ 全ステージ、ヒントの数値は実データと一致");
+
 // A card that never actually fires in any winning deck is a trap: it reads as
 // an option but cannot be played. かいふく was exactly that before it became a
 // once-per-battle resource, so this is now checked every run.
