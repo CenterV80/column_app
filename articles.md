@@ -1,12 +1,22 @@
 ## 2026年9月
 
-### MiniMax-H3 Turbo LoRAで生成が甘くならないためのチェックリスト
+### MiniMax H3 アニメ系動画のボケ対策まとめ
 
 *公開: 2026-09-29*
 
-(サイト運営者による実践メモ)
+[GitHub - Larryvrh/ComfyUI-MiniMax-H3-Turbo](https://github.com/Larryvrh/ComfyUI-MiniMax-H3-Turbo) | [Hugging Face - amirjan122222/MiniMax-H3-Turbo-Lora](https://huggingface.co/amirjan122222/MiniMax-H3-Turbo-Lora) | [Hugging Face - PulpCut/MiniMax-H3-Ref2VA-Turbo-INT8-ConvRot](https://huggingface.co/PulpCut/MiniMax-H3-Ref2VA-Turbo-INT8-ConvRot) | [Discussion: pruned INT8での劣化報告](https://huggingface.co/larryvrh/MiniMax-H3-Turbo-Lora/discussions/20) | [Hugging Face - Alberto454/MiniMax-H3-Turbo-Lora-ComfyUI](https://huggingface.co/Alberto454/MiniMax-H3-Turbo-Lora-ComfyUI) | [GitHub - xmarre/Comfyui_Minimax_h3_latent_Upscaler-Plus](https://github.com/xmarre/Comfyui_Minimax_h3_latent_Upscaler-Plus) | [Discussion: アップスケールより再生成を推す意見](https://huggingface.co/Comfy-Org/MiniMax-H3/discussions/30)
 
-larryvrhのTurbo LoRA（以前紹介した4ステップ蒸留LoRA）を使ってMiniMax-H3を生成する際、結果がぼやけて「甘く」なりがちな問題を避けるためのチェックリスト。**生成設定**は、①`low_vram`をOFFにする（ONのままだと量子化モデルの出力が甘くなる）、②ステップ数は8にする（pruned版で4ステップにすると甘くなりやすい）、③スケジューラーは`simple`を使う、④キャッシュ系ノードは外しておく、の4点。**ノード設定**は、①LoRAはlarryvrh製のTurboノード経由で読み込む（pruned_int8を自動検出し、時間条件を実行時に補ってくれる）、②ベースモデルは変換版ではなく通常版の`ema_ckpt850`を使う（Turboノード使用時は変換版が不要になる）、③標準ローダーで変換版を使う場合はAdaLNが抜け落ちて蒸留効果が下がることを理解しておく、④それでも変換版を使いたい場合は`v4_step600_ema_pruned`を試す、の4点。
+MiniMax-H3でアニメ調の動画を生成する際、pruned INT8 ConvRot版＋Turbo LoRAという構成（H3単体で完結させる前提）で起きやすい「ボケ」対策をまとめた実践メモ。**原因**は、pruned版がモデル内部のAdaLN部分の形状を通常版から変えてしまっているため、Turbo LoRAの一部が効かなくなる点にある。これにより4ステップ蒸留の効果が落ち、ボケやゴーストが出やすくなる（既知の問題とのこと）。
+
+**LoRAの読み込み**については、larryvrh製の「ComfyUI-MiniMax-H3-Turbo」Turboノード経由で読み込むのが基本で、このノードはpruned_int8を自動検出し、抜け落ちる時間条件を実行時に補ってくれる。LoRA自体は通常版の`minimax_h3_turbo_4step_ema_ckpt850.safetensors`を使い（Turboノード使用時はpruned変換版は不要）、初期のEMA版やckpt500など古いバージョンは避ける。標準ローダー＋変換版を使わざるを得ない場合は`v4_step600_ema_pruned`を試すとよいとのこと。
+
+**ノード設定**は、`low_vram`はOFF（ONのままだと量子化モデルの出力が柔らかくなる）、スケジューラーは`simple`、ステップ数は8（pruned版で4ステップにすると甘くなりやすい）、キャッシュ系ノードは外す（4〜8ステップという短いステップ数では効果がなく、むしろ画質を落とす）という4点。
+
+**LoRA強度**は、ぼやけ・にじみ・ゴーストが出る場合は1.05〜1.2へ上げ、逆にザラつき・粒状ノイズ・テカりが出る場合は0.8〜0.95へ下げる。1.0を基準に0.05刻みで、同じシード・同じプロンプトで比較するのがコツ。ボケとザラつきが両方出てしまう場合は、強度ではなくステップ数の方を疑うべきとのこと。
+
+**高解像度化**については2つのアプローチが紹介されている。1つは低解像度でプロンプトや動きを確認してから、良ければ同じシードのまま目標解像度で生成し直す方法で、再エンコードによる劣化が入らないぶん線が一番きれいに残る。もう1つは時間短縮を狙う場合の「H3 Latent Upscaler」＋H3自身による低denoise値でのリファインで、同じH3モデルで描き直すため画風がブレにくいという利点がある。なお、標準の`LatentUpscaleBy`はH3の音声一体型latentに対しては正しく動かないため、H3専用のアップスケールノードを使う必要がある点に注意。
+
+**プロンプト**の工夫としては、線と塗りの質を明示する（例: clean line art, crisp outlines, cel shading）ことが有効とされている。比較用の基準設定としては、LoRAはTurboノード経由のema_ckpt850、low_vram OFF、強度1.1、ステップ8、スケジューラーsimple、後段処理なし、という組み合わせが挙げられている。
 
 ### ComfyUI Prompt Studio - 動画・画像・音声をまたいだマルチモーダルなプロンプト作成ワークスペース
 
