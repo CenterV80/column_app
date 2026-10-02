@@ -4,6 +4,14 @@
 // categories.js so the item shows up on the right category page.
 const APPS = [
   {
+    name: "npm入門まとめ",
+    description: "Node.js・npm・package.json・lockファイルの関係をPythonと対比して整理。npm installとnpm ciの違い、インストールスクリプトを止めるなど安全に使うための3本柱、入れる前の習慣までまとめました。",
+    path: "npm-basics.html",
+    date: "2026-10-02",
+    icon: "🧭",
+    category: "javascript",
+  },
+  {
     name: "ComfyUIのパラメータ探索ループを作る",
     description: "cfgやstepsを手で試し続けるのをやめ、生成はスクリプト・評価は人間・次の候補決めはClaude Codeに分担させる仕組み。ComfyUIに投げて動画を回収し、パラメータと一緒に評価ページへ並べるまでの工程を、JSONの実例と用語解説つきで追いました。",
     path: "comfyui-param-sweep-loop.html",
