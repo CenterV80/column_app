@@ -1,5 +1,13 @@
 ## 2026年10月
 
+### MiniMax-H3 RefMod - 学習不要の参照アダプターと2パス方式のレイテントアップスケールを組み合わせたワークフロー
+
+*公開: 2026-10-05*
+
+[Civitai - MiniMax-H3 RefMod: Reference + 2-Pass Latent Upscale Workflow](https://civitai.com/models/2980016/minimax-h3-refmod-reference-2-pass-latent-upscale-workflow) | [GitHub - shingo257/comfyui-minimaxh3mod](https://github.com/shingo257/comfyui-minimaxh3mod)
+
+MiniMax-H3向けに公開されたワークフローで、「RefMod」と呼ばれる参照アダプター技術と、潜在空間でのレイテントアップスケールを2パス構成で行う手法を組み合わせている。**RefMod**は、顔の特徴やキャラクターの一貫性を保つための条件付けレベルのアダプターで、毎回参照画像・動画をVAEエンコードし直す従来のRef2VAワークフローとは異なり、参照素材を一度だけ小さな`.safetensors`ファイル（1〜1.6MB程度）へ圧縮しておき、必要なときにLoRAのように読み込んで使う仕組み。学習は一切不要で、顔の再現性・体の構造の一貫性・複数キャラクターへの対応を、都度のVAEエンコード処理やプロンプト記法の制約なしに実現できるとされる。ComfyUI側は`ComfyUI-MiniMaxH3Mod`というオープンソースのノードパック（MITライセンス）が担い、画像・動画を`.safetensors`へ変換する「Extract H3 RefMod」、複数のアダプターを強度調整付きで読み込む「Load H3 RefMods」、条件付けへ注入する「Apply H3 RefMod」という3種のノードで構成される。参照素材を重ねて使いトークン上限を超える場合は、処理を損失の少ない順に2つの軽量なパスへ分割し、まず近似した重複フレームを間引いてから、残ったフレームを上限に収まるよう再サンプリングする仕組みも備える。このRefModによる参照条件付けに、生成後の仕上げとして潜在表現のまま解像度を引き上げる2パス方式のレイテントアップスケール（低解像度でシーンと動きを先に固めてから、潜在表現をアップスケールして2回目のサンプリングパスでディテールを仕上げる手法）を組み合わせたのが、このCivitaiワークフローの全体構成となっている。
+
 ### Veda Sparse Attention - MiniMax-H3のアテンション計算を90%スキップして高速化
 
 *公開: 2026-10-05*
