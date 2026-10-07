@@ -59,6 +59,13 @@ const CATEGORIES = [
     icon: "🎛️",
   },
   {
+    id: "maya",
+    name: "Maya",
+    description: "Mayaまわりの検証・ワークフローをまとめています。",
+    path: "categories/maya/",
+    icon: "🧊",
+  },
+  {
     id: "ai-coding",
     name: "AIコーディング",
     description: "GitHub CopilotやClaude CodeなどAIコーディングツールと効率よく付き合うための運用ルール・Tipsをまとめています。",

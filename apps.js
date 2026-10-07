@@ -4,6 +4,14 @@
 // categories.js so the item shows up on the right category page.
 const APPS = [
   {
+    name: "Maya MCP×ComfyUI 検証仕様書（姫路城）",
+    description: "ClaudeにMaya MCPとComfyUI MCPを操作させ、参照画像から白壁の日本の城を再現できるかを検証する仕様書。テクスチャ生成ワークフロー、瓦のインスタンス大量配置、ビューポート画像による自己採点ループと停止条件、段階ごとの指示テンプレートまでまとめました。",
+    path: "apps/maya-mcp-castle-spec/",
+    date: "2026-10-07",
+    icon: "🏯",
+    category: "maya",
+  },
+  {
     name: "npm入門まとめ",
     description: "Node.js・npm・package.json・lockファイルの関係をPythonと対比して整理。npm installとnpm ciの違い、インストールスクリプトを止めるなど安全に使うための3本柱、入れる前の習慣までまとめました。",
     path: "npm-basics.html",
