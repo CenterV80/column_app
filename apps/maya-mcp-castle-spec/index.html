@@ -15,6 +15,16 @@
     <p>ClaudeにMaya MCPとComfyUI MCPを操作させ、参照画像から白壁の日本の城を再現できるかを検証するための仕様書です。</p>
   </header>
   <div id="content" class="doc loading">読み込み中…</div>
+  <section id="claude-md" class="doc claude-md">
+    <h2>そのまま使えるCLAUDE.md</h2>
+    <p>この仕様書のルール（スケール、命名、マテリアル、テクスチャ、瓦配置、評価ループと停止条件、報告）をまとめたものです。Mayaプロジェクトのルートに <code>CLAUDE.md</code> として置けば、あとは段階ごとの指示だけで進められます。</p>
+    <div class="toolbar">
+      <button type="button" class="btn" id="copy-claude-md">コピー</button>
+      <a class="btn secondary" href="CLAUDE.md" download="CLAUDE.md">ダウンロード</a>
+      <span class="copy-status" id="copy-status" aria-live="polite"></span>
+    </div>
+    <pre><code id="claude-md-text">読み込み中…</code></pre>
+  </section>
   <p style="margin-top: 24px;">
     <a class="back-link" href="../../categories/maya/index.html">← Mayaカテゴリに戻る</a>
   </p>
@@ -31,6 +41,30 @@
     .catch(() => {
       document.getElementById("content").textContent = "仕様書を読み込めませんでした。";
     });
+
+  const claudeMd = document.getElementById("claude-md-text");
+  fetch("CLAUDE.md")
+    .then((res) => {
+      if (!res.ok) throw new Error(res.status);
+      return res.text();
+    })
+    .then((text) => {
+      claudeMd.textContent = text;
+    })
+    .catch(() => {
+      claudeMd.textContent = "CLAUDE.mdを読み込めませんでした。ダウンロードボタンから取得してください。";
+    });
+
+  document.getElementById("copy-claude-md").addEventListener("click", async () => {
+    const status = document.getElementById("copy-status");
+    try {
+      await navigator.clipboard.writeText(claudeMd.textContent);
+      status.textContent = "コピーしました";
+    } catch {
+      status.textContent = "コピーできませんでした";
+    }
+    setTimeout(() => (status.textContent = ""), 2000);
+  });
 </script>
 </body>
 </html>

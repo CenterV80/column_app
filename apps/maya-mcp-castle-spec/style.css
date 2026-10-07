@@ -146,3 +146,57 @@
   text-align: center;
   margin-top: 6px;
 }
+
+.claude-md {
+  margin-top: 24px;
+}
+
+.claude-md h2 {
+  font-size: 20px;
+  margin: 0 0 12px;
+}
+
+.claude-md pre {
+  max-height: 480px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: #6d5bd0;
+  border: 1px solid #6d5bd0;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #5b4bc4;
+}
+
+.btn.secondary {
+  color: #6d5bd0;
+  background: #fff;
+}
+
+.btn.secondary:hover {
+  background: #f7f6fd;
+}
+
+.copy-status {
+  font-size: 13px;
+  color: #6d5bd0;
+}
