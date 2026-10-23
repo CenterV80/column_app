@@ -1,5 +1,13 @@
 ## 2026年10月
 
+### ComfyUI-MiniMaxH3-Loop - 最初/最後フレーム指定もクロスフェードも使わずにMiniMax-H3でシームレスなループ動画を作るノード集
+
+*公開: 2026-10-23*
+
+[GitHub - pxl-pshr/ComfyUI-MiniMaxH3-Loop](https://github.com/pxl-pshr/ComfyUI-MiniMaxH3-Loop)
+
+MiniMax-H3向けに公開された、継ぎ目のないループ動画を生成するためのComfyUIカスタムノード集。README曰く「最初/最後のフレーム指定なし、2パスなし、クロスフェードなし」という方式で、H3の潜在表現が17フレーム単位のクリップ（潜在表現では5フレーム）で構成されていることを利用し、各モデル呼び出しの前後に既定で1個分のラップ済みクリップをパディングとして付けたうえでサンプリングし、中央部分だけを採用することでループ点をなじませる仕組みになっている。パディング部分には複製したノイズではなく新しいノイズを使うことで、同じノイズを二重に使った場合に起きる白い斑点（FastH3などで確認）を避けているという。中心となるノードは、潜在表現の末尾を先頭につなげてサンプリングする「MiniMax H3 Loop」（モデルパッチ）、ループ前後の文脈を保ってデコードし1ループ分のフレーム・音声を出力する「MiniMax H3 Loop Decode」、既存のシームレスループ（Blenderレンダーの深度パスなど）をH3のループ長に合わせてControlNet用の制御動画にする「MiniMax H3 Loop Control Video」、FILMまたはRIFEでループ全体（最後のフレームから最初のフレームの間も含む）を補間する「Loop Interpolate」（ComfyUI-Frame-Interpolationが必要）の4つ。「MiniMax H3 Loop」の`views`パラメータ（既定値2）は、1ビューのままだとループ端付近で音声が通常の3〜10倍も歪むのを補正するための追加ビューで、2にするとサンプリング時間が約1.8倍になるため、Fun ControlNetを使う場合は1にするよう案内されている。導入は`ComfyUI/custom_nodes`へクローンしてComfyUIを再起動するだけだが、動作にはMiniMax-H3対応版のComfyUIに加え、ワークフロー全体の実行にはComfyUI-Frame-InterpolationとComfyUI-VideoHelperSuiteが必要。基本の接続順は「MiniMax H3 Loop→BasicGuider/BasicScheduler→SamplerCustomAdvanced→MiniMax H3 Loop Decode→Loop Interpolate→Create Video」で、動画の長さは17kフレーム+5フレーム（例：107＝4.25秒、158＝6.4秒、209＝8.5秒）にする必要がある。参照画像を使う方法（Reference to Videoに接続しプロンプト内で`<Picture 1>`と指定）が推奨されており、最初/最後のフレーム指定（fl2va）も使えるがループ点の跳ねや露出のずれが起きやすいとされる。H3は常に24fpsで生成するため、滑らかさを出すにはCreate Video側のfpsを上げるのではなくLoop Interpolateを使う必要がある。用意されているワークフローは4種類で、標準版（ref2va、25ステップ、RTX 4090で1ループ約21分、自然で写実的・速い動きにも強い）、Turbo版（ref2va+Turbo LoRA、8ステップ、約7分、同シードでも絵が変わりやすく速い動きでカクつくことがある）、FastH3版（FastH3-Omni、8ステップ、約7分、参照画像があれば25ステップ版に近い見た目だがComfyUI v0.42.0以降が必須）、Control版（ref2va+Turbo LoRA+Fun ControlNet、8ステップ、約4分、既存ループの制御動画に従って構図とタイミングを保ったまま再スタイル化）があり、下書きや動きの遅い被写体にはFastH3/Turbo、速い動きの本番用途には25ステップ版が勧められている。ControlNetでの再スタイル化を使う場合は「MiniMax H3 Loop→Apply MiniMax H3 Fun ControlNet」の順で接続する必要があり、逆順にするとエラーになるという注意点がある。プロンプトを書く際のコツとして、ループは元の位置に戻る前提のため「出来事の連続」ではなく「続いている状態」を描写し、固定カメラ・1つの大きな被写体の循環的な動き・一定の光と環境音を指定すること、タイムライン表記（`[0s-2s]`）や「その後」「最後に」といった一方向の変化を避けること、砂嵐や雨・煙などの細かい乱流テクスチャはループ点で目立ちやすいことなどが同梱のPROMPTING.mdに記載されている（ラフなアイデアをLLMに渡して詳細化する使い方も案内されている）。既知の注意点としては、FastH3-OmniはComfyUI v0.42.0以降が必須で古いバージョンではテンソルサイズ不一致のエラーになること、Turbo/FastH3は速い動きでシード依存のカクつきが出ることがあること、過去に使っていた潜在表現のシフト方式はフレームの一時的な引っかかりが原因で廃止されたことが挙げられている。ライセンスはGPL-3.0。
+
 ### MCP for Blender ケーススタディ - 1700語の長文プロンプト1本でClaude Opus 5.5が歩行ロボット蜘蛛を1時間で組み上げた記録
 
 *公開: 2026-10-23*
