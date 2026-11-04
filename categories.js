@@ -107,4 +107,11 @@ const CATEGORIES = [
     path: "categories/substance-designer/",
     icon: "🎨",
   },
+  {
+    id: "3d-ai",
+    name: "3D AI",
+    description: "Gaussian Splattingや、画像から3Dを生成するAIなど、AIで3Dデータを作る技術をまとめています。",
+    path: "categories/3d-ai/",
+    icon: "💠",
+  },
 ];
