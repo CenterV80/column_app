@@ -426,4 +426,12 @@ const APPS = [
     icon: "🎬",
     category: "ltx",
   },
+  {
+    name: "Gaussian Splatting入門とComfyUI-Idol",
+    description: "3DGSのしくみとHoudini・UEの対応状況、画像1枚から3Dスプラットを生成するComfyUI-Idolの技術・モデル・導入手順・ライセンスをまとめました。",
+    path: "gaussian-splatting-comfyui-idol.html",
+    date: "2026-11-04",
+    icon: "💠",
+    category: "3d-ai",
+  },
 ];
