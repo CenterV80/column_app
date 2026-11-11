@@ -442,4 +442,12 @@ const APPS = [
     icon: "🌐",
     category: "3d-ai",
   },
+  {
+    name: "TRELLIS.2のO-Voxelをパーツ合成するツール",
+    description: "TRELLIS.2のO-Voxelの段階でパーツを組み合わせるツールを、Claude Codeに段階を切って作らせる手順。O-Voxelの中身、合成の考え方、指示のたたき台をまとめました。",
+    path: "trellis2-ovoxel-compose-tool.html",
+    date: "2026-11-11",
+    icon: "🧊",
+    category: "3d-ai",
+  },
 ];
