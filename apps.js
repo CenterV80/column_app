@@ -440,6 +440,6 @@ const APPS = [
     path: "threejs-gaussian-splat-from-image.html",
     date: "2026-11-11",
     icon: "🌐",
-    category: "threejs",
+    category: "3d-ai",
   },
 ];
