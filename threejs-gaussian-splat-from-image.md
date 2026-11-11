@@ -2,6 +2,8 @@
 
 *公開: 2026-11-11*
 
+<a href="threejs-gaussian-splat-from-image.md" download>📥 手順書をMarkdown（.md）でダウンロード</a>
+
 ## 要点
 
 - **three.js単体では、一枚絵からスプラットは作れない**。three.jsが担うのは表示まで
