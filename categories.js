@@ -114,4 +114,11 @@ const CATEGORIES = [
     path: "categories/3d-ai/",
     icon: "💠",
   },
+  {
+    id: "threejs",
+    name: "three.js",
+    description: "three.jsを使ったブラウザ3D表示まわりの構成・手順をまとめています。",
+    path: "categories/threejs/",
+    icon: "🌐",
+  },
 ];

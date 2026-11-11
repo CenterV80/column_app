@@ -434,4 +434,12 @@ const APPS = [
     icon: "💠",
     category: "3d-ai",
   },
+  {
+    name: "一枚絵からGaussian Splat → three.jsで表示",
+    description: "一枚絵からスプラットを生成し、three.js＋Sparkでブラウザ表示するまでの構成と手順。生成はサーバー、表示はthree.jsに分ける考え方をまとめました。",
+    path: "threejs-gaussian-splat-from-image.html",
+    date: "2026-11-11",
+    icon: "🌐",
+    category: "threejs",
+  },
 ];
