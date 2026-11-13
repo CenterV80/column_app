@@ -135,6 +135,66 @@ splat = worldgen._generate_world(pano_image=pano_image)
 
 ---
 
+## Claudeに丸ごと任せる
+
+Step 1とルートAはすべてComfyUIのノードなので、ComfyUIのAPI（使い方は「[ComfyUI API まとめ](comfyui-api-guide.html)」）を叩けるClaude Codeなら、ワークフローを組んで実行し、PLYを受け取るところまで一人でこなせます。出来上がったプレビュー画像を見て、継ぎ目や破綻があれば設定を変えてやり直す、という判断まで任せられるのが、手で回すより楽な点です。
+
+| 工程 | ComfyUIのAPIだけで回せるか |
+| --- | --- |
+| Step 1（パノラマ作成） | ○ |
+| ルートA（ComfyUI-Sharp） | ○ |
+| ルートB（SplatKit） | データセット作成までは○。学習はComfyUIの外 |
+| ルートC（WorldGen） | ×（ComfyUIのノードではなくPythonのライブラリ） |
+
+### 前提
+
+- **Claude CodeをComfyUIと同じPCで動かす。** クラウドで動くClaudeからは、そのままではローカルのComfyUIに届きません。同じPCならAPI（既定は `http://127.0.0.1:8188`）にそのまま届き、シェルも使えます
+- **カスタムノードとモデルを入れておく。** APIはワークフローを実行するだけで、ノードやモデルを入れる機能はありません。同じPCのClaude Codeなら `git clone` やファイル配置も頼めますが、モデルのダウンロード（Hugging Faceでのライセンス同意を含む）は自分で確認しながら進めるのが安全です
+- **元にするワークフローを用意する。** 作者のサンプルワークフロー（Panorama Stickersのもの、ComfyUI-Sharpの `workflows/pano.json`）を開き、API形式で書き出しておくと、Claudeがノード名や配線を推測せずに済みます
+
+### APIでの流れ
+
+1. 参照画像を `/upload/image` でアップロードする
+2. Step 1とルートAをつないだワークフロー（API形式のJSON）の、画像名・プロンプト・seedなどを差し替えて `/prompt` に投げる
+3. `/history/{prompt_id}` で完了を待つ
+4. パノラマのプレビュー画像とPLYを `/view` で取り出す
+5. プレビュー画像を見て、だめならseedや設定を変えて2に戻る
+
+注意点が1つあります。Panorama Stickersの配置は、本来はモーダルUIでマウス操作して決めるものです。APIから回すときは、一度UIで配置を決めて保存したワークフローを元にするのが確実です。
+
+### ルートBの学習もClaudeに回させる
+
+SplatKitには学習用のノード「Train Sequence」がありますが、これは人物動画用（4DAnyone）で、`transforms.json` 形式のデータしか受け付けません。パノラマルートが出すCOLMAPデータセットは読み込めません。
+
+一方、同梱の学習スクリプト `tools/run_splat_training.py` はCOLMAPデータセット（`sparse/` を持つフォルダ）も読み込む作りになっています。Claude CodeがComfyUIと同じPCで動いていれば、データセット作成をAPIで回したあと、このスクリプトも続けて実行できます。
+
+```
+python tools/run_splat_training.py train <データセットのフォルダ> -o <出力フォルダ> --quality draft
+```
+
+- 実行に使うのは、SplatKitが別に用意するPython環境（`custom_nodes/ComfyUI-SplatKit/bin/splat_backend/`。Python 3.11 / torch 2.8.0 / CUDA 12.8 / gsplat 1.4.0）。この環境はインストーラーで別途入れる必要がある（手順はリポジトリの `docs/4DANYONE.md`）
+- `--quality` は `draft`・`standard`・`best` の3段階。まず `draft` で通ることを確かめる
+- COLMAPデータセットを読み込めることはソースコードで確認しただけで、実際には動かしていません。うまくいかなければ、ルートBのとおりSpirula Studioで学習します
+
+### Claudeに渡す指示のたたき台
+
+```
+ComfyUIがこのPCの http://127.0.0.1:8188 で動いている。
+このAPIだけを使って、参照画像から360°パノラマを作り、3DGS（.ply）にしてほしい。
+
+- 元にするワークフロー：workflows/ にある pano_to_3dgs_api.json（API形式で書き出したもの）
+- 参照画像：input/ref.png
+- まず /object_info で、ワークフローのノードがすべて入っているか確認する。
+  足りないノードやモデルがあれば、勝手に入れずに一覧にして報告する
+- 実行は /upload/image → /prompt → /history → /view の順。
+  パノラマのプレビュー画像と .ply を output/run_<番号>/ に保存する
+- プレビューを見て、左右の継ぎ目や緑の塗り残しがあれば、seedを変えて最大3回まで再実行する。
+  変えたパラメータと結果を表にまとめる
+- 3回でだめなら止めて、どこが悪いかを報告する
+```
+
+---
+
 ## 確認とUE / Unityへの持ち込み
 
 | 用途 | ツール |

@@ -452,7 +452,7 @@ const APPS = [
   },
   {
     name: "FLUX.2 Kleinのパノラマを3DGSにする",
-    description: "FLUX.2 Klein＋360 ERP LoRAで作ったパノラマを、ComfyUI-Sharp・SplatKit＋Spirula Studio・WorldGenの3ルートで3D Gaussian Splattingにする手順。モデル配置、ノードの流れ、UE / Unityへの持ち込み、ライセンスの注意点までまとめました。",
+    description: "FLUX.2 Klein＋360 ERP LoRAで作ったパノラマを、ComfyUI-Sharp・SplatKit＋Spirula Studio・WorldGenの3ルートで3D Gaussian Splattingにする手順。モデル配置、ノードの流れ、ComfyUIのAPI経由でClaudeに丸ごと任せる方法、UE / Unityへの持ち込み、ライセンスの注意点までまとめました。",
     path: "flux2-klein-panorama-3dgs.html",
     date: "2026-11-13",
     icon: "🌐",
