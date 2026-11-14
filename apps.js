@@ -458,4 +458,12 @@ const APPS = [
     icon: "🌐",
     category: "3d-ai",
   },
+  {
+    name: "Claude Code Remote Controlの安全な設定",
+    description: "自分のPCのClaude Codeをスマホや別のPCから操作できるRemote Control。オンにする前に確認したい、組織の設定・自分のPCの設定・端末の管理・情報の扱いをチェックリストにまとめました。",
+    path: "claude-code-remote-control-security.html",
+    date: "2026-11-14",
+    icon: "🔐",
+    category: "ai-coding",
+  },
 ];
