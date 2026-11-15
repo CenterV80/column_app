@@ -84,6 +84,14 @@ const APPS = [
     category: "github",
   },
   {
+    name: "GitHubのマージ通知をTeamsに流す",
+    description: "Teamsで外部からの投稿が禁止されている環境向けに、GitHubの通知メールをPower Automateで受けてチャンネルに投稿する手順をまとめました。",
+    path: "github-merge-teams-notify.html",
+    date: "2026-11-15",
+    icon: "🔔",
+    category: "github",
+  },
+  {
     name: "Next.js+Prisma+Geminiで漫画ジェネレーターを作った話",
     description: "あらすじからコマ割りを自動生成するアプリの、DB設計・AI生成・SVGコンテ生成・PWA対応までの手順を図解でまとめました。おまけでVercelデプロイのつまずきも紹介します。",
     path: "apps/nextjs-vercel-deploy-story/",
