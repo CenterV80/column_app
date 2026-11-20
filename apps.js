@@ -475,6 +475,14 @@ const APPS = [
     category: "3d-ai",
   },
   {
+    name: "AIモデル生成（ブラウザ版）",
+    description: "作りたいものを文章で書くと、AIが四角ポリゴン主体のメッシュを組み立て、Nゴン・三角形の多さ・法線の向き・重複頂点などを検査して直させます。ブラウザだけで動き、FBX / OBJ / GLBで書き出せます。APIキーなしで試せる例つき。",
+    path: "apps/ai-modeler/",
+    date: "2026-11-20",
+    icon: "🪑",
+    category: "3d-ai",
+  },
+  {
     name: "Claude Code Remote Controlの安全な設定",
     description: "自分のPCのClaude Codeをスマホや別のPCから操作できるRemote Control。オンにする前に確認したい、組織の設定・自分のPCの設定・端末の管理・情報の扱いをチェックリストにまとめました。",
     path: "claude-code-remote-control-security.html",
