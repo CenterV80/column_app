@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AIモデル生成</title>
+<style>
+  :root {
+    --bg:#16181d; --panel:#1f2229; --line:#2e323b; --text:#e6e8ec; --sub:#9aa1ad;
+    --accent:#5b9dff; --ok:#4fc38a; --warn:#f0b54a; --ng:#ff6b6b;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--text);
+    font:14px/1.5 system-ui,"Hiragino Sans","Noto Sans JP",sans-serif; }
+  #app { display:grid; grid-template-columns:1fr 400px; height:100%; }
+  #view { position:relative; min-height:0; }
+  #view canvas { display:block; width:100%; height:100%; }
+  #tools { position:absolute; left:10px; top:10px; display:flex; gap:6px; }
+  #hint { position:absolute; left:10px; bottom:10px; font-size:12px; color:var(--sub); pointer-events:none; }
+  #side { background:var(--panel); border-left:1px solid var(--line); overflow:auto; }
+  section { padding:12px; border-bottom:1px solid var(--line); }
+  h2 { margin:0 0 8px; font-size:12px; color:var(--sub); font-weight:600; letter-spacing:.04em; }
+  textarea { width:100%; height:90px; background:#111318; color:var(--text); border:1px solid var(--line);
+    border-radius:6px; padding:8px; font:inherit; resize:vertical; }
+  .row { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+  button { background:#2a2f39; color:var(--text); border:1px solid var(--line); border-radius:6px;
+    padding:6px 12px; cursor:pointer; font:inherit; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.on { border-color:var(--accent); color:var(--accent); }
+  button:disabled { opacity:.45; cursor:default; }
+  label { color:var(--sub); font-size:12px; }
+  #progress { list-style:none; margin:0; padding:0; font-size:12px; }
+  #progress li { padding:2px 0; color:var(--sub); }
+  #progress li.ok { color:var(--ok); } #progress li.warn { color:var(--warn); } #progress li.ng { color:var(--ng); }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  td { padding:3px 0; border-bottom:1px solid var(--line); }
+  td:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+  td.bad { color:var(--ng); }
+  #problems { margin:8px 0 0; padding-left:18px; font-size:12px; color:var(--warn); }
+  details summary { cursor:pointer; color:var(--sub); font-size:12px; }
+  pre { white-space:pre; overflow:auto; max-height:320px; background:#111318; padding:8px; border-radius:6px;
+    font:11px/1.5 ui-monospace,Menlo,Consolas,monospace; }
+  .empty { color:var(--sub); font-size:12px; }
+  @media (max-width:800px) {
+    #app { grid-template-columns:1fr; grid-template-rows:55vh auto; height:auto; }
+    #side { border-left:0; border-top:1px solid var(--line); }
+  }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="app">
+  <div id="view">
+    <div id="tools">
+      <button id="tShade" class="on">シェード</button>
+      <button id="tWire" class="on">ワイヤー</button>
+      <button id="tFrame">全体表示</button>
+    </div>
+    <div id="hint">ドラッグ: 回転 ／ 右ドラッグ: 移動 ／ ホイール: ズーム</div>
+  </div>
+
+  <aside id="side">
+    <section>
+      <h2>作りたいもの</h2>
+      <textarea id="prompt" placeholder="例：木製のスツール。座面は直径35cmの円形で角を丸く、脚は4本で少し外に開く。高さ45cm"></textarea>
+      <div class="row">
+        <button id="make" class="primary">作る</button>
+        <label><input type="checkbox" id="useBase" disabled> 今の結果を元に手直し</label>
+      </div>
+    </section>
+
+    <section>
+      <h2>進み具合</h2>
+      <ul id="progress"><li class="empty">まだ何も作っていません</li></ul>
+    </section>
+
+    <section>
+      <h2>トポロジー</h2>
+      <div id="stats" class="empty">—</div>
+      <ul id="problems"></ul>
+    </section>
+
+    <section>
+      <h2>書き出し</h2>
+      <div class="row">
+        <button data-fmt="fbx" disabled>FBX</button>
+        <button data-fmt="obj" disabled>OBJ</button>
+        <button data-fmt="glb" disabled>GLB</button>
+      </div>
+    </section>
+
+    <section>
+      <details>
+        <summary>AIが書いたスクリプト</summary>
+        <pre id="code"></pre>
+      </details>
+    </section>
+  </aside>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const $ = id => document.getElementById(id);
+
+/* ---------------------------------------------------------------- three.js */
+const view = $('view');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(devicePixelRatio);
+view.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x16181d);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1000);
+camera.position.set(1.2, 1, 1.6);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x445066, 1.3));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.position.set(3, 6, 4);
+scene.add(sun);
+scene.add(new THREE.GridHelper(4, 40, 0x4a505c, 0x262a32));
+
+function resize() {
+  const w = view.clientWidth, h = view.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(view);
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+
+const loader = new GLTFLoader();
+let shaded = null, wire = null;
+let showShade = true, showWire = true;
+
+function dispose(obj) {
+  obj.traverse(o => {
+    o.geometry?.dispose();
+    const m = o.material;
+    (Array.isArray(m) ? m : m ? [m] : []).forEach(x => x.dispose());
+  });
+}
+
+async function loadResult(frame) {
+  if (shaded) { scene.remove(shaded); dispose(shaded); shaded = null; }
+  if (wire) { scene.remove(wire); dispose(wire); wire = null; }
+
+  const res = await fetch('/file/glb?t=' + Date.now());
+  if (res.status === 200) {
+    const gltf = await loader.parseAsync(await res.arrayBuffer(), '');
+    shaded = gltf.scene;
+    shaded.traverse(o => {
+      if (o.isMesh) {
+        o.material = new THREE.MeshStandardMaterial({
+          color: 0xb9bec8, roughness: .55, metalness: 0,
+          polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
+        });
+      }
+    });
+    shaded.visible = showShade;
+    scene.add(shaded);
+  }
+
+  // glTF は三角形に分割されてしまうので、ワイヤーは元の四角ポリゴンの辺をサーバーから受け取って描く
+  const pts = await (await fetch('/wire.json?t=' + Date.now())).json();
+  if (pts.length) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    wire = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x1b1e24, transparent: true, opacity: .85 }));
+    wire.visible = showWire;
+    scene.add(wire);
+  }
+  if (frame) frameAll();
+}
+
+function frameAll() {
+  const target = shaded || wire;
+  if (!target) return;
+  const box = new THREE.Box3().setFromObject(target);
+  if (box.isEmpty()) return;
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3()).length() || 1;
+  const dir = camera.position.clone().sub(controls.target).normalize();
+  controls.target.copy(center);
+  camera.position.copy(center).addScaledVector(dir, size * 1.3);
+  camera.near = size / 1000; camera.far = size * 100;
+  camera.updateProjectionMatrix();
+}
+
+function toggle(btn, key) {
+  btn.onclick = () => {
+    if (key === 'shade') { showShade = !showShade; if (shaded) shaded.visible = showShade; btn.classList.toggle('on', showShade); }
+    else { showWire = !showWire; if (wire) wire.visible = showWire; btn.classList.toggle('on', showWire); }
+  };
+}
+toggle($('tShade'), 'shade');
+toggle($('tWire'), 'wire');
+$('tFrame').onclick = frameAll;
+renderer.domElement.addEventListener('dblclick', frameAll);
+
+/* ---------------------------------------------------------------- 表示 */
+let currentCode = null;
+let framed = false;
+
+function addProgress(text, level = '') {
+  const ul = $('progress');
+  ul.querySelector('.empty')?.remove();
+  const li = document.createElement('li');
+  li.textContent = text;
+  if (level) li.className = level;
+  ul.append(li);
+}
+
+function showStats(s, problems) {
+  const rows = [
+    ['オブジェクト', s.objects], ['頂点', s.verts], ['面', s.faces],
+    ['四角形', s.quads], ['三角形', s.tris, s.faces && s.tris / s.faces > .1],
+    ['Nゴン', s.ngons, s.ngons > 0], ['非多様体の辺', s.bad_edges, s.bad_edges > 0],
+    ['開いている辺', s.boundary_edges], ['孤立頂点', s.loose_verts, s.loose_verts > 0],
+  ];
+  const pct = s.faces ? Math.round(s.quads / s.faces * 100) : 0;
+  $('stats').className = '';
+  $('stats').innerHTML = `<table>${rows.map(([k, v, bad]) =>
+    `<tr><td>${k}</td><td class="${bad ? 'bad' : ''}">${v.toLocaleString()}</td></tr>`).join('')}
+    <tr><td>四角形の割合</td><td>${pct}%</td></tr></table>`;
+  $('problems').innerHTML = (problems || []).map(p => `<li>${p.replace(/</g, '&lt;')}</li>`).join('');
+}
+
+function setBusy(b) {
+  $('make').disabled = b;
+  $('make').textContent = b ? '作っています…' : '作る';
+  $('useBase').disabled = b || !currentCode;
+}
+
+/* ---------------------------------------------------------------- 生成 */
+async function make() {
+  const prompt = $('prompt').value.trim();
+  if (!prompt) { $('prompt').focus(); return; }
+  setBusy(true);
+  $('progress').innerHTML = '';
+
+  const body = { prompt, base_code: $('useBase').checked ? currentCode : null };
+  let res;
+  try {
+    res = await fetch('/make', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+    });
+  } catch (e) {
+    addProgress('サーバーに接続できません: ' + e, 'ng');
+    setBusy(false);
+    return;
+  }
+
+  // 1行ずつ届く進捗を読む
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, i).trim();
+      buf = buf.slice(i + 1);
+      if (line) await handle(JSON.parse(line));
+    }
+  }
+  setBusy(false);
+}
+
+async function handle(e) {
+  if (e.type === 'status') addProgress(e.text, e.level);
+  if (e.type === 'preview' || e.type === 'done') {
+    if (e.type === 'done') addProgress(e.text, e.ok ? (e.problems?.length ? 'warn' : 'ok') : 'ng');
+    if (e.code) {
+      currentCode = e.code;
+      $('code').textContent = e.code;
+      showStats(e.stats, e.problems);
+      await loadResult(!framed);
+      framed = true;
+      document.querySelectorAll('[data-fmt]').forEach(b => b.disabled = false);
+    }
+  }
+}
+
+$('make').onclick = make;
+$('prompt').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); make(); }
+});
+document.querySelectorAll('[data-fmt]').forEach(b => {
+  b.onclick = () => { location.href = '/file/' + b.dataset.fmt; };
+});
+</script>
+</body>
+</html>
