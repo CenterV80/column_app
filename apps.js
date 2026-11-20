@@ -467,6 +467,14 @@ const APPS = [
     category: "3d-ai",
   },
   {
+    name: "AIモデル生成（bpy × three.js）",
+    description: "作りたいものを文章で書くと、AIがBlenderのbpyスクリプトを書き、GUIなしのBlenderで実行してトポロジーを検査、Nゴンや三角形が多ければ直させるローカルツールのソース一式。three.jsでワイヤー付きプレビューし、FBX / OBJ / GLBで書き出せます。",
+    path: "apps/bpy-ai-modeler/",
+    date: "2026-11-20",
+    icon: "🧱",
+    category: "3d-ai",
+  },
+  {
     name: "Claude Code Remote Controlの安全な設定",
     description: "自分のPCのClaude Codeをスマホや別のPCから操作できるRemote Control。オンにする前に確認したい、組織の設定・自分のPCの設定・端末の管理・情報の扱いをチェックリストにまとめました。",
     path: "claude-code-remote-control-security.html",

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AIモデル生成（bpy × three.js）</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--line:#e3e6eb;--text:#1d2129;--sub:#646b78;--accent:#2f6fde;--code:#14161b;--codetext:#e6e8ec}
+@media (prefers-color-scheme:dark){:root{--bg:#121418;--card:#1b1e24;--line:#2c3038;--text:#e6e8ec;--sub:#9aa1ad;--accent:#6aa5ff;--code:#0d0f12}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.7 system-ui,"Hiragino Sans","Noto Sans JP",sans-serif}
+main{max-width:960px;margin:0 auto;padding:28px 18px 60px}
+.back{font-size:13px;color:var(--accent);text-decoration:none}
+h1{font-size:22px;margin:0 0 4px;line-height:1.4}
+.lead{color:var(--sub);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:15px;margin:0 0 8px}
+ol,ul{margin:0;padding-left:20px}
+li{margin:2px 0}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}
+.flow span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.flow i{color:var(--sub);font-style:normal}
+code.inline{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:13px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:-1px;position:relative}
+.tab{border:1px solid var(--line);border-bottom:none;background:var(--bg);color:var(--sub);padding:8px 14px;border-radius:10px 10px 0 0;cursor:pointer;font:inherit;font-size:13px}
+.tab[aria-selected=true]{background:var(--code);color:var(--codetext);border-color:var(--code)}
+.viewer{background:var(--code);border-radius:0 12px 12px 12px;overflow:hidden}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #2a2e36;color:#9aa1ad;font-size:12px}
+.copy{background:#2a2f39;color:#e6e8ec;border:1px solid #3a404b;border-radius:6px;padding:4px 12px;cursor:pointer;font:inherit;font-size:12px}
+pre{margin:0;padding:14px;overflow:auto;max-height:70vh;color:var(--codetext);font:12.5px/1.6 ui-monospace,Menlo,Consolas,monospace;tab-size:4}
+.note{font-size:13px;color:var(--sub)}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="../../index.html">← トップに戻る</a>
+<h1>AIモデル生成（bpy × three.js）</h1>
+<p class="note"><em>公開: 2026-11-20</em></p>
+<p class="lead">「作りたいもの」を書くだけで、手作業でモデリングしたような四角ポリゴン主体のメッシュを作り、FBX / OBJ / GLB で受け取るホビー用ツールのソース一式です。</p>
+
+<div class="card">
+<h2>仕組み</h2>
+<div class="flow"><span>作りたいもの</span><i>→</i><span>AIがbpyスクリプトを書く</span><i>→</i><span>Blender（GUIなし）で実行</span><i>→</i><span>トポロジー検査</span><i>→</i><span>問題があれば直させる（最大4回）</span><i>→</i><span>three.jsでプレビュー＋書き出し</span></div>
+</div>
+
+<div class="card">
+<h2>動かし方</h2>
+<ol>
+<li>このフォルダ（<code class="inline">apps/bpy-ai-modeler/</code>）をリポジトリから取得するか、下のタブから4つのファイルをコピーして同じ構成で保存（<code class="inline">index.html</code> は <code class="inline">static/</code> フォルダの中）</li>
+<li>bpy に対応する Python で仮想環境を作り、<code class="inline">pip install -r requirements.txt</code></li>
+<li>環境変数 <code class="inline">ANTHROPIC_API_KEY</code> を設定して <code class="inline">python server.py</code></li>
+<li>ブラウザで <code class="inline">http://127.0.0.1:8000</code> を開く</li>
+</ol>
+<p class="note">Blender を自分の PC で動かすツールなので、このページ上では実行できません。詳しくは README.md タブを見てください。</p>
+</div>
+
+<div class="tabs" role="tablist" id="tabs"></div>
+<div class="viewer">
+<div class="bar"><span id="meta"></span><button class="copy" id="copy">コピー</button></div>
+<pre><code id="code"></code></pre>
+</div>
+</main>
+<script>
+const files=[
+  {name:"server.py",lang:"Python"},
+  {name:"static/index.html",lang:"HTML"},
+  {name:"requirements.txt",lang:"Text"},
+  {name:"README.md",lang:"Markdown"},
+];
+const tabs=document.getElementById('tabs'),codeEl=document.getElementById('code'),meta=document.getElementById('meta'),copyBtn=document.getElementById('copy');
+let cur=0;
+async function load(f){
+  if(f.code==null){
+    try{const r=await fetch(f.name);if(!r.ok)throw new Error(r.status);f.code=await r.text();}
+    catch(e){return '読み込めませんでした（'+e.message+'）';}
+  }
+  return f.code;
+}
+async function show(i){
+  cur=i;
+  [...tabs.children].forEach((t,j)=>t.setAttribute('aria-selected',j===i));
+  const f=files[i];
+  codeEl.textContent='読み込み中…';
+  const text=await load(f);
+  if(cur!==i)return;
+  codeEl.textContent=text;
+  meta.textContent=f.code!=null?`${f.name} ・ ${f.lang} ・ ${f.code.split('\n').length} 行`:f.name;
+  copyBtn.textContent='コピー';
+}
+files.forEach((f,i)=>{
+  const b=document.createElement('button');
+  b.className='tab';b.setAttribute('role','tab');b.textContent=f.name;b.onclick=()=>show(i);
+  tabs.append(b);
+});
+copyBtn.onclick=async()=>{
+  const f=files[cur];if(f.code==null)return;
+  try{await navigator.clipboard.writeText(f.code);copyBtn.textContent='コピーしました';}
+  catch{
+    const r=document.createRange();r.selectNodeContents(codeEl);
+    const s=getSelection();s.removeAllRanges();s.addRange(r);
+    copyBtn.textContent='選択したのでコピーしてください';
+  }
+};
+show(0);
+</script>
+</body>
+</html>
