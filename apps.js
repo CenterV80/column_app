@@ -471,15 +471,8 @@ const APPS = [
     description: "Blender（GUIなし）を持ったローカルサーバーを起動し、Claude CodeなどのAIにMCPで操作させてモデルを作るツールのソース一式。APIキーは不要。AIがbpyスクリプトを実行し、トポロジー検査と絵を見ながら自分で直します。結果はthree.jsのビューアーに出て、FBX / OBJ / GLBで書き出せます。",
     path: "apps/bpy-ai-modeler/",
     date: "2026-11-20",
+    updated: "2026-11-21",
     icon: "🧱",
-    category: "3d-ai",
-  },
-  {
-    name: "AIモデル生成（ブラウザ版）",
-    description: "作りたいものを文章で書くと、AIが四角ポリゴン主体のメッシュを組み立て、Nゴン・三角形の多さ・法線の向き・重複頂点などを検査して直させます。ブラウザだけで動き、FBX / OBJ / GLBで書き出せます。APIキーなしで試せる例つき。",
-    path: "apps/ai-modeler/",
-    date: "2026-11-20",
-    icon: "🪑",
     category: "3d-ai",
   },
   {
