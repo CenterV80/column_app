@@ -50,10 +50,15 @@ pre{margin:0;padding:14px;overflow:auto;max-height:70vh;color:var(--codetext);fo
 <h2>動かし方</h2>
 <ol>
 <li><code class="inline">git clone https://github.com/CenterV80/bpy-ai-modeler.git</code> で取得する（git を使わないなら、リポジトリの「Code」→「Download ZIP」）</li>
-<li>bpy に対応する Python（bpy 5.3 なら 3.13）で仮想環境を作り、<code class="inline">pip install -r requirements.txt</code></li>
-<li><code class="inline">python server.py</code> で起動し、ブラウザで <code class="inline">http://127.0.0.1:8000</code> を開く（ビューアー）</li>
-<li>Claude Code で一度だけ <code class="inline">claude mcp add --transport http bpy-modeler http://127.0.0.1:8000/mcp</code></li>
-<li>Claude Code に「bpy-modeler で木製のスツールを作って」のように頼む</li>
+<li><a href="https://docs.astral.sh/uv/">uv</a> を入れる（bpy 5.3 が必要とする Python 3.13 も uv が用意する）</li>
+<li>Windows は <code class="inline">start.bat</code> をダブルクリック。初回は環境づくりまで自動で行い、ブラウザでビューアーが開く</li>
+<li>AI をつなぐ（どちらか片方）
+  <ul>
+  <li>Claude Code：一度だけ <code class="inline">claude mcp add --transport http bpy-modeler http://127.0.0.1:8000/mcp</code></li>
+  <li>Claude Desktop：一度だけ <code class="inline">.venv\Scripts\python.exe setup_claude_desktop.py</code> を実行し、アプリを再起動（サーバーはアプリが起動するので、3で開いた start.bat は Ctrl+C で止めておく）</li>
+  </ul>
+</li>
+<li>「bpy-modeler で木製のスツールを作って」のように頼む</li>
 </ol>
 <p class="note">Blender を自分の PC で動かすツールなので、このページ上では実行できません。Claude Desktop からつなぐ方法や、AI が使える道具（run_script / render など）は README.md タブを見てください。</p>
 </div>
@@ -72,6 +77,8 @@ const files=[
   {name:"static/index.html",lang:"HTML"},
   {name:"requirements.txt",lang:"Text"},
   {name:"README.md",lang:"Markdown"},
+  {name:"start.bat",lang:"Batch"},
+  {name:"setup_claude_desktop.py",lang:"Python"},
 ];
 const tabs=document.getElementById('tabs'),codeEl=document.getElementById('code'),meta=document.getElementById('meta'),copyBtn=document.getElementById('copy');
 let cur=0;
