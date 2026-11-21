@@ -36,22 +36,23 @@ pre{margin:0;padding:14px;overflow:auto;max-height:70vh;color:var(--codetext);fo
 <a class="back" href="../../index.html">← トップに戻る</a>
 <h1>AIモデル生成（bpy × three.js）</h1>
 <p class="note"><em>公開: 2026-11-20</em></p>
-<p class="lead">「作りたいもの」を書くだけで、手作業でモデリングしたような四角ポリゴン主体のメッシュを作り、FBX / OBJ / GLB で受け取るホビー用ツールのソース一式です。</p>
+<p class="lead">Blender（GUIなし）を持ったローカルサーバーを自分のPCで起動し、Claude Code などのAIに操作させて、手作業でモデリングしたような四角ポリゴン主体のメッシュを作り、FBX / OBJ / GLB で受け取るホビー用ツールのソース一式です。Claude の APIキーは使いません。</p>
 
 <div class="card">
 <h2>仕組み</h2>
-<div class="flow"><span>作りたいもの</span><i>→</i><span>AIがbpyスクリプトを書く</span><i>→</i><span>Blender（GUIなし）で実行</span><i>→</i><span>トポロジー検査</span><i>→</i><span>問題があれば直させる（最大4回）</span><i>→</i><span>three.jsでプレビュー＋書き出し</span></div>
+<div class="flow"><span>Claude Code に頼む</span><i>→</i><span>AIがbpyスクリプトを書く</span><i>→</i><span>ローカルサーバー（MCP）のBlenderで実行</span><i>→</i><span>トポロジー検査・絵で確認</span><i>→</i><span>AIが自分で直す</span><i>→</i><span>three.jsのビューアーに表示＋書き出し</span></div>
 </div>
 
 <div class="card">
 <h2>動かし方</h2>
 <ol>
 <li>このフォルダ（<code class="inline">apps/bpy-ai-modeler/</code>）をリポジトリから取得するか、下のタブから4つのファイルをコピーして同じ構成で保存（<code class="inline">index.html</code> は <code class="inline">static/</code> フォルダの中）</li>
-<li>bpy に対応する Python で仮想環境を作り、<code class="inline">pip install -r requirements.txt</code></li>
-<li>環境変数 <code class="inline">ANTHROPIC_API_KEY</code> を設定して <code class="inline">python server.py</code></li>
-<li>ブラウザで <code class="inline">http://127.0.0.1:8000</code> を開く</li>
+<li>bpy に対応する Python（bpy 5.3 なら 3.13）で仮想環境を作り、<code class="inline">pip install -r requirements.txt</code></li>
+<li><code class="inline">python server.py</code> で起動し、ブラウザで <code class="inline">http://127.0.0.1:8000</code> を開く（ビューアー）</li>
+<li>Claude Code で一度だけ <code class="inline">claude mcp add --transport http bpy-modeler http://127.0.0.1:8000/mcp</code></li>
+<li>Claude Code に「bpy-modeler で木製のスツールを作って」のように頼む</li>
 </ol>
-<p class="note">Blender を自分の PC で動かすツールなので、このページ上では実行できません。詳しくは README.md タブを見てください。</p>
+<p class="note">Blender を自分の PC で動かすツールなので、このページ上では実行できません。Claude Desktop からつなぐ方法や、AI が使える道具（run_script / render など）は README.md タブを見てください。</p>
 </div>
 
 <div class="tabs" role="tablist" id="tabs"></div>
