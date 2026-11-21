@@ -483,4 +483,12 @@ const APPS = [
     icon: "🔐",
     category: "ai-coding",
   },
+  {
+    name: "AIにDCCを操作させるなら「ラッパー」を作る",
+    description: "BlenderのbpyやMayaをAIに操作させるとき、生のAPIを書かせるより、よく使う操作をまとめたラッパーを用意すると速くトークンも減ります。bpyの概要とライセンス、ラッパーの作り方、大量の関数を1つの窓口で呼ぶ方法、Maya MCPとの組み合わせ方、AIにラッパーの存在を知らせる方法をまとめました。",
+    path: "dcc-ai-wrapper-library.html",
+    date: "2026-11-21",
+    icon: "🧩",
+    category: "maya",
+  },
 ];
