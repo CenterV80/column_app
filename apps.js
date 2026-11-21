@@ -468,7 +468,7 @@ const APPS = [
   },
   {
     name: "AIモデル生成（bpy × three.js）",
-    description: "Blender（GUIなし）を持ったローカルサーバーを起動し、Claude CodeなどのAIにMCPで操作させてモデルを作るツールのソース一式。APIキーは不要。AIがbpyスクリプトを実行し、トポロジー検査と絵を見ながら自分で直します。結果はthree.jsのビューアーに出て、FBX / OBJ / GLBで書き出せます。",
+    description: "Blender（GUIなし）を持ったローカルサーバーを起動し、Claude CodeなどのAIにMCPで操作させてモデルを作るツールのソース一式。APIキーは不要。AIがbpyスクリプトを実行し、トポロジー検査と絵を見ながら自分で直します。結果はthree.jsのビューアーに出て、FBX / OBJ / GLB / STLで書き出せます。部品ごとの図鑑（線画の等角図・三面図・部品表）も描けます。",
     path: "apps/bpy-ai-modeler/",
     date: "2026-11-20",
     updated: "2026-11-21",
