@@ -37,7 +37,7 @@ pre{margin:0;padding:14px;overflow:auto;max-height:70vh;color:var(--codetext);fo
 <main>
 <a class="back" href="../../index.html">← トップに戻る</a>
 <h1>AIモデル生成（bpy × three.js）</h1>
-<p class="note"><em>公開: 2026-11-20 ／ 更新: 2026-11-21（APIキーを使わず、ローカルサーバーをAIに操作させる形に作り直し。部品の関数・ミリ単位の図面・図鑑のページを追加）</em></p>
+<p class="note"><em>公開: 2026-11-20 ／ 更新: 2026-11-21（APIキーを使わず、ローカルサーバーをAIに操作させる形に作り直し。部品の関数・ミリ単位の図面・図鑑のページ・断面図・実物どおりの機械部品を追加）</em></p>
 <p class="lead">Blender（GUIなし）を持ったローカルサーバーを自分のPCで起動し、Claude Code などのAIに操作させて、手作業でモデリングしたような四角ポリゴン主体のメッシュを作り、FBX / OBJ / GLB / STL（ミリ）で受け取るホビー用ツールのソース一式です。Claude の APIキーは使いません。</p>
 <a class="repo" href="https://github.com/CenterV80/bpy-ai-modeler">GitHub リポジトリを開く（CenterV80/bpy-ai-modeler）</a>
 
@@ -53,7 +53,9 @@ pre{margin:0;padding:14px;overflow:auto;max-height:70vh;color:var(--codetext);fo
 <li><strong>検査</strong>：Nゴン・三角形の割合・法線の向きなどのトポロジーと、浮いている部品・宣言した寸法との違いを、実行のたびに数字で返す。AI はそれを見て自分で直す</li>
 <li><strong>ミリ単位の図面</strong>：<code class="inline">qm.units("mm")</code> で報告をミリに。正投影の絵に方眼を付けて AI に返し、ビューアーでも座標の表示と 2 点間の計測ができる</li>
 <li><strong>図鑑のページ</strong>：<code class="inline">qm.catalog(...)</code> で登録した部品ごとに、線画の等角図（引き出し線つき）・寸法線つきの三面図・部品表を 1 枚ずつ描く。印刷すると 1 項目 1 ページ</li>
-<li><strong>F1 の部品の関数（f1）</strong>：2026 年規定の公表値（ホイールベース・タイヤ寸法など）と推定値で作る、車体以外のシャシーの部品一式。作例では 1,443 部品を組み立て、40 項目の図鑑を描く</li>
+<li><strong>断面図</strong>：ビューアーの「断面」で X / Y / Z の平面を動かして切り、切り口を斜線で塗る。図鑑にも <code class="inline">section="X"</code> で断面図を足せる（部品ごとに斜線の向きを変え、境目に線を引く）</li>
+<li><strong>実物どおりの機械部品</strong>：<code class="inline">qm.cut</code> / <code class="inline">qm.union</code>（ブーリアン）で、鋳物の中の通路や軸の穴まであける。<code class="inline">qm.cad()</code> で四角ポリゴンの検査を外す</li>
+<li><strong>F1 の部品の関数（f1）</strong>：2026 年規定の公表値（ホイールベース・タイヤ寸法・クランクの高さなど）と推定値で作る、車体以外のシャシーの部品一式。エンジンとギアボックスは実物と同じ部品の分け方（ブロックのボアやウォータージャケット、ピストンリング、デフの中のギアまで）。作例では 1,896 部品を組み立て、断面図を含む 43 項目の図鑑を描く</li>
 </ul>
 <p class="note">F1 の部品は、公表値で確かめられた寸法以外（部品の位置など）は推定です。特定のチームの車体ではありません。</p>
 </div>
@@ -93,6 +95,7 @@ const files=[
   {name:"setup_claude_desktop.py",lang:"Python"},
   {name:"qm.py",lang:"Python"},
   {name:"f1.py",lang:"Python"},
+  {name:"f1_engine.py",lang:"Python"},
   {name:"static/catalog.html",lang:"HTML"},
   {name:"skills/bpy-modeling/SKILL.md",lang:"Markdown"},
   {name:"skills/bpy-modeling/examples/f1_chassis_catalog_mm.py",lang:"Python"},
