@@ -37,7 +37,7 @@ pre{margin:0;padding:14px;overflow:auto;max-height:70vh;color:var(--codetext);fo
 <main>
 <a class="back" href="../../index.html">← トップに戻る</a>
 <h1>AIモデル生成（bpy × three.js）</h1>
-<p class="note"><em>公開: 2026-11-20 ／ 更新: 2026-11-21（APIキーを使わず、ローカルサーバーをAIに操作させる形に作り直し。部品の関数・ミリ単位の図面・図鑑のページ・断面図・実物どおりの機械部品・すべての継ぎ目の留め具と箱の中身を追加）</em></p>
+<p class="note"><em>公開: 2026-11-20 ／ 更新: 2026-11-22（APIキーを使わず、ローカルサーバーをAIに操作させる形に作り直し。部品の関数・ミリ単位の図面・図鑑のページ・断面図・実物どおりの機械部品を追加。F1 の部品集と作例を本体から分け、外の部品集を --lib で読み込む形に）</em></p>
 <p class="lead">Blender（GUIなし）を持ったローカルサーバーを自分のPCで起動し、Claude Code などのAIに操作させて、手作業でモデリングしたような四角ポリゴン主体のメッシュを作り、FBX / OBJ / GLB / STL（ミリ）で受け取るホビー用ツールのソース一式です。Claude の APIキーは使いません。</p>
 <a class="repo" href="https://github.com/CenterV80/bpy-ai-modeler">GitHub リポジトリを開く（CenterV80/bpy-ai-modeler）</a>
 
@@ -55,10 +55,9 @@ pre{margin:0;padding:14px;overflow:auto;max-height:70vh;color:var(--codetext);fo
 <li><strong>図鑑のページ</strong>：<code class="inline">qm.catalog(...)</code> で登録した部品ごとに、線画の等角図（引き出し線つき）・寸法線つきの三面図・部品表を 1 枚ずつ描く。印刷すると 1 項目 1 ページ</li>
 <li><strong>断面図</strong>：ビューアーの「断面」で X / Y / Z の平面を動かして切り、切り口を斜線で塗る。図鑑にも <code class="inline">section="X"</code> で断面図を足せる（部品ごとに斜線の向きを変え、境目に線を引く）</li>
 <li><strong>実物どおりの機械部品</strong>：<code class="inline">qm.cut</code> / <code class="inline">qm.union</code>（ブーリアン）で、鋳物の中の通路や軸の穴まであける。<code class="inline">qm.cad()</code> で四角ポリゴンの検査を外す</li>
-<li><strong>留め具（f1.fasten）</strong>：継ぎ目ごとにボルト・ナット・座金・スペーサーを置き、相手の部品に穴をあける。ロッドエンドは二股の金具（クレビス）で受ける。同じ寸法の留め具は形のデータを共有するので、何千本置いても軽い</li>
-<li><strong>F1 の部品の関数（f1）</strong>：2026 年規定の公表値（ホイールベース・タイヤ寸法・クランクの高さなど）と推定値で作る、車体以外のシャシーの部品一式。エンジンとギアボックスは実物と同じ部品の分け方（ブロックのボアやウォータージャケット、ピストンリング、デフの中のギアまで）。センサーと配線の枝、燃料タンク・電池・インバーター・基板・ラジエーターのコアの中身も作る。サバイバルセルはカーボンの皮でハニカムをはさんだ 3 層の壁と隔壁・防護パネル・取り付け部のインサートまで作り、管と配線はほかの部品をよけて通す。作例では 4,798 部品（ボルト 589 本・ナット 139 個・電池のセル 332 枚を含む）を組み立て、断面図 9 枚を含む 50 項目の図鑑を描く</li>
+<li><strong>部品集を足す（--lib）</strong>：自分で書いた部品の関数のまとまりをフォルダごと読み込み、スクリプトの中で名前のまま使える（例：<code class="inline">f1.py</code> → <code class="inline">f1</code>）。AI は <code class="inline">lib_help</code> で説明を読む。Claude Desktop の登録にも <code class="inline">--lib</code> で渡せる</li>
 </ul>
-<p class="note">F1 の部品は、公表値で確かめられた寸法以外（部品の位置、センサーの位置、箱の中の作りなど）は推定です。特定のチームの車体ではありません。車体（カウル・ウイング・フロア）は作っていません。</p>
+<p class="note">これまで本体に入れていた F1 の部品集と作例（車体を除くシャシーの部品・すべての継ぎ目の留め具・図鑑）は、ソフト本体から分けて別のリポジトリで作業しています。本体は、それを <code class="inline">--lib</code> で読み込む形にしました。</p>
 </div>
 
 <div class="card">
@@ -95,12 +94,9 @@ const files=[
   {name:"start.bat",lang:"Batch"},
   {name:"setup_claude_desktop.py",lang:"Python"},
   {name:"qm.py",lang:"Python"},
-  {name:"f1.py",lang:"Python"},
-  {name:"f1_engine.py",lang:"Python"},
-  {name:"f1_fasten.py",lang:"Python"},
   {name:"static/catalog.html",lang:"HTML"},
   {name:"skills/bpy-modeling/SKILL.md",lang:"Markdown"},
-  {name:"skills/bpy-modeling/examples/f1_chassis_catalog_mm.py",lang:"Python"},
+  {name:"skills/bpy-modeling/examples/mechanical_parts.py",lang:"Python"},
 ];
 const tabs=document.getElementById('tabs'),codeEl=document.getElementById('code'),meta=document.getElementById('meta'),copyBtn=document.getElementById('copy');
 let cur=0;
