@@ -371,6 +371,14 @@ const APPS = [
     category: "minimax-h3",
   },
   {
+    name: "H3 Studio 環境構築マニュアル：MiniMax H3をローカル生成サーバーにして、スマホや別のAIから依頼する",
+    description: "ComfyUIをAPIサーバーとして動かし、MiniMax H3（動画）とH3-Image（画像）をPythonから生成。ClaudeのArtifactで作った依頼キューから、スマホや別のClaudeセッションの依頼を生成PCが順に処理する構成を、モデル・起動・セキュリティの決まり・実測値までまとめました。",
+    path: "minimax-h3-studio-setup.html",
+    date: "2026-11-25",
+    icon: "🎛️",
+    category: "minimax-h3",
+  },
+  {
     name: "npm audit の使い方",
     description: "npm auditで既知の脆弱性を検出し、npm audit fixで修正する基本コマンドと注意点をまとめました。",
     path: "npm-audit-guide.html",
